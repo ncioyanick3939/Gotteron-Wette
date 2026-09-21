@@ -96,6 +96,15 @@ function setupEvents(){
   const lbBtn=$('lb-open-btn'); if(lbBtn) lbBtn.addEventListener('click',()=>$('lb-modal').classList.add('show'));
   const lbClose=$('lb-close'); if(lbClose) lbClose.addEventListener('click',()=>$('lb-modal').classList.remove('show'));
   const lbModal=$('lb-modal'); if(lbModal) lbModal.addEventListener('click',e=>{if(e.target===lbModal)lbModal.classList.remove('show')});
+  const resetBtn=$('reset-konto'); if(resetBtn) resetBtn.addEventListener('click',resetKonto);
+}
+
+async function resetKonto(){
+  if(!confirm('Bierkässeli uf 0 zruggsetze? (Nur bi Test-Fehler!)'))return;
+  try{
+    await setDoc(doc(db,'meta','konto'),{total:0});
+    toast('Bierkässeli zruggsetzt');
+  }catch(e){toast('Fehler: '+e.message)}
 }
 
 // Setup as soon as possible
