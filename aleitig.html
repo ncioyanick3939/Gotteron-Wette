@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aleitig · Gottéron Spielette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0d13;--surface:#12161f;--card:#181d29;--border:#252c3b;
+  --text:#eef0f4;--muted:#8892a8;--accent:#e52535;--accent2:#ff3a4a;
+  --green:#22c55e;--gold:#f5b731;--purple:#a78bfa;
+}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;line-height:1.6;padding-bottom:60px}
+
+.hero{background:linear-gradient(135deg,#1a0a0e,#0a0d13);padding:60px 20px 50px;text-align:center;border-bottom:3px solid var(--accent);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(229,37,53,.25),transparent);pointer-events:none}
+.hero-content{position:relative;z-index:1;max-width:600px;margin:0 auto}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;letter-spacing:3px;line-height:1;margin-bottom:8px}
+.hero h1 .red{color:var(--accent2)}
+.hero .subtitle{color:var(--muted);font-size:1.05rem;margin-bottom:24px}
+.hero-cta{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:14px 32px;border-radius:12px;text-decoration:none;font-weight:800;font-size:1rem;box-shadow:0 8px 25px rgba(229,37,53,.4);transition:transform .15s}
+.hero-cta:hover{transform:translateY(-2px)}
+
+.container{max-width:720px;margin:0 auto;padding:0 20px}
+
+.section-h{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px;margin:40px 0 20px;color:var(--text);display:flex;align-items:center;gap:12px}
+.section-h .num{width:40px;height:40px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:12px}
+.card h3{font-size:1.05rem;font-weight:700;margin-bottom:8px;color:var(--text)}
+.card p{color:#c8ceda;font-size:.95rem}
+.card p+p{margin-top:8px}
+.card strong{color:var(--text);font-weight:700}
+
+.step-list{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.step{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start}
+.step-num{background:var(--surface);color:var(--accent);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1.2rem;flex-shrink:0;border:2px solid var(--accent)}
+.step-body{flex:1}
+.step-title{font-weight:700;margin-bottom:3px;font-size:.98rem}
+.step-desc{color:var(--muted);font-size:.88rem}
+
+.rules-grid{display:grid;grid-template-columns:1fr;gap:12px;margin:16px 0}
+.rule{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start}
+.rule-icon{font-size:1.8rem;line-height:1;flex-shrink:0}
+.rule-body{flex:1}
+.rule-title{font-weight:800;margin-bottom:4px}
+.rule-desc{color:var(--muted);font-size:.88rem;line-height:1.5}
+
+.example-box{background:linear-gradient(135deg,#0f1a12,#0c1a15);border:1px solid var(--green);border-radius:12px;padding:18px 20px;margin:12px 0}
+.example-box .label{font-size:.72rem;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.example-box .line{display:flex;justify-content:space-between;padding:6px 0;font-size:.92rem;border-bottom:1px dashed rgba(34,197,94,.2)}
+.example-box .line:last-child{border-bottom:none;font-weight:700;padding-top:10px}
+.example-box .line b{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:1px}
+.example-box .green{color:var(--green)}
+.example-box .gold{color:var(--gold)}
+
+.split-visual{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;margin:16px 0}
+.split-half{background:var(--card);padding:22px 16px;text-align:center}
+.split-half .amount{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;line-height:1;letter-spacing:1px}
+.split-half.jackpot .amount{color:var(--accent2)}
+.split-half.kaesseli .amount{color:var(--gold)}
+.split-half .caption{color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:1px;margin-top:6px;font-weight:700}
+.split-half .sub{color:var(--muted);font-size:.75rem;margin-top:3px}
+
+.badge-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.badge-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;display:flex;align-items:center;gap:8px}
+.badge-item .emoji{font-size:1.2rem}
+
+.tip{background:rgba(245,183,49,.08);border:1px solid rgba(245,183,49,.3);border-radius:10px;padding:14px 18px;margin:16px 0;color:#e8d4a0;font-size:.9rem}
+.tip strong{color:var(--gold)}
+
+.footer{text-align:center;margin-top:50px;padding:30px 20px;color:var(--muted);font-size:.85rem}
+.footer .chant{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--accent2);letter-spacing:2px;margin-bottom:6px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-content">
+    <h1>GOTTÉRON <span class="red">SPIELETTE</span></h1>
+    <div class="subtitle">D'Aleitig für alli, wo mitmache wend</div>
+    <a href="https://ncioyanick3939.github.io/Gotteron-Wette/" class="hero-cta">Zur App gah →</a>
+  </div>
+</div>
+
+<div class="container">
+
+<div class="section-h"><div class="num">1</div>Registriere & Iilogge</div>
+
+<div class="step-list">
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">Öffne d'App</div>
+      <div class="step-desc">Klick uf dr Link obe – oder bookmark dini Siite fürs schnälli Wiederkeh.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">Klick uf "Registriere"</div>
+      <div class="step-desc">Bim erschte Mal muesch en Account erstelle. Klick dr rechti Tab.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">Fill dini Date ii</div>
+      <div class="step-desc">Dis <strong>Name</strong> (so gsehnd's alli), dini <strong>Email</strong> und es <strong>Passwort</strong> (mindestens 6 Zeiche).</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <div class="step-title">Fertig!</div>
+      <div class="step-desc">Ab jetzt loggsch di eifach mit Email + Passwort ii. Uf jedem Handy oder Computer.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-h"><div class="num">2</div>D'Regle vom Spiel</div>
+
+<div class="rules-grid">
+  <div class="rule">
+    <div class="rule-icon">💸</div>
+    <div class="rule-body">
+      <div class="rule-title">1 Wett = 5 Franke</div>
+      <div class="rule-desc">Jedi Wett choschtet dich 5 Fr. Chasch bi jedem Spiel <strong>so viel Wette mache wie du wottsch</strong>. Jedi mit em eigete Resultat-Tipp.</div>
+    </div>
+  </div>
+  <div class="rule">
+    <div class="rule-icon">🎯</div>
+    <div class="rule-body">
+      <div class="rule-title">Jedes Spiel het en eigete Jackpot</div>
+      <div class="rule-desc">Dr Jackpot wachst mit jedere Wett. Jede gseht live wie viel drin isch und wär gwettet het.</div>
+    </div>
+  </div>
+  <div class="rule">
+    <div class="rule-icon">🏆</div>
+    <div class="rule-body">
+      <div class="rule-title">Dr CEO bestimmt d'Gwünner</div>
+      <div class="rule-desc">Nach em Spiel git dr CEO ii, wär richtig tippt het. D'App teilt automatisch us.</div>
+    </div>
+  </div>
+  <div class="rule">
+    <div class="rule-icon">🍻</div>
+    <div class="rule-body">
+      <div class="rule-title">Bierkässeli fürs Saisonändi</div>
+      <div class="rule-desc">D'Hälfti vo jedere Wett gaht is Bierkässeli. Am Ändi vo dr Saison gö mir zäme eis go trinke.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-h"><div class="num">3</div>Wie ds Gäud ufteilt wird</div>
+
+<div class="card">
+  <p>Bi jedere 5 Fr. Wett gaht sofort:</p>
+</div>
+
+<div class="split-visual">
+  <div class="split-half jackpot">
+    <div class="amount">2.50<span style="font-size:1rem;margin-left:3px;opacity:.6">Fr.</span></div>
+    <div class="caption">Jackpot</div>
+    <div class="sub">für Gwünner</div>
+  </div>
+  <div class="split-half kaesseli">
+    <div class="amount">2.50<span style="font-size:1rem;margin-left:3px;opacity:.6">Fr.</span></div>
+    <div class="caption">Bierkässeli</div>
+    <div class="sub">saison-Ändi 🍻</div>
+  </div>
+</div>
+
+<div class="example-box">
+  <div class="label">Bispiel · 4 Lüt wette</div>
+  <div class="line"><span>4 × 5 Fr. Wette</span><b>20 Fr.</b></div>
+  <div class="line"><span class="green">→ Jackpot (½)</span><b class="green">10 Fr.</b></div>
+  <div class="line"><span class="gold">→ Bierkässeli (½)</span><b class="gold">10 Fr.</b></div>
+</div>
+
+<div class="card">
+  <h3>Am Schluss vom Spiel:</h3>
+  <p><strong>1 Gwünner</strong> → er überchunnt dr ganzi Jackpot (10 Fr.)</p>
+  <p><strong>Mehreri Gwünner</strong> → dr Jackpot wird ufteilt (z.B. 2 Gwünner = je 5 Fr.)</p>
+  <p><strong>Kein Gwünner</strong> → dr Jackpot gaht au is Bierkässeli</p>
+</div>
+
+<div class="tip">
+  <strong>💡 Wichtig:</strong> Wenn du verlorsch, muesch du <strong>2.50 Fr. direkt via Twint</strong> an dr Gwünner zahle. D'App zeigt dir gnau, wär und wie viel!
+</div>
+
+<div class="section-h"><div class="num">4</div>Achievements verdiene</div>
+
+<div class="card">
+  <p>Je meh du mitmachsch, deschto meh Symbol chunnsch näbe dim Name i dr Rangliste:</p>
+</div>
+
+<div class="badge-list">
+  <div class="badge-item"><span class="emoji">🏆</span><span><strong>10 Wette</strong> gmacht</span></div>
+  <div class="badge-item"><span class="emoji">👑</span><span><strong>Ranglisten-Erschti</strong></span></div>
+  <div class="badge-item"><span class="emoji">🍀</span><span><strong>3 Sieg</strong> oder meh</span></div>
+  <div class="badge-item"><span class="emoji">🎯</span><span><strong>Alli Wette gwunne</strong></span></div>
+  <div class="badge-item"><span class="emoji">🔥</span><span><strong>25 Wette</strong> gmacht</span></div>
+  <div class="badge-item"><span class="emoji">💰</span><span><strong>Positive Bilanz</strong></span></div>
+</div>
+
+<div class="section-h"><div class="num">5</div>Was gsehsch du wo?</div>
+
+<div class="step-list">
+  <div class="step">
+    <div class="step-num">🎯</div>
+    <div class="step-body">
+      <div class="step-title">Jackpot obe links</div>
+      <div class="step-desc">Alli Jackpot-Töpf vo allne offene Spiel zäme.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">🍻</div>
+    <div class="step-body">
+      <div class="step-title">Bierkässeli obe rechts</div>
+      <div class="step-desc">Ds gsammlete Gäud fürs Saisonändi. Wachst mit jedere Wett.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">📊</div>
+    <div class="step-body">
+      <div class="step-title">Rangliste-Knopf</div>
+      <div class="step-desc">Klick "Rangliste" i dr Nav-Leischte obe → gsehsch alli Spieler mit Sieg, Wette und Bilanz.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">🏒</div>
+    <div class="step-body">
+      <div class="step-title">Offeni Spiel</div>
+      <div class="step-desc">Alli aktuelle Spiel wo du chasch dra wette. Quick-Tipps (3:1, 4:2 etc.) für schnälli Wette.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">📋</div>
+    <div class="step-body">
+      <div class="step-title">Abgschlossni Spiel</div>
+      <div class="step-desc">Historie vo allne Spiel mit Gwünner, Jackpot-Verteilig und Bierkässeli-Zueträg.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-h"><div class="num">6</div>Nach em Spiel</div>
+
+<div class="card">
+  <h3>Twint-Mäldig obe uf dr Siite</h3>
+  <p>Sobald dr CEO es Spiel abschliesst, gsehsch du automatisch e Mäldig obe:</p>
+  <p><strong>🏆 Gwunne?</strong> → Du gsehsch, vo wäm du wie viel per Twint übercho sotsch.</p>
+  <p><strong>💸 Verlore?</strong> → Du gsehsch, wäm du wie viel per Twint schuldsch.</p>
+  <p>Klick uf ds × zum Mäldig wäghole wenn erledigt.</p>
+</div>
+
+<div class="footer">
+  <div class="chant">HOPP GOTTÉRON! 🔴⚪</div>
+  Möge dr Glücklichschti gwünne – und dr Rescht vo üs wieder z'viel wette 😂
+</div>
+
+</div>
+
+</body>
+</html>
