@@ -98,6 +98,21 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ou
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:8px;font-size:.85rem;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:60;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* TWINT NOTIFICATIONS */
+.notifs{margin:0 16px}
+.notif{border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;position:relative}
+.notif.pay{background:linear-gradient(135deg,#1a1028,#1f1535);border:1px solid #6b21a8}
+.notif.win{background:linear-gradient(135deg,#0c2214,#0f2a18);border:1px solid #16a34a}
+.notif.neutral{background:var(--surface);border:1px solid var(--border)}
+.notif-icon{font-size:1.5rem;flex-shrink:0;margin-top:2px}
+.notif-body{flex:1;font-size:.88rem;line-height:1.5}
+.notif-body .title{font-weight:700;margin-bottom:3px}
+.notif-body .detail{color:var(--muted)}
+.notif-body .twint-amount{font-weight:800;font-size:1.1rem}
+.notif.pay .twint-amount{color:#a78bfa}
+.notif.win .twint-amount{color:var(--green)}
+.notif-close{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:4px;line-height:1}
+
 /* AUTH OVERLAY */
 .auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
 .auth-box{width:100%;max-width:380px}
@@ -111,7 +126,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ou
 .auth-tab.active{background:var(--accent);color:#fff}
 
 .auth-form{display:flex;flex-direction:column;gap:12px}
-.auth-form input{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-size:.95rem;font-family:inherit}
+.auth-form input{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-size:.95rem;font-family:inherit;-webkit-appearance:none;appearance:none}
 .auth-form input::placeholder{color:var(--muted)}
 .auth-form input:focus{outline:none;border-color:var(--accent)}
 .auth-error{color:var(--accent);font-size:.82rem;text-align:center;min-height:1.2em}
@@ -141,6 +156,8 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ou
   </div>
 </div>
 
+<div class="notifs" id="notifs"></div>
+
 <div id="admin-new-game" style="display:none">
   <div class="section"><div class="section-title">Neus Spiel eröffne</div></div>
   <div class="admin-section">
@@ -169,8 +186,8 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ou
       <p>5 Franke pro Wett · Jackpot pro Spiel</p>
     </div>
     <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-login">Iilogge</button>
-      <button class="auth-tab" id="tab-register">Registriere</button>
+      <button class="auth-tab active" id="tab-login" onclick="document.getElementById('login-name').style.display='none';document.getElementById('login-btn').textContent='Iilogge';document.getElementById('login-error').textContent='';this.classList.add('active');document.getElementById('tab-register').classList.remove('active');">Iilogge</button>
+      <button class="auth-tab" id="tab-register" onclick="document.getElementById('login-name').style.display='block';document.getElementById('login-btn').textContent='Registriere';document.getElementById('login-error').textContent='';this.classList.add('active');document.getElementById('tab-login').classList.remove('active');">Registriere</button>
     </div>
     <div class="auth-form" id="auth-form">
       <input type="text" id="login-name" placeholder="Dis Name" maxlength="30" autocomplete="name" style="display:none">
