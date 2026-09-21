@@ -74,10 +74,12 @@ function showChant(){
 const BET_TOASTS=['Wett platziert! 🎯','Mutig! 💪','Das gaht uf! 🚀','Gueti Wahl! 🔥','Jetz wird\'s ernst! 😤','Dr Jackpot wachst! 💰','Hopp Gottéron! 🏒','Vertrau dim Bauch! 🎲'];
 
 // ============ AUTH ============
-$('login-btn').addEventListener('click',submitAuth);
-$('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth()});
-$('logout-btn').addEventListener('click',()=>signOut(auth));
-$('chant-btn').addEventListener('click',showChant);
+try {
+  $('login-btn').addEventListener('click',submitAuth);
+  $('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth()});
+  $('logout-btn').addEventListener('click',()=>signOut(auth));
+  const chantBtn=$('chant-btn');if(chantBtn)chantBtn.addEventListener('click',showChant);
+} catch(e) { console.error('Init error:',e) }
 
 async function submitAuth(){
   const name=$('login-name').value.trim(),email=$('login-email').value.trim().toLowerCase(),pass=$('login-pass').value,err=$('login-error');
@@ -122,7 +124,7 @@ function startSubs(){
   onSnapshot(doc(db,'meta','konto'),s=>{state.konto=(s.exists()&&s.data().total)||0;animateFigure('konto-value',state.konto)});
 }
 
-$('ng-date').valueAsDate=new Date();
+try {
 $('ng-create').addEventListener('click',async()=>{
   const o=$('ng-opponent').value.trim(),d=$('ng-date').value;
   if(!o){toast('Bitte Gägner iigäh');return}
@@ -130,6 +132,8 @@ $('ng-create').addEventListener('click',async()=>{
   try{await addDoc(collection(db,'games'),{opponent:o,date:d,status:'open',createdAt:Date.now()});$('ng-opponent').value='';toast('Spiel eröffnet! Los gahts 🏒')}catch(e){toast('Fehler: '+e.message)}
   $('ng-create').disabled=false;
 });
+try{$('ng-date').valueAsDate=new Date()}catch(e){}
+} catch(e) { console.error('Admin init error:',e) }
 
 async function placeBet(gid,inp){
   const p=inp.value.trim();
