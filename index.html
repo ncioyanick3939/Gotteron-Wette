@@ -26,11 +26,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 @keyframes confetti-fall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
 
 /* HERO */
-.hero{position:relative;height:240px;overflow:hidden;border-bottom:3px solid var(--accent)}
+.hero{position:relative;height:280px;overflow:hidden;border-bottom:3px solid var(--accent);background:#000}
 .hero-slides{display:flex;width:300%;height:100%;animation:slideshow 15s ease-in-out infinite}
-.hero-slide{flex:0 0 33.333%;height:100%;background-size:cover;background-position:center 35%;filter:brightness(.4) saturate(1.2)}
+.hero-slide{flex:0 0 33.333%;height:100%;background-size:contain;background-position:center;background-repeat:no-repeat;background-color:#000}
 @keyframes slideshow{0%,28%{transform:translateX(0)}33%,61%{transform:translateX(-33.333%)}66%,94%{transform:translateX(-66.666%)}100%{transform:translateX(0)}}
-.hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,13,19,.2) 0%,rgba(10,13,19,.9) 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 20px 20px;text-align:center}
+.hero-overlay{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,transparent 0%,rgba(10,13,19,.85) 60%,rgba(10,13,19,.98) 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:40px 20px 16px;text-align:center;pointer-events:none}
+.hero-overlay > *{pointer-events:auto}
 .hero-overlay .logo{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:3px;line-height:1;text-shadow:0 4px 30px rgba(229,37,53,.5)}
 .hero-overlay .logo .red{color:var(--accent2)}
 .hero-overlay .tagline{color:#a8b0c0;font-size:.85rem;margin-top:6px;font-weight:500;letter-spacing:.5px}
@@ -47,6 +48,19 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .nav .user-pill .uname{color:var(--text);font-weight:700}
 .nav .user-pill button{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;font-size:.75rem;cursor:pointer;font-family:inherit;transition:.15s}
 .nav .user-pill button:hover{border-color:var(--accent);color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-btn{background:var(--accent);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+.nav-btn:hover{background:var(--accent2);transform:translateY(-1px)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:150;display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto}
+.modal-overlay.show{display:flex}
+.modal{width:100%;max-width:500px;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;animation:modalIn .3s ease-out}
+@keyframes modalIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface)}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.6rem;cursor:pointer;line-height:1;padding:4px}
+.modal-close:hover{color:var(--text)}
 
 /* OVERVIEW */
 .overview{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:16px;background:var(--border);border-radius:14px;overflow:hidden;position:relative;z-index:1}
@@ -83,7 +97,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .notif-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1}
 
 /* LEADERBOARD */
-.leaderboard{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;position:relative;z-index:1}
+.leaderboard{background:var(--card);overflow:hidden;position:relative;z-index:1}
 .lb-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);position:relative;transition:background .15s}
 .lb-row:last-child{border-bottom:none}
 .lb-row.me{background:rgba(229,37,53,.06)}
@@ -240,9 +254,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <nav class="nav">
   <div class="my-stats" id="my-stats"></div>
-  <div class="user-pill">
-    <span class="uname" id="whoami-name"></span>
-    <button id="logout-btn">Usloge</button>
+  <div class="nav-right">
+    <button id="lb-open-btn" class="nav-btn">Rangliste</button>
+    <div class="user-pill">
+      <span class="uname" id="whoami-name"></span>
+      <button id="logout-btn">Usloge</button>
+    </div>
   </div>
 </nav>
 
@@ -261,26 +278,23 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <div class="notifs" id="notifs"></div>
 
-<div class="section" id="lb-section" style="display:none"><div class="section-title">🏆 Rangliste</div><div class="section-count" id="lb-count"></div></div>
-<div id="leaderboard"></div>
-
 <div id="admin-new-game" style="display:none">
   <div class="admin-section">
     <div class="admin-card">
-      <div class="admin-badge">👔 CEO-Bereich · Neus Spiel</div>
+      <div class="admin-badge">CEO · Neus Spiel</div>
       <input type="text" id="ng-opponent" placeholder="Gägner, z.B. ZSC Lions">
       <div class="admin-row">
         <input type="date" id="ng-date">
-        <button id="ng-create">Eröffne 🏒</button>
+        <button id="ng-create">Eröffne</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="section"><div class="section-title">🔥 Offeni Spiel</div><div class="section-count" id="open-count"></div></div>
+<div class="section"><div class="section-title">Offeni Spiel</div><div class="section-count" id="open-count"></div></div>
 <div id="open-games"><div class="empty">Lade…</div></div>
 
-<div class="section" id="closed-section" style="display:none"><div class="section-title">📋 Abgschlosse</div><div class="section-count" id="closed-count"></div></div>
+<div class="section" id="closed-section" style="display:none"><div class="section-title">Abgschlosse</div><div class="section-count" id="closed-count"></div></div>
 <div id="closed-games"></div>
 
 <div class="footer">
@@ -288,6 +302,16 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   Möge dr Glücklichschti gwünne – und dr Rescht vo üs wieder z'viel wette 😂
 </div>
 
+</div>
+
+<div class="modal-overlay" id="lb-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Rangliste <span id="lb-count" style="font-size:.7rem;color:var(--muted);font-family:'Outfit';margin-left:8px"></span></div>
+      <button class="modal-close" id="lb-close">&times;</button>
+    </div>
+    <div id="leaderboard"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
