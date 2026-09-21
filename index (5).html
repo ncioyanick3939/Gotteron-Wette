@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gottéron-Spielette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #16181b;
+    --paper: #f2f1ee;
+    --card: #ffffff;
+    --muted: #6c6f74;
+    --border: #dedad4;
+    --red: #b0142a;
+    --slate: #33495c;
+    --win-bg: #f6e9c9;
+    --win-border: #c79a2e;
+    box-sizing: border-box;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #efeeec; --paper: #131416; --card: #1c1e21;
+      --muted: #97999d; --border: #33363a;
+      --win-bg: #3a2f14; --win-border: #a8811f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 0 0 48px;
+  }
+  .masthead {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 22px 18px 14px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
+  }
+  .masthead .wordmark { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.3rem; }
+  .masthead .wordmark .accent { color: var(--red); }
+  .masthead .tag { font-size: 0.78rem; color: var(--muted); }
+
+  .whoami {
+    display: none; align-items: center; justify-content: flex-end; gap: 6px;
+    font-size: 0.8rem; color: var(--muted); padding: 10px 18px 0;
+  }
+  .whoami button {
+    background: none; border: none; color: var(--red); font-weight: 600;
+    padding: 0; font-size: 0.8rem; cursor: pointer; font-family: inherit;
+  }
+
+  .overview {
+    display: grid; grid-template-columns: 1fr 1fr; margin: 18px 18px 6px;
+    border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: var(--card);
+  }
+  .overview .stat { padding: 18px 16px; text-align: center; }
+  .overview .stat + .stat { border-left: 1px solid var(--border); }
+  .overview .stat .figure {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 2.5rem;
+    line-height: 1; font-variant-numeric: tabular-nums;
+  }
+  .overview .stat.jackpot .figure { color: var(--red); }
+  .overview .stat.bierkaessli .figure { color: var(--slate); }
+  .overview .stat .figure .unit { font-size: 1.1rem; font-weight: 600; margin-left: 3px; }
+  .overview .stat .caption { margin-top: 5px; font-size: 0.82rem; color: var(--muted); }
+
+  .section-title { font-size: 0.82rem; font-weight: 600; margin: 26px 18px 10px; color: var(--muted); }
+  .list-wrap { margin: 0 18px; }
+  .empty { color: var(--muted); font-size: 0.9rem; text-align: center; padding: 26px 0; }
+
+  .game { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; margin-bottom: 10px; }
+  .game-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .game-title { font-weight: 600; font-size: 1rem; }
+  .game-date { color: var(--muted); font-size: 0.8rem; margin-top: 1px; }
+  .pot-figure {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.35rem;
+    color: var(--red); white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+  .pot-figure .unit { font-size: 0.85rem; font-weight: 600; margin-left: 2px; }
+  .status-closed {
+    background: var(--paper); border: 1px solid var(--border); color: var(--muted);
+    padding: 2px 9px; border-radius: 4px; font-size: 0.72rem; font-weight: 600;
+  }
+
+  .bets-list { margin-top: 10px; display: flex; flex-direction: column; }
+  .bet-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.87rem; padding: 7px 2px; border-top: 1px solid var(--border); }
+  .bet-row.winner { background: var(--win-bg); margin: 0 -8px; padding: 7px 8px; border-top: 1px solid var(--win-border); border-radius: 4px; }
+  .bet-name { font-weight: 600; }
+  .bet-pred { color: var(--muted); text-align: right; }
+  .bet-row.winner .bet-pred { color: inherit; }
+
+  .bet-form { display: flex; gap: 8px; margin-top: 12px; }
+  input[type=text], input[type=date], input[type=email], input[type=password] {
+    flex: 1; padding: 10px 12px; border-radius: 5px; border: 1px solid var(--border);
+    background: var(--paper); color: var(--ink); font-size: 0.92rem; font-family: inherit;
+  }
+  button { border: none; border-radius: 5px; padding: 10px 14px; font-weight: 600; font-size: 0.88rem; cursor: pointer; font-family: inherit; }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:disabled { opacity: 0.5; }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-small { padding: 7px 11px; font-size: 0.8rem; }
+
+  .new-game-card { display: flex; flex-direction: column; gap: 8px; }
+  .new-game-row { display: flex; gap: 8px; }
+
+  .closed-summary { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 0.83rem; color: var(--muted); line-height: 1.5; }
+  .closed-summary b { color: var(--ink); font-weight: 600; }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 6px;
+    font-size: 0.85rem; opacity: 0; transition: all 0.25s ease; pointer-events: none; z-index: 50; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .close-picker { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+  .close-picker .hint { color: var(--muted); font-size: 0.78rem; margin-bottom: 6px; display: block; }
+  .close-picker label { display: flex; align-items: center; gap: 8px; font-size: 0.87rem; padding: 5px 0; }
+  .close-actions { margin-top: 10px; }
+
+  .login-overlay { position: fixed; inset: 0; background: rgba(20,20,20,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .login-box { background: var(--card); border-radius: 8px; border: 1px solid var(--border); padding: 28px 22px; width: 100%; max-width: 340px; text-align: center; }
+  .login-box h2 { margin: 0 0 4px; font-size: 1.2rem; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
+  .login-box p { margin: 0 0 16px; color: var(--muted); font-size: 0.85rem; }
+  .login-box input { width: 100%; padding: 11px 14px; border-radius: 5px; border: 1px solid var(--border); background: var(--paper); color: var(--ink); font-size: 1rem; margin-bottom: 12px; text-align: center; }
+  .login-box button { width: 100%; padding: 11px; font-size: 0.95rem; }
+  .login-error { color: var(--red); font-size: 0.8rem; margin: -6px 0 12px; min-height: 1em; }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="wordmark">GOTTÉRON <span class="accent">SPIELETTE</span></div>
+  <div class="tag">5 Fr. pro Wett</div>
+</div>
+
+<div class="whoami" id="whoami">
+  <span id="whoami-name"></span>
+  <button id="logout-btn">Usloge</button>
+</div>
+
+<div class="overview">
+  <div class="stat jackpot">
+    <div class="figure" id="jackpot-value">0<span class="unit">Fr.</span></div>
+    <div class="caption">Jackpot &middot; offeni Spiel</div>
+  </div>
+  <div class="stat bierkaessli">
+    <div class="figure" id="konto-value">0<span class="unit">Fr.</span></div>
+    <div class="caption">Bierkässeli</div>
+  </div>
+</div>
+
+<div id="admin-new-game" style="display:none;">
+  <div class="section-title">Neus Spiel eröffne</div>
+  <div class="list-wrap">
+    <div class="game new-game-card">
+      <input type="text" id="ng-opponent" placeholder="Gägner, z.B. ZSC Lions">
+      <div class="new-game-row">
+        <input type="date" id="ng-date">
+        <button class="btn-primary" id="ng-create">Erstelle</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-title">Offeni Spiel</div>
+<div class="list-wrap" id="open-games"><div class="empty">Lade…</div></div>
+
+<div class="section-title" id="closed-title" style="display:none;">Abgschlosseni Spiel</div>
+<div class="list-wrap" id="closed-games"></div>
+
+<div class="toast" id="toast"></div>
+
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <h2>Wär bisch du?</h2>
+    <p>Registriere di mit Email und Passwort. Scho debi? Aifach wieder iilogge.</p>
+    <input type="text" id="login-name" placeholder="Dis Name (nur bi Registrierig)" maxlength="30" autocomplete="name">
+    <input type="email" id="login-email" placeholder="Email" maxlength="80" autocomplete="username">
+    <input type="password" id="login-pass" placeholder="Passwort" maxlength="60" autocomplete="current-password">
+    <div class="login-error" id="login-error"></div>
+    <button class="btn-primary" id="login-btn">Iiloge</button>
+  </div>
+</div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
