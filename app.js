@@ -1,5 +1,4 @@
 import { firebaseConfig, ADMIN_EMAIL, BET_COST } from './firebase-config.js';
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword,
@@ -14,365 +13,233 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const state = {
-  user: null,       // firebase auth user
-  isAdmin: false,
-  games: [],
-  bets: [],
-  konto: 0,
-};
+const state = { user: null, isAdmin: false, games: [], bets: [], konto: 0 };
+let authMode = 'login'; // or 'register'
 
 function $(id) { return document.getElementById(id); }
 
 function toast(msg) {
-  const t = $('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 2400);
 }
-
-function fmtFr(n) {
-  const r = Math.round(n * 100) / 100;
-  return (r % 1 === 0) ? String(r) : r.toFixed(2);
-}
-
+function fmtFr(n) { const r = Math.round(n*100)/100; return r%1===0 ? String(r) : r.toFixed(2); }
 function fmtDate(d) {
   if (!d) return '';
-  try {
-    const dt = new Date(d + 'T00:00:00');
-    return dt.toLocaleDateString('de-CH', { weekday: 'short', day: '2-digit', month: '2-digit' });
-  } catch (e) { return d; }
+  try { return new Date(d+'T00:00:00').toLocaleDateString('de-CH',{weekday:'short',day:'2-digit',month:'2-digit'}); }
+  catch(e) { return d; }
+}
+function escHtml(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function setFig(id,n) { $(id).innerHTML = fmtFr(n)+'<span class="unit">Fr.</span>'; }
+function initials(name) { return (name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+function avatarColor(name) {
+  let h=0; for(let i=0;i<(name||'').length;i++) h=name.charCodeAt(i)+((h<<5)-h);
+  const colors=['#e52535','#3b82f6','#22c55e','#f5a623','#a855f7','#ec4899','#14b8a6','#f97316'];
+  return colors[Math.abs(h)%colors.length];
 }
 
-function escapeHtml(s) {
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
+// ---- AUTH TABS ----
+$('tab-login').addEventListener('click', () => switchTab('login'));
+$('tab-register').addEventListener('click', () => switchTab('register'));
+
+function switchTab(mode) {
+  authMode = mode;
+  $('tab-login').classList.toggle('active', mode==='login');
+  $('tab-register').classList.toggle('active', mode==='register');
+  $('login-name').style.display = mode==='register' ? 'block' : 'none';
+  $('login-btn').textContent = mode==='register' ? 'Registriere' : 'Iilogge';
+  $('login-error').textContent = '';
 }
 
-function setFigure(elId, amount) {
-  $(elId).innerHTML = fmtFr(amount) + '<span class="unit">Fr.</span>';
-}
-
-// ---------- AUTH ----------
-
-$('login-btn').addEventListener('click', submitLogin);
-$('login-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') submitLogin(); });
+$('login-btn').addEventListener('click', submitAuth);
+$('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') submitAuth(); });
 $('logout-btn').addEventListener('click', () => signOut(auth));
 
-async function submitLogin() {
+async function submitAuth() {
   const name = $('login-name').value.trim();
   const email = $('login-email').value.trim().toLowerCase();
   const pass = $('login-pass').value;
-  const errEl = $('login-error');
-  errEl.textContent = '';
+  const err = $('login-error');
+  err.textContent = '';
 
-  if (!email || !pass) { errEl.textContent = 'Bitte Email und Passwort iigäh'; return; }
+  if (!email||!pass) { err.textContent='Bitte Email und Passwort iigäh'; return; }
 
   const btn = $('login-btn');
   btn.disabled = true;
   try {
-    try {
+    if (authMode === 'register') {
+      if (!name) { err.textContent='Bitte Name iigäh'; btn.disabled=false; return; }
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      await updateProfile(cred.user, { displayName: name });
+      toast('Konto erstellt! Willkomme, '+name);
+    } else {
       await signInWithEmailAndPassword(auth, email, pass);
-    } catch (err) {
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-        if (!name) { errEl.textContent = 'Nöis Konto: bitte a Name iigäh'; btn.disabled = false; return; }
-        const cred = await createUserWithEmailAndPassword(auth, email, pass);
-        await updateProfile(cred.user, { displayName: name });
-        toast('Konto erstellt für ' + name);
-      } else if (err.code === 'auth/wrong-password') {
-        errEl.textContent = 'Passwort stimmt nid';
-        btn.disabled = false;
-        return;
-      } else {
-        errEl.textContent = 'Fehler: ' + err.message;
-        btn.disabled = false;
-        return;
-      }
     }
-    $('login-overlay').style.display = 'none';
     $('login-pass').value = '';
-  } catch (e) {
-    errEl.textContent = 'Fehler bim Iiloge. Nomol probiere.';
+  } catch(e) {
+    if (e.code==='auth/user-not-found'||e.code==='auth/invalid-credential') {
+      err.textContent = 'Email oder Passwort falsch. Nöis Konto? → Registriere';
+    } else if (e.code==='auth/email-already-in-use') {
+      err.textContent = 'Die Email isch scho registriert. Probier "Iilogge"';
+    } else if (e.code==='auth/weak-password') {
+      err.textContent = 'Passwort z\'churz – mindestens 6 Zeiche';
+    } else {
+      err.textContent = 'Fehler: ' + (e.message||'Unbekannt');
+    }
   }
   btn.disabled = false;
 }
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, user => {
   state.user = user;
   state.isAdmin = !!user && user.email === ADMIN_EMAIL;
 
   if (user) {
-    $('login-overlay').style.display = 'none';
-    $('whoami').style.display = 'flex';
+    $('auth-overlay').style.display = 'none';
+    $('nav').style.display = 'flex';
+    $('overview-wrap').style.display = 'grid';
     $('whoami-name').textContent = user.displayName || user.email;
     $('admin-new-game').style.display = state.isAdmin ? 'block' : 'none';
-    startSubscriptions();
+    startSubs();
   } else {
-    $('whoami').style.display = 'none';
-    $('login-overlay').style.display = 'flex';
+    $('auth-overlay').style.display = 'flex';
+    $('nav').style.display = 'none';
+    $('overview-wrap').style.display = 'none';
     $('admin-new-game').style.display = 'none';
   }
   render();
 });
 
-// ---------- DATA ----------
-
-let subscribed = false;
-function startSubscriptions() {
-  if (subscribed) return;
-  subscribed = true;
-
-  onSnapshot(query(collection(db, 'games'), orderBy('createdAt', 'desc')), (snap) => {
-    state.games = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    render();
+// ---- DATA ----
+let subbed = false;
+function startSubs() {
+  if (subbed) return; subbed = true;
+  onSnapshot(query(collection(db,'games'),orderBy('createdAt','desc')), snap => {
+    state.games = snap.docs.map(d=>({id:d.id,...d.data()})); render();
   });
-
-  onSnapshot(collection(db, 'bets'), (snap) => {
-    state.bets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    render();
+  onSnapshot(collection(db,'bets'), snap => {
+    state.bets = snap.docs.map(d=>({id:d.id,...d.data()})); render();
   });
-
-  onSnapshot(doc(db, 'meta', 'konto'), (snap) => {
-    state.konto = (snap.exists() && snap.data().total) || 0;
-    setFigure('konto-value', state.konto);
+  onSnapshot(doc(db,'meta','konto'), snap => {
+    state.konto = (snap.exists() && snap.data().total)||0; setFig('konto-value',state.konto);
   });
 }
 
 $('ng-date').valueAsDate = new Date();
-$('ng-create').addEventListener('click', createGame);
-
-async function createGame() {
-  const opponent = $('ng-opponent').value.trim();
-  const date = $('ng-date').value;
-  if (!opponent) { toast('Bitte Gägner iigäh'); return; }
-  $('ng-create').disabled = true;
-  try {
-    await addDoc(collection(db, 'games'), { opponent, date, status: 'open', createdAt: Date.now() });
-    $('ng-opponent').value = '';
-    toast('Spiel erstellt');
-  } catch (e) {
-    toast('Fehler bim Erstelle: ' + e.message);
-  }
-  $('ng-create').disabled = false;
-}
+$('ng-create').addEventListener('click', async () => {
+  const opp=$('ng-opponent').value.trim(), date=$('ng-date').value;
+  if(!opp){toast('Bitte Gägner iigäh');return;}
+  $('ng-create').disabled=true;
+  try { await addDoc(collection(db,'games'),{opponent:opp,date,status:'open',createdAt:Date.now()}); $('ng-opponent').value=''; toast('Spiel erstellt'); }
+  catch(e){toast('Fehler: '+e.message);}
+  $('ng-create').disabled=false;
+});
 
 async function placeBet(gameId, inputEl) {
-  const prediction = inputEl.value.trim();
-  if (!prediction) { toast('Bitte Tipp iigäh'); return; }
-  if (!state.user) { $('login-overlay').style.display = 'flex'; return; }
+  const pred=inputEl.value.trim();
+  if(!pred){toast('Bitte Tipp iigäh');return;}
+  if(!state.user){$('auth-overlay').style.display='flex';return;}
   try {
-    await addDoc(collection(db, 'bets'), {
-      gameId,
-      userId: state.user.uid,
-      userName: state.user.displayName || state.user.email,
-      prediction,
-      createdAt: Date.now()
-    });
-    inputEl.value = '';
-    toast('Wett platziert – ' + BET_COST + ' Fr.');
-  } catch (e) {
-    toast('Fehler bi dr Wett: ' + e.message);
-  }
+    await addDoc(collection(db,'bets'),{gameId,userId:state.user.uid,userName:state.user.displayName||state.user.email,prediction:pred,createdAt:Date.now()});
+    inputEl.value=''; toast('Wett platziert – '+BET_COST+' Fr.');
+  } catch(e){toast('Fehler: '+e.message);}
 }
 
 async function closeGame(gameId, selectedBetIds) {
-  const gameBets = state.bets.filter(b => b.gameId === gameId);
-  const pot = gameBets.length * BET_COST;
-  if (pot === 0) { toast('Kei Wette bi däm Spiel'); return; }
-  const winners = gameBets.filter(b => selectedBetIds.includes(b.id));
-  const winnerUserIds = [...new Set(winners.map(w => w.userId))];
-  const hasWinner = winnerUserIds.length > 0;
-  const jackpotHalf = hasWinner ? pot / 2 : 0;
-  const kontoHalf = pot - jackpotHalf;
-  const perWinner = hasWinner ? jackpotHalf / winnerUserIds.length : 0;
-
+  const gb=state.bets.filter(b=>b.gameId===gameId), pot=gb.length*BET_COST;
+  if(!pot){toast('Kei Wette');return;}
+  const winners=gb.filter(b=>selectedBetIds.includes(b.id));
+  const wuids=[...new Set(winners.map(w=>w.userId))];
+  const hasW=wuids.length>0, jh=hasW?pot/2:0, kh=pot-jh, pw=hasW?jh/wuids.length:0;
   try {
-    await updateDoc(doc(db, 'games', gameId), {
-      status: 'closed', closedAt: Date.now(), pot,
-      winnerBetIds: selectedBetIds, winnerUserIds, jackpotHalf, kontoHalf, perWinner
-    });
-    const kontoRef = doc(db, 'meta', 'konto');
-    const snap = await getDoc(kontoRef);
-    if (snap.exists()) {
-      await updateDoc(kontoRef, { total: increment(kontoHalf) });
-    } else {
-      await setDoc(kontoRef, { total: kontoHalf });
-    }
+    await updateDoc(doc(db,'games',gameId),{status:'closed',closedAt:Date.now(),pot,winnerBetIds:selectedBetIds,winnerUserIds:wuids,jackpotHalf:jh,kontoHalf:kh,perWinner:pw});
+    const kr=doc(db,'meta','konto'), ks=await getDoc(kr);
+    ks.exists() ? await updateDoc(kr,{total:increment(kh)}) : await setDoc(kr,{total:kh});
     toast('Spiel abgschlosse');
-  } catch (e) {
-    toast('Fehler bim Abschliesse: ' + e.message);
-  }
+  } catch(e){toast('Fehler: '+e.message);}
 }
 
-function betsForGame(gameId) {
-  return state.bets.filter(b => b.gameId === gameId).sort((a, b) => a.createdAt - b.createdAt);
-}
+function betsFor(gid) { return state.bets.filter(b=>b.gameId===gid).sort((a,b)=>a.createdAt-b.createdAt); }
 
-// ---------- RENDER ----------
-
+// ---- RENDER ----
 function render() {
-  if (!state.user) {
-    $('open-games').innerHTML = '';
-    $('closed-games').innerHTML = '';
-    return;
-  }
+  if(!state.user){$('open-games').innerHTML='';$('closed-games').innerHTML='';return;}
+  const og=state.games.filter(g=>g.status!=='closed'), cg=state.games.filter(g=>g.status==='closed');
+  setFig('jackpot-value', og.reduce((s,g)=>s+betsFor(g.id).length*BET_COST,0));
 
-  const openGames = state.games.filter(g => g.status !== 'closed');
-  const closedGames = state.games.filter(g => g.status === 'closed');
+  const oe=$('open-games');
+  if(!og.length){oe.innerHTML='<div class="empty">Kei offeni Spiel im Momänt.</div>';}
+  else{oe.innerHTML='';og.forEach(g=>oe.appendChild(mkOpen(g)));}
 
-  const openPot = openGames.reduce((sum, g) => sum + betsForGame(g.id).length * BET_COST, 0);
-  setFigure('jackpot-value', openPot);
-
-  const openEl = $('open-games');
-  if (openGames.length === 0) {
-    openEl.innerHTML = '<div class="empty">Kei offeni Spiel im Momänt.</div>';
-  } else {
-    openEl.innerHTML = '';
-    openGames.forEach(g => openEl.appendChild(renderOpenGame(g)));
-  }
-
-  const closedEl = $('closed-games');
-  const closedTitle = $('closed-title');
-  closedTitle.style.display = closedGames.length ? 'block' : 'none';
-  closedEl.innerHTML = '';
-  closedGames.forEach(g => closedEl.appendChild(renderClosedGame(g)));
+  const ce=$('closed-games');
+  $('closed-section').style.display=cg.length?'block':'none';
+  ce.innerHTML=''; cg.forEach(g=>ce.appendChild(mkClosed(g)));
 }
 
-function renderOpenGame(g) {
-  const bets = betsForGame(g.id);
-  const pot = bets.length * BET_COST;
+function mkOpen(g) {
+  const bets=betsFor(g.id), pot=bets.length*BET_COST;
+  const card=document.createElement('div'); card.className='game';
+  card.innerHTML=`<div class="game-top"><div class="game-info"><div class="matchup">Gottéron<span class="vs">vs</span>${escHtml(g.opponent||'?')}</div><div class="date">${fmtDate(g.date)}</div></div><div class="game-pot"><div class="amount">${pot}<span class="unit">Fr.</span></div><div class="label">Jackpot</div></div></div>`;
 
-  const card = document.createElement('div');
-  card.className = 'game';
-
-  const header = document.createElement('div');
-  header.className = 'game-header';
-  header.innerHTML = `
-    <div>
-      <div class="game-title">Gottéron &ndash; ${escapeHtml(g.opponent || '?')}</div>
-      <div class="game-date">${fmtDate(g.date)}</div>
-    </div>
-    <div class="pot-figure">${pot}<span class="unit">Fr.</span></div>
-  `;
-  card.appendChild(header);
-
-  const betsList = document.createElement('div');
-  betsList.className = 'bets-list';
-  bets.forEach(b => {
-    const row = document.createElement('div');
-    row.className = 'bet-row';
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'bet-name';
-    nameSpan.textContent = b.userName || 'Öpper';
-    const predSpan = document.createElement('span');
-    predSpan.className = 'bet-pred';
-    predSpan.textContent = b.prediction + ' · ' + BET_COST + ' Fr.';
-    row.appendChild(nameSpan);
-    row.appendChild(predSpan);
-    betsList.appendChild(row);
-  });
-  if (bets.length === 0) {
-    const empty = document.createElement('div');
-    empty.style.color = 'var(--muted)';
-    empty.style.fontSize = '0.82rem';
-    empty.style.marginTop = '8px';
-    empty.textContent = 'No kei Wette – sig dr Erschti.';
-    betsList.appendChild(empty);
-  }
-  card.appendChild(betsList);
-
-  const form = document.createElement('div');
-  form.className = 'bet-form';
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.placeholder = 'Dis Tipp, z.B. 4:2 für Gottéron';
-  const btn = document.createElement('button');
-  btn.className = 'btn-primary';
-  btn.textContent = 'Wette, ' + BET_COST + ' Fr.';
-  btn.addEventListener('click', () => placeBet(g.id, input));
-  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') placeBet(g.id, input); });
-  form.appendChild(input);
-  form.appendChild(btn);
-  card.appendChild(form);
-
-  if (state.isAdmin) {
-    const closeSection = document.createElement('div');
-    closeSection.className = 'close-picker';
-    closeSection.innerHTML = `<span class="hint">Als CEO: wähl wär richtig tippt het und schliess ab</span>`;
-    const selected = new Set();
-    bets.forEach(b => {
-      const label = document.createElement('label');
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.addEventListener('change', () => { cb.checked ? selected.add(b.id) : selected.delete(b.id); });
-      const span = document.createElement('span');
-      span.textContent = `${b.userName || 'Öpper'}: ${b.prediction}`;
-      label.appendChild(cb);
-      label.appendChild(span);
-      closeSection.appendChild(label);
+  if(bets.length) {
+    const bl=document.createElement('div'); bl.className='game-bets';
+    bets.forEach(b=>{
+      const r=document.createElement('div'); r.className='bet-row';
+      const n=b.userName||'Öpper';
+      r.innerHTML=`<div class="left"><div class="bet-avatar" style="background:${avatarColor(n)}">${initials(n)}</div><span class="bet-user">${escHtml(n)}</span></div><div class="bet-right"><div class="bet-pred">${escHtml(b.prediction)}</div><div class="bet-amount">${BET_COST} Fr.</div></div>`;
+      bl.appendChild(r);
     });
-    const actions = document.createElement('div');
-    actions.className = 'close-actions';
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'btn-red btn-small';
-    closeBtn.textContent = 'Spiel abschliesse & usszahle';
-    closeBtn.addEventListener('click', () => {
-      if (bets.length === 0) { toast('Kei Wette bi däm Spiel'); return; }
-      closeGame(g.id, [...selected]);
-    });
-    actions.appendChild(closeBtn);
-    closeSection.appendChild(actions);
-    card.appendChild(closeSection);
+    card.appendChild(bl);
+  } else {
+    const em=document.createElement('div'); em.className='game-empty'; em.textContent='No kei Wette – sig dr Erschti.'; card.appendChild(em);
   }
 
+  const form=document.createElement('div'); form.className='game-form';
+  const inp=document.createElement('input'); inp.type='text'; inp.placeholder='Dis Tipp, z.B. 4:2';
+  const btn=document.createElement('button'); btn.textContent='Wette · '+BET_COST+' Fr.';
+  btn.addEventListener('click',()=>placeBet(g.id,inp));
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')placeBet(g.id,inp);});
+  form.appendChild(inp); form.appendChild(btn); card.appendChild(form);
+
+  if(state.isAdmin) {
+    const cp=document.createElement('div'); cp.className='close-picker';
+    cp.innerHTML='<div class="hint">Admin: Gwünner uswähle und Spiel abschliesse</div>';
+    const sel=new Set();
+    bets.forEach(b=>{
+      const lb=document.createElement('label');
+      const cb=document.createElement('input'); cb.type='checkbox';
+      cb.addEventListener('change',()=>{cb.checked?sel.add(b.id):sel.delete(b.id);});
+      const sp=document.createElement('span'); sp.textContent=`${b.userName||'?'}: ${b.prediction}`;
+      lb.appendChild(cb); lb.appendChild(sp); cp.appendChild(lb);
+    });
+    const ac=document.createElement('div'); ac.className='close-actions';
+    const cb=document.createElement('button'); cb.textContent='Abschliesse & Jackpot usszahle';
+    cb.addEventListener('click',()=>{if(!bets.length){toast('Kei Wette');return;} closeGame(g.id,[...sel]);});
+    ac.appendChild(cb); cp.appendChild(ac); card.appendChild(cp);
+  }
   return card;
 }
 
-function renderClosedGame(g) {
-  const bets = betsForGame(g.id);
-  const winnerBetIds = g.winnerBetIds || [];
+function mkClosed(g) {
+  const bets=betsFor(g.id), wids=g.winnerBetIds||[];
+  const card=document.createElement('div'); card.className='game';
+  card.innerHTML=`<div class="game-top"><div class="game-info"><div class="matchup">Gottéron<span class="vs">vs</span>${escHtml(g.opponent||'?')}</div><div class="date">${fmtDate(g.date)}</div></div><span class="status-closed">Abgschlosse</span></div>`;
 
-  const card = document.createElement('div');
-  card.className = 'game';
-  const header = document.createElement('div');
-  header.className = 'game-header';
-  header.innerHTML = `
-    <div>
-      <div class="game-title">Gottéron &ndash; ${escapeHtml(g.opponent || '?')}</div>
-      <div class="game-date">${fmtDate(g.date)}</div>
-    </div>
-    <span class="status-closed">Abgschlosse</span>
-  `;
-  card.appendChild(header);
+  if(bets.length) {
+    const bl=document.createElement('div'); bl.className='game-bets';
+    bets.forEach(b=>{
+      const isW=wids.includes(b.id), n=b.userName||'Öpper';
+      const r=document.createElement('div'); r.className='bet-row'+(isW?' winner':'');
+      r.innerHTML=`<div class="left"><div class="bet-avatar" style="background:${avatarColor(n)}">${initials(n)}</div><span class="bet-user">${escHtml(n)}${isW?' 🏆':''}</span></div><div class="bet-right"><div class="bet-pred">${escHtml(b.prediction)}</div><div class="bet-amount">${BET_COST} Fr.</div></div>`;
+      bl.appendChild(r);
+    });
+    card.appendChild(bl);
+  }
 
-  const betsList = document.createElement('div');
-  betsList.className = 'bets-list';
-  bets.forEach(b => {
-    const row = document.createElement('div');
-    row.className = 'bet-row' + (winnerBetIds.includes(b.id) ? ' winner' : '');
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'bet-name';
-    nameSpan.textContent = (b.userName || 'Öpper') + (winnerBetIds.includes(b.id) ? ' — Gwünner' : '');
-    const predSpan = document.createElement('span');
-    predSpan.className = 'bet-pred';
-    predSpan.textContent = b.prediction + ' · ' + BET_COST + ' Fr.';
-    row.appendChild(nameSpan);
-    row.appendChild(predSpan);
-    betsList.appendChild(row);
-  });
-  card.appendChild(betsList);
-
-  const summary = document.createElement('div');
-  summary.className = 'closed-summary';
-  const pot = g.pot || bets.length;
-  const perWinner = g.perWinner || 0;
-  const winnerCount = (g.winnerUserIds || []).length;
-  summary.innerHTML = winnerCount > 0
-    ? `Topf <b>${pot} Fr.</b> &nbsp;&middot;&nbsp; Jackpot <b>${fmtFr(g.jackpotHalf || pot / 2)} Fr.</b> für ${winnerCount} Gwünner, je <b>${fmtFr(perWinner)} Fr.</b> &nbsp;&middot;&nbsp; Bierkässeli <b>${fmtFr(g.kontoHalf || pot / 2)} Fr.</b>`
-    : `Topf <b>${pot} Fr.</b> &nbsp;&middot;&nbsp; Kein Gwünner &ndash; ganzi <b>${fmtFr(pot)} Fr.</b> gö is Bierkässeli`;
-  card.appendChild(summary);
-
+  const sm=document.createElement('div'); sm.className='closed-summary';
+  const pot=g.pot||bets.length, pw=g.perWinner||0, wc=(g.winnerUserIds||[]).length;
+  sm.innerHTML=wc>0
+    ?`Topf <b>${pot} Fr.</b> · Jackpot <b>${fmtFr(g.jackpotHalf||pot/2)} Fr.</b> für ${wc} Gwünner, je <b>${fmtFr(pw)} Fr.</b> · Bierkässeli <b>${fmtFr(g.kontoHalf||pot/2)} Fr.</b>`
+    :`Topf <b>${pot} Fr.</b> · Kein Gwünner – ganzi <b>${fmtFr(pot)} Fr.</b> is Bierkässeli`;
+  card.appendChild(sm);
   return card;
 }
