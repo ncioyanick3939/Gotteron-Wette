@@ -255,7 +255,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <nav class="nav">
   <div class="my-stats" id="my-stats"></div>
   <div class="nav-right">
-    <button id="lb-open-btn" class="nav-btn">Rangliste</button>
+    <button id="lb-open-btn" class="nav-btn" onclick="document.getElementById('lb-modal').classList.add('show')">Rangliste</button>
     <div class="user-pill">
       <span class="uname" id="whoami-name"></span>
       <button id="logout-btn">Usloge</button>
@@ -304,11 +304,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 </div>
 
-<div class="modal-overlay" id="lb-modal">
+<div class="modal-overlay" id="lb-modal" onclick="if(event.target===this)this.classList.remove('show')">
   <div class="modal">
     <div class="modal-head">
       <div class="modal-title">Rangliste <span id="lb-count" style="font-size:.7rem;color:var(--muted);font-family:'Outfit';margin-left:8px"></span></div>
-      <button class="modal-close" id="lb-close">&times;</button>
+      <button class="modal-close" id="lb-close" onclick="document.getElementById('lb-modal').classList.remove('show')">&times;</button>
     </div>
     <div id="leaderboard"></div>
   </div>
