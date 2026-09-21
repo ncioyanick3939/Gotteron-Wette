@@ -162,9 +162,11 @@ function betsFor(gid) { return state.bets.filter(b=>b.gameId===gid).sort((a,b)=>
 
 // ---- RENDER ----
 function render() {
-  if(!state.user){$('open-games').innerHTML='';$('closed-games').innerHTML='';return;}
+  if(!state.user){$('open-games').innerHTML='';$('closed-games').innerHTML='';$('notifs').innerHTML='';return;}
   const og=state.games.filter(g=>g.status!=='closed'), cg=state.games.filter(g=>g.status==='closed');
   setFig('jackpot-value', og.reduce((s,g)=>s+betsFor(g.id).length*BET_COST,0));
+
+  renderNotifs(cg);
 
   const oe=$('open-games');
   if(!og.length){oe.innerHTML='<div class="empty">Kei offeni Spiel im Momänt.</div>';}
@@ -173,6 +175,99 @@ function render() {
   const ce=$('closed-games');
   $('closed-section').style.display=cg.length?'block':'none';
   ce.innerHTML=''; cg.forEach(g=>ce.appendChild(mkClosed(g)));
+}
+
+// ---- TWINT NOTIFICATIONS ----
+const dismissedGames = new Set();
+
+function renderNotifs(closedGames) {
+  const wrap = $('notifs');
+  wrap.innerHTML = '';
+  if (!state.user) return;
+  const uid = state.user.uid;
+
+  closedGames.forEach(g => {
+    if (dismissedGames.has(g.id)) return;
+    const myBets = betsFor(g.id).filter(b => b.userId === uid);
+    if (!myBets.length) return; // user didn't bet on this game
+
+    const winnerBetIds = g.winnerBetIds || [];
+    const winnerUserIds = g.winnerUserIds || [];
+    const iWon = winnerUserIds.includes(uid);
+    const pot = g.pot || 0;
+    const perWinner = g.perWinner || 0;
+    const myTotalBet = myBets.length * BET_COST;
+
+    // Find winner names from bets
+    const winnerNames = [...new Set(
+      betsFor(g.id).filter(b => winnerBetIds.includes(b.id)).map(b => b.userName || 'Öpper')
+    )];
+
+    // Find loser names (people who bet but didn't win)
+    const loserEntries = betsFor(g.id).filter(b => !winnerUserIds.includes(b.userId));
+    const loserNames = [...new Set(loserEntries.map(b => b.userName || 'Öpper'))];
+
+    const notif = document.createElement('div');
+
+    if (iWon) {
+      // WINNER notification
+      notif.className = 'notif win';
+      notif.innerHTML = `
+        <div class="notif-icon">🏆</div>
+        <div class="notif-body">
+          <div class="title">Gottéron vs ${escHtml(g.opponent)} – Du hesch gwunne!</div>
+          <div>Du überchunnsch <span class="twint-amount">${fmtFr(perWinner)} Fr.</span></div>
+          <div class="detail">${loserNames.length ? loserNames.join(', ') + ' schulde dir Twint-Zahlige.' : 'Kei Verlierer zum Iizahle.'}</div>
+        </div>
+        <button class="notif-close" data-gid="${g.id}">&times;</button>
+      `;
+    } else if (winnerNames.length > 0) {
+      // LOSER notification – must pay winners
+      const numWinners = winnerUserIds.length;
+      const myShare = myTotalBet; // what I owe total (my bets go into the pot)
+      // Each loser pays proportionally to winners
+      // Simple: total jackpot half / number of losers who bet
+      const totalLosers = betsFor(g.id).filter(b => !winnerUserIds.includes(b.userId));
+      const totalLoserBets = totalLosers.length;
+      const totalBets = betsFor(g.id).length;
+      // Each person twinsts their bet amount to the winner(s)
+      // Winners get jackpotHalf split evenly
+      // So losers collectively pay jackpotHalf
+      // Each loser's share: (their bets / total loser bets) * jackpotHalf
+      const jackpotHalf = g.jackpotHalf || pot / 2;
+      const myPayment = totalLoserBets > 0 ? (myBets.length / totalLoserBets) * jackpotHalf : 0;
+      const perPerson = numWinners > 0 ? myPayment / numWinners : 0;
+
+      notif.className = 'notif pay';
+      notif.innerHTML = `
+        <div class="notif-icon">💸</div>
+        <div class="notif-body">
+          <div class="title">Gottéron vs ${escHtml(g.opponent)} – Leider nid gwunne</div>
+          <div>Twint <span class="twint-amount">${fmtFr(perPerson)} Fr.</span> a ${winnerNames.length === 1 ? '' : 'je '}${winnerNames.map(n => '<b>' + escHtml(n) + '</b>').join(' und ')}</div>
+          <div class="detail">Dis Iisatz: ${myTotalBet} Fr. (${myBets.length} Wett${myBets.length > 1 ? 'e' : ''})</div>
+        </div>
+        <button class="notif-close" data-gid="${g.id}">&times;</button>
+      `;
+    } else {
+      // No winner
+      notif.className = 'notif neutral';
+      notif.innerHTML = `
+        <div class="notif-icon">🍻</div>
+        <div class="notif-body">
+          <div class="title">Gottéron vs ${escHtml(g.opponent)} – Kein Gwünner</div>
+          <div class="detail">Ganzi ${pot} Fr. gö is Bierkässeli. Dis Iisatz: ${myTotalBet} Fr.</div>
+        </div>
+        <button class="notif-close" data-gid="${g.id}">&times;</button>
+      `;
+    }
+
+    notif.querySelector('.notif-close').addEventListener('click', () => {
+      dismissedGames.add(g.id);
+      notif.remove();
+    });
+
+    wrap.appendChild(notif);
+  });
 }
 
 function mkOpen(g) {
