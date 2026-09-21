@@ -192,7 +192,11 @@ async function placeBet(gid,inp){
   if(!p){toast('Bitte Tipp iigäh 👆');inp.focus();return}
   if(!state.user)return;
   try{
+    // 1. Wett speichere
     await addDoc(collection(db,'bets'),{gameId:gid,userId:state.user.uid,userName:state.user.displayName||state.user.email,prediction:p,createdAt:Date.now()});
+    // 2. Sofort d'Hälfti (2.50) is Bierkässeli
+    const kr=doc(db,'meta','konto'),ks=await getDoc(kr);
+    ks.exists()?await updateDoc(kr,{total:increment(BET_COST/2)}):await setDoc(kr,{total:BET_COST/2});
     inp.value='';
     toast(BET_TOASTS[Math.floor(Math.random()*BET_TOASTS.length)]+' – '+BET_COST+' Fr.');
     const myCount=state.bets.filter(b=>b.userId===state.user.uid).length+1;
@@ -205,11 +209,19 @@ async function closeGame(gid,selIds){
   const gb=state.bets.filter(b=>b.gameId===gid),pot=gb.length*BET_COST;
   if(!pot){toast('Kei Wette bi däm Spiel');return}
   const w=gb.filter(b=>selIds.includes(b.id)),wu=[...new Set(w.map(x=>x.userId))];
-  const hasW=wu.length>0,jh=hasW?pot/2:0,kh=pot-jh,pw=hasW?jh/wu.length:0;
+  const hasW=wu.length>0;
+  // D'Hälfti isch scho im Bierkässeli. Di ander Hälfti isch dr Jackpot.
+  const jackpot = pot/2; // total Jackpot
+  const kontoAlreadyIn = pot/2; // scho bim Wette drazuegloffe
+  const pw = hasW ? jackpot/wu.length : 0;
+  // Wenn kei Gwünner: dr Jackpot gaht au is Bierkässeli
+  const extraToKonto = hasW ? 0 : jackpot;
   try{
-    await updateDoc(doc(db,'games',gid),{status:'closed',closedAt:Date.now(),pot,winnerBetIds:selIds,winnerUserIds:wu,jackpotHalf:jh,kontoHalf:kh,perWinner:pw});
-    const kr=doc(db,'meta','konto'),ks=await getDoc(kr);
-    ks.exists()?await updateDoc(kr,{total:increment(kh)}):await setDoc(kr,{total:kh});
+    await updateDoc(doc(db,'games',gid),{status:'closed',closedAt:Date.now(),pot,winnerBetIds:selIds,winnerUserIds:wu,jackpotHalf:jackpot,kontoHalf:kontoAlreadyIn+extraToKonto,perWinner:pw});
+    if(extraToKonto>0){
+      const kr=doc(db,'meta','konto'),ks=await getDoc(kr);
+      ks.exists()?await updateDoc(kr,{total:increment(extraToKonto)}):await setDoc(kr,{total:extraToKonto});
+    }
     confetti(100);toast(hasW?'🏆 Spiel abgschlosse!':'🍻 Alles is Bierkässeli!');
   }catch(e){toast('Fehler: '+e.message)}
 }
@@ -244,9 +256,9 @@ function render(){
       return;
     }
     const og=state.games.filter(g=>g.status!=='closed'),cg=state.games.filter(g=>g.status==='closed');
-    const jp=og.reduce((s,g)=>s+betsFor(g.id).length*BET_COST,0);
+    const jp=og.reduce((s,g)=>s+betsFor(g.id).length*(BET_COST/2),0);
     animateFigure('jackpot-value',jp);
-    if($('jackpot-sub')) $('jackpot-sub').textContent=og.length?`${og.length} offeni Spiel · ${og.reduce((s,g)=>s+betsFor(g.id).length,0)} Wette`:'kei offeni Spiel';
+    if($('jackpot-sub')) $('jackpot-sub').textContent=og.length?`½ pro Wett · ${og.reduce((s,g)=>s+betsFor(g.id).length,0)} Wette total`:'kei offeni Spiel';
     if($('konto-sub')) $('konto-sub').textContent=state.konto>0?`🍻 ca. ${Math.floor(state.konto/6)} Bier`:'🍻 fürs Saisonändi';
 
     const ms=userStats(state.user.uid);
@@ -338,7 +350,7 @@ function renderNotifs(cg){
 const QUICK=['3:1','4:2','2:1','5:3','3:2','1:2','2:3','4:3'];
 
 function mkOpen(g){
-  const bets=betsFor(g.id),pot=bets.length*BET_COST,uid=state.user.uid;
+  const bets=betsFor(g.id),pot=bets.length*(BET_COST/2),uid=state.user.uid;
   const d=daysUntil(g.date),cd=countdownText(d);
   const bettors=new Set(bets.map(b=>b.userId)).size;
   const c=document.createElement('div');c.className='game open';
@@ -351,7 +363,7 @@ function mkOpen(g){
   }else{const e=document.createElement('div');e.className='game-empty';e.textContent='No kei Wette – sig dr Erschti!';c.appendChild(e)}
 
   const qp=document.createElement('div');qp.className='quick-picks';
-  qp.innerHTML='<div class="label">Quick-Tipp (Gottéron : Gägner)</div>';
+  qp.innerHTML='<div class="label">Quick-Tipp (Gottéron : Gägner) · 2.50 Fr. → Jackpot · 2.50 Fr. → Bierkässeli</div>';
   const inp=document.createElement('input');inp.type='text';inp.placeholder='oder eige Tipp, z.B. 4:2';
   QUICK.forEach(q=>{const b=document.createElement('button');b.className='qp';b.textContent=q;b.addEventListener('click',()=>{inp.value=q;inp.focus()});qp.appendChild(b)});
   c.appendChild(qp);
