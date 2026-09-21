@@ -3,16 +3,29 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/fireba
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, getDoc, onSnapshot, query, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const state = { user:null, isAdmin:false, games:[], bets:[], konto:0, prevJackpot:0 };
+// ===== INIT =====
+let app, auth, db;
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+} catch(e) {
+  document.body.innerHTML = '<div style="color:#fff;padding:40px;font-family:sans-serif"><h2>Firebase-Fehler</h2><pre>'+e.message+'</pre></div>';
+  throw e;
+}
+
+const state = { user:null, isAdmin:false, games:[], bets:[], konto:0 };
 const TROPHY_MIN = 10;
 window._authMode = 'login';
 
-// ============ HELPERS ============
+// ===== HELPERS =====
 const $ = id => document.getElementById(id);
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600)}
+
+function toast(m){
+  const t=$('toast'); if(!t) return;
+  t.textContent=m; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600);
+}
 function fmtFr(n){const r=Math.round(n*100)/100;return r%1===0?String(r):r.toFixed(2)}
 function fmtDate(d){if(!d)return'';try{return new Date(d+'T00:00:00').toLocaleDateString('de-CH',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}catch(e){return d}}
 function esc(s){const d=document.createElement('div');d.textContent=s??'';return d.innerHTML}
@@ -33,20 +46,20 @@ function countdownText(d){
   return`📅 no ${d} Täg`;
 }
 
-// Animated number counter
-function animateFigure(id,target,unit='Fr.'){
-  const el=$(id);const from=parseFloat(el.dataset.val||0);
+function animateFigure(id,target){
+  const el=$(id); if(!el) return;
+  const from=parseFloat(el.dataset.val||0);
   const dur=800,start=performance.now();
   function tick(now){
     const p=Math.min((now-start)/dur,1);const ease=1-Math.pow(1-p,3);
     const cur=from+(target-from)*ease;
-    el.innerHTML=fmtFr(cur)+'<span class="unit">'+unit+'</span>';
+    el.innerHTML=fmtFr(cur)+'<span class="unit">Fr.</span>';
     if(p<1)requestAnimationFrame(tick);else el.dataset.val=target;
   }
   requestAnimationFrame(tick);
 }
 
-// ============ CONFETTI ============
+// ===== CONFETTI =====
 function confetti(count=120){
   const colors=['#e52535','#ffffff','#f5b731','#ff3a4a','#22c55e'];
   for(let i=0;i<count;i++){
@@ -62,27 +75,36 @@ function confetti(count=120){
   }
 }
 
-// ============ CHANTS ============
 const CHANTS=['HOPP GOTTÉRON! 🔴⚪','ALLEZ LES DRAGONS! 🐉','FRIBOURG! FRIBOURG! 📣','WIR SIND GOTTÉRON! 💪','HOPP HOPP HOPP! 🏒','GOTTÉRON MEISTER! 🏆','VAMOS DRAGONS! 🔥','DRAGONS ON FIRE! 🐲'];
 function showChant(){
-  const b=$('chant-bubble');b.textContent=CHANTS[Math.floor(Math.random()*CHANTS.length)];
+  const b=$('chant-bubble'); if(!b) return;
+  b.textContent=CHANTS[Math.floor(Math.random()*CHANTS.length)];
   b.classList.add('show');confetti(40);
   setTimeout(()=>b.classList.remove('show'),1500);
 }
 
-// ============ TAUNTS ============
 const BET_TOASTS=['Wett platziert! 🎯','Mutig! 💪','Das gaht uf! 🚀','Gueti Wahl! 🔥','Jetz wird\'s ernst! 😤','Dr Jackpot wachst! 💰','Hopp Gottéron! 🏒','Vertrau dim Bauch! 🎲'];
 
-// ============ AUTH ============
-try {
-  $('login-btn').addEventListener('click',submitAuth);
-  $('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth()});
-  $('logout-btn').addEventListener('click',()=>signOut(auth));
-  const chantBtn=$('chant-btn');if(chantBtn)chantBtn.addEventListener('click',showChant);
-} catch(e) { console.error('Init error:',e) }
+// ===== SETUP AFTER DOM READY =====
+function setupEvents(){
+  const loginBtn=$('login-btn'); if(loginBtn) loginBtn.addEventListener('click',submitAuth);
+  const loginPass=$('login-pass'); if(loginPass) loginPass.addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth()});
+  const logoutBtn=$('logout-btn'); if(logoutBtn) logoutBtn.addEventListener('click',()=>signOut(auth));
+  const chantBtn=$('chant-btn'); if(chantBtn) chantBtn.addEventListener('click',showChant);
+  const ngCreate=$('ng-create'); if(ngCreate) ngCreate.addEventListener('click',createGame);
+  const ngDate=$('ng-date'); if(ngDate) try{ngDate.valueAsDate=new Date()}catch(e){}
+}
 
+// Setup as soon as possible
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',setupEvents);
+else setupEvents();
+
+// ===== AUTH =====
 async function submitAuth(){
-  const name=$('login-name').value.trim(),email=$('login-email').value.trim().toLowerCase(),pass=$('login-pass').value,err=$('login-error');
+  const name=$('login-name').value.trim();
+  const email=$('login-email').value.trim().toLowerCase();
+  const pass=$('login-pass').value;
+  const err=$('login-error');
   err.textContent='';
   if(!email||!pass){err.textContent='Bitte Email und Passwort iigäh';return}
   const btn=$('login-btn');btn.disabled=true;
@@ -104,36 +126,54 @@ async function submitAuth(){
   btn.disabled=false;
 }
 
+async function createGame(){
+  const oEl=$('ng-opponent'),dEl=$('ng-date'),btn=$('ng-create');
+  const o=oEl.value.trim(),d=dEl.value;
+  if(!o){toast('Bitte Gägner iigäh');return}
+  btn.disabled=true;
+  try{
+    await addDoc(collection(db,'games'),{opponent:o,date:d,status:'open',createdAt:Date.now()});
+    oEl.value='';toast('Spiel eröffnet! Los gahts 🏒');
+  }catch(e){toast('Fehler: '+e.message)}
+  btn.disabled=false;
+}
+
 onAuthStateChanged(auth,user=>{
-  state.user=user;state.isAdmin=!!user&&user.email===ADMIN_EMAIL;
-  if(user){
-    $('auth-overlay').style.display='none';$('app-content').style.display='block';
-    $('whoami-name').textContent=(state.isAdmin?'👔 ':'')+(user.displayName||user.email);
-    $('admin-new-game').style.display=state.isAdmin?'block':'none';
-    startSubs();
-  }else{$('auth-overlay').style.display='flex';$('app-content').style.display='none'}
-  render();
+  try {
+    state.user=user;
+    state.isAdmin=!!user&&user.email===ADMIN_EMAIL;
+    if(user){
+      $('auth-overlay').style.display='none';
+      $('app-content').style.display='block';
+      $('whoami-name').textContent=(state.isAdmin?'👔 ':'')+(user.displayName||user.email);
+      $('admin-new-game').style.display=state.isAdmin?'block':'none';
+      startSubs();
+    }else{
+      $('auth-overlay').style.display='flex';
+      $('app-content').style.display='none';
+    }
+    render();
+  } catch(e) {
+    console.error('Auth state error:', e);
+    $('auth-overlay').style.display='flex';
+    $('app-content').style.display='none';
+  }
 });
 
-// ============ DATA ============
+// ===== DATA =====
 let subbed=false;
 function startSubs(){
   if(subbed)return;subbed=true;
-  onSnapshot(query(collection(db,'games'),orderBy('createdAt','desc')),s=>{state.games=s.docs.map(d=>({id:d.id,...d.data()}));render()});
-  onSnapshot(collection(db,'bets'),s=>{state.bets=s.docs.map(d=>({id:d.id,...d.data()}));render()});
-  onSnapshot(doc(db,'meta','konto'),s=>{state.konto=(s.exists()&&s.data().total)||0;animateFigure('konto-value',state.konto)});
+  onSnapshot(query(collection(db,'games'),orderBy('createdAt','desc')),
+    s=>{state.games=s.docs.map(d=>({id:d.id,...d.data()}));render()},
+    e=>console.error('games sub error:',e));
+  onSnapshot(collection(db,'bets'),
+    s=>{state.bets=s.docs.map(d=>({id:d.id,...d.data()}));render()},
+    e=>console.error('bets sub error:',e));
+  onSnapshot(doc(db,'meta','konto'),
+    s=>{state.konto=(s.exists()&&s.data().total)||0;animateFigure('konto-value',state.konto)},
+    e=>console.error('konto sub error:',e));
 }
-
-try {
-$('ng-create').addEventListener('click',async()=>{
-  const o=$('ng-opponent').value.trim(),d=$('ng-date').value;
-  if(!o){toast('Bitte Gägner iigäh');return}
-  $('ng-create').disabled=true;
-  try{await addDoc(collection(db,'games'),{opponent:o,date:d,status:'open',createdAt:Date.now()});$('ng-opponent').value='';toast('Spiel eröffnet! Los gahts 🏒')}catch(e){toast('Fehler: '+e.message)}
-  $('ng-create').disabled=false;
-});
-try{$('ng-date').valueAsDate=new Date()}catch(e){}
-} catch(e) { console.error('Admin init error:',e) }
 
 async function placeBet(gid,inp){
   const p=inp.value.trim();
@@ -143,7 +183,6 @@ async function placeBet(gid,inp){
     await addDoc(collection(db,'bets'),{gameId:gid,userId:state.user.uid,userName:state.user.displayName||state.user.email,prediction:p,createdAt:Date.now()});
     inp.value='';
     toast(BET_TOASTS[Math.floor(Math.random()*BET_TOASTS.length)]+' – '+BET_COST+' Fr.');
-    // Check for trophy milestone
     const myCount=state.bets.filter(b=>b.userId===state.user.uid).length+1;
     if(myCount===TROPHY_MIN){setTimeout(()=>{confetti(150);toast('🏆 POKAL VERDIENT! '+TROPHY_MIN+' Wette!')},600)}
     else if(myCount===1){setTimeout(()=>toast('🎯 Dini erschti Wett – willkomme!'),500)}
@@ -159,13 +198,12 @@ async function closeGame(gid,selIds){
     await updateDoc(doc(db,'games',gid),{status:'closed',closedAt:Date.now(),pot,winnerBetIds:selIds,winnerUserIds:wu,jackpotHalf:jh,kontoHalf:kh,perWinner:pw});
     const kr=doc(db,'meta','konto'),ks=await getDoc(kr);
     ks.exists()?await updateDoc(kr,{total:increment(kh)}):await setDoc(kr,{total:kh});
-    confetti(100);toast(hasW?'🏆 Spiel abgschlosse – Gwünner sind bekannt!':'🍻 Alles is Bierkässeli!');
+    confetti(100);toast(hasW?'🏆 Spiel abgschlosse!':'🍻 Alles is Bierkässeli!');
   }catch(e){toast('Fehler: '+e.message)}
 }
 
 const betsFor=gid=>state.bets.filter(b=>b.gameId===gid).sort((a,b)=>a.createdAt-b.createdAt);
 
-// ============ USER STATS ============
 function userStats(uid){
   const my=state.bets.filter(b=>b.userId===uid);
   const closed=state.games.filter(g=>g.status==='closed');
@@ -186,42 +224,53 @@ function badges(uid,stats,rank){
   return b.join('');
 }
 
-// ============ RENDER ============
+// ===== RENDER =====
 function render(){
-  if(!state.user){['open-games','closed-games','notifs','leaderboard'].forEach(i=>$(i).innerHTML='');return}
-  const og=state.games.filter(g=>g.status!=='closed'),cg=state.games.filter(g=>g.status==='closed');
-  const jp=og.reduce((s,g)=>s+betsFor(g.id).length*BET_COST,0);
-  animateFigure('jackpot-value',jp);
-  $('jackpot-sub').textContent=og.length?`${og.length} offeni Spiel · ${og.reduce((s,g)=>s+betsFor(g.id).length,0)} Wette`:'kei offeni Spiel';
-  $('konto-sub').textContent=state.konto>0?`🍻 ca. ${Math.floor(state.konto/6)} Bier`:'🍻 fürs Saisonändi';
+  try {
+    if(!state.user){
+      ['open-games','closed-games','notifs','leaderboard'].forEach(i=>{const el=$(i);if(el)el.innerHTML=''});
+      return;
+    }
+    const og=state.games.filter(g=>g.status!=='closed'),cg=state.games.filter(g=>g.status==='closed');
+    const jp=og.reduce((s,g)=>s+betsFor(g.id).length*BET_COST,0);
+    animateFigure('jackpot-value',jp);
+    if($('jackpot-sub')) $('jackpot-sub').textContent=og.length?`${og.length} offeni Spiel · ${og.reduce((s,g)=>s+betsFor(g.id).length,0)} Wette`:'kei offeni Spiel';
+    if($('konto-sub')) $('konto-sub').textContent=state.konto>0?`🍻 ca. ${Math.floor(state.konto/6)} Bier`:'🍻 fürs Saisonändi';
 
-  // My stats in nav
-  const ms=userStats(state.user.uid);
-  $('my-stats').innerHTML=`<span><b>${ms.bets}</b> Wette</span><span><b>${ms.wins}</b> Sieg${ms.wins===1?'':'e'}</span><span style="color:${ms.net>=0?'var(--green)':'var(--accent2)'}"><b>${ms.net>=0?'+':''}${fmtFr(ms.net)}</b> Fr.</span>`;
+    const ms=userStats(state.user.uid);
+    if($('my-stats')) $('my-stats').innerHTML=`<span><b>${ms.bets}</b> Wette</span><span><b>${ms.wins}</b> Sieg${ms.wins===1?'':'e'}</span><span style="color:${ms.net>=0?'var(--green)':'var(--accent2)'}"><b>${ms.net>=0?'+':''}${fmtFr(ms.net)}</b> Fr.</span>`;
 
-  renderNotifs(cg);renderLeaderboard();
+    renderNotifs(cg);
+    renderLeaderboard();
 
-  $('open-count').textContent=og.length||'';
-  const oe=$('open-games');
-  if(!og.length)oe.innerHTML='<div class="empty"><div class="big">😴</div>Kei offeni Spiel im Momänt.<br>Dr CEO mues zersch eis eröffne!</div>';
-  else{oe.innerHTML='';og.forEach(g=>oe.appendChild(mkOpen(g)))}
+    if($('open-count')) $('open-count').textContent=og.length||'';
+    const oe=$('open-games');
+    if(oe){
+      if(!og.length)oe.innerHTML='<div class="empty"><div class="big">😴</div>Kei offeni Spiel im Momänt.<br>Dr CEO mues zersch eis eröffne!</div>';
+      else{oe.innerHTML='';og.forEach(g=>oe.appendChild(mkOpen(g)))}
+    }
 
-  $('closed-count').textContent=cg.length||'';
-  const ce=$('closed-games');$('closed-section').style.display=cg.length?'flex':'none';
-  ce.innerHTML='';cg.forEach(g=>ce.appendChild(mkClosed(g)));
+    if($('closed-count')) $('closed-count').textContent=cg.length||'';
+    const ce=$('closed-games');
+    if(ce){
+      if($('closed-section')) $('closed-section').style.display=cg.length?'flex':'none';
+      ce.innerHTML='';cg.forEach(g=>ce.appendChild(mkClosed(g)));
+    }
+  } catch(e) {
+    console.error('Render error:', e);
+  }
 }
 
-// ============ LEADERBOARD ============
 function renderLeaderboard(){
-  const wrap=$('leaderboard');
-  if(!state.bets.length){wrap.innerHTML='';$('lb-section').style.display='none';return}
-  $('lb-section').style.display='flex';
+  const wrap=$('leaderboard'); if(!wrap) return;
+  if(!state.bets.length){wrap.innerHTML='';if($('lb-section'))$('lb-section').style.display='none';return}
+  if($('lb-section')) $('lb-section').style.display='flex';
   const users={};
   state.bets.forEach(b=>{if(!users[b.userId])users[b.userId]={name:b.userName||'Öpper'}});
   const rows=Object.entries(users).map(([uid,u])=>({uid,name:u.name,...userStats(uid)}));
   rows.sort((a,b)=>b.bets-a.bets||b.wins-a.wins);
   const max=rows[0]?.bets||1;
-  $('lb-count').textContent=rows.length+' Spieler';
+  if($('lb-count')) $('lb-count').textContent=rows.length+' Spieler';
   let html='';
   rows.forEach((r,i)=>{
     const isMe=r.uid===state.user.uid,pct=Math.round(r.bets/max*100),bd=badges(r.uid,r,i);
@@ -240,13 +289,13 @@ function renderLeaderboard(){
   wrap.innerHTML=`<div class="leaderboard">${html}</div>`;
 }
 
-// ============ NOTIFICATIONS ============
 const dismissed=new Set(JSON.parse(localStorage.getItem('gott_dismissed')||'[]'));
 function dismiss(id){dismissed.add(id);localStorage.setItem('gott_dismissed',JSON.stringify([...dismissed]))}
 let celebratedWins=new Set(JSON.parse(localStorage.getItem('gott_celebrated')||'[]'));
 
 function renderNotifs(cg){
-  const w=$('notifs');w.innerHTML='';if(!state.user)return;
+  const w=$('notifs'); if(!w) return;
+  w.innerHTML='';if(!state.user)return;
   const uid=state.user.uid;
   cg.forEach(g=>{
     if(dismissed.has(g.id))return;
@@ -260,7 +309,7 @@ function renderNotifs(cg){
     if(iWon){
       if(!celebratedWins.has(g.id)){celebratedWins.add(g.id);localStorage.setItem('gott_celebrated',JSON.stringify([...celebratedWins]));setTimeout(()=>confetti(200),300)}
       n.className='notif win';
-      n.innerHTML=`<div class="notif-icon">🏆</div><div class="notif-body"><div class="title">GWUNNE! Gottéron vs ${esc(g.opponent)}</div><div>Du überchunnsch <span class="twint-amount">${fmtFr(pw)} Fr.</span></div><div class="detail">${lNames.length?'💸 '+lNames.join(', ')+' schulde dir Twint.':'Kei Verlierer – alli hend gwunne!'}</div></div><button class="notif-close">&times;</button>`;
+      n.innerHTML=`<div class="notif-icon">🏆</div><div class="notif-body"><div class="title">GWUNNE! Gottéron vs ${esc(g.opponent)}</div><div>Du überchunnsch <span class="twint-amount">${fmtFr(pw)} Fr.</span></div><div class="detail">${lNames.length?'💸 '+lNames.join(', ')+' schulde dir Twint.':'Kei Verlierer.'}</div></div><button class="notif-close">&times;</button>`;
     }else if(wNames.length){
       const jh=g.jackpotHalf||pot/2,tl=losers.length||1;
       const myPay=(my.length/tl)*jh,perP=wuids.length?myPay/wuids.length:0;
@@ -268,14 +317,13 @@ function renderNotifs(cg){
       n.innerHTML=`<div class="notif-icon">💸</div><div class="notif-body"><div class="title">Gottéron vs ${esc(g.opponent)} – Leider nid gwunne</div><div>Twint <span class="twint-amount">${fmtFr(perP)} Fr.</span> a ${wNames.length===1?'':'je '}${wNames.map(x=>'<b>'+esc(x)+'</b>').join(' und ')}</div><div class="detail">Dis Iisatz: ${myTotal} Fr. · Nächschts Mal klappt's! 💪</div></div><button class="notif-close">&times;</button>`;
     }else{
       n.className='notif neutral';
-      n.innerHTML=`<div class="notif-icon">🍻</div><div class="notif-body"><div class="title">Gottéron vs ${esc(g.opponent)} – Kein Gwünner</div><div class="detail">${pot} Fr. gö is Bierkässeli. Dis Iisatz: ${myTotal} Fr. Prost! 🍺</div></div><button class="notif-close">&times;</button>`;
+      n.innerHTML=`<div class="notif-icon">🍻</div><div class="notif-body"><div class="title">Gottéron vs ${esc(g.opponent)} – Kein Gwünner</div><div class="detail">${pot} Fr. is Bierkässeli. Prost! 🍺</div></div><button class="notif-close">&times;</button>`;
     }
     n.querySelector('.notif-close').addEventListener('click',()=>{dismiss(g.id);n.remove()});
     w.appendChild(n);
   });
 }
 
-// ============ GAME CARDS ============
 const QUICK=['3:1','4:2','2:1','5:3','3:2','1:2','2:3','4:3'];
 
 function mkOpen(g){
@@ -289,7 +337,7 @@ function mkOpen(g){
     const bl=document.createElement('div');bl.className='game-bets';
     bets.forEach(b=>{const r=document.createElement('div');r.className='bet-row';const n=b.userName||'?';r.innerHTML=`<div class="left"><div class="bet-avatar" style="background:${avatarColor(n)}">${initials(n)}</div><span class="bet-user">${esc(n)}${b.userId===uid?'<span class="me-tag">DU</span>':''}</span></div><div class="bet-right"><div class="bet-pred">${esc(b.prediction)}</div><div class="bet-amount">${BET_COST} Fr.</div></div>`;bl.appendChild(r)});
     c.appendChild(bl);
-  }else{const e=document.createElement('div');e.className='game-empty';e.textContent='🎲 No kei Wette – sig dr Erschti und setz dr Ton!';c.appendChild(e)}
+  }else{const e=document.createElement('div');e.className='game-empty';e.textContent='🎲 No kei Wette – sig dr Erschti!';c.appendChild(e)}
 
   const qp=document.createElement('div');qp.className='quick-picks';
   qp.innerHTML='<div class="label">⚡ Quick-Tipp (Gottéron : Gägner)</div>';
@@ -304,9 +352,9 @@ function mkOpen(g){
 
   if(state.isAdmin){
     const cp=document.createElement('div');cp.className='close-picker';cp.innerHTML='<div class="hint">👔 CEO: Gwünner uswähle</div>';const sel=new Set();
-    if(!bets.length)cp.innerHTML+='<div style="color:var(--muted);font-size:.82rem">No kei Wette zum uswähle</div>';
+    if(!bets.length)cp.innerHTML+='<div style="color:var(--muted);font-size:.82rem">No kei Wette</div>';
     bets.forEach(b=>{const lb=document.createElement('label');const cb=document.createElement('input');cb.type='checkbox';cb.addEventListener('change',()=>{cb.checked?sel.add(b.id):sel.delete(b.id)});const sp=document.createElement('span');sp.textContent=`${b.userName||'?'} → ${b.prediction}`;lb.appendChild(cb);lb.appendChild(sp);cp.appendChild(lb)});
-    const ac=document.createElement('div');ac.className='close-actions';const cb=document.createElement('button');cb.textContent='🏁 Spiel abschliesse & Jackpot usszahle';cb.addEventListener('click',()=>{if(!bets.length){toast('Kei Wette');return}if(!confirm(sel.size?`${sel.size} Gwünner uswählt. Abschliesse?`:'Kei Gwünner uswählt – ganze Topf is Bierkässeli. Sicher?'))return;closeGame(g.id,[...sel])});ac.appendChild(cb);cp.appendChild(ac);c.appendChild(cp);
+    const ac=document.createElement('div');ac.className='close-actions';const cb=document.createElement('button');cb.textContent='🏁 Spiel abschliesse & usszahle';cb.addEventListener('click',()=>{if(!bets.length){toast('Kei Wette');return}if(!confirm(sel.size?`${sel.size} Gwünner uswählt. Abschliesse?`:'Kei Gwünner – ganze Topf is Bierkässeli. Sicher?'))return;closeGame(g.id,[...sel])});ac.appendChild(cb);cp.appendChild(ac);c.appendChild(cp);
   }
   return c;
 }
