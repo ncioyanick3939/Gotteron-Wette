@@ -93,6 +93,9 @@ function setupEvents(){
   const chantBtn=$('chant-btn'); if(chantBtn) chantBtn.addEventListener('click',showChant);
   const ngCreate=$('ng-create'); if(ngCreate) ngCreate.addEventListener('click',createGame);
   const ngDate=$('ng-date'); if(ngDate) try{ngDate.valueAsDate=new Date()}catch(e){}
+  const lbBtn=$('lb-open-btn'); if(lbBtn) lbBtn.addEventListener('click',()=>$('lb-modal').classList.add('show'));
+  const lbClose=$('lb-close'); if(lbClose) lbClose.addEventListener('click',()=>$('lb-modal').classList.remove('show'));
+  const lbModal=$('lb-modal'); if(lbModal) lbModal.addEventListener('click',e=>{if(e.target===lbModal)lbModal.classList.remove('show')});
 }
 
 // Setup as soon as possible
@@ -246,7 +249,7 @@ function render(){
     if($('open-count')) $('open-count').textContent=og.length||'';
     const oe=$('open-games');
     if(oe){
-      if(!og.length)oe.innerHTML='<div class="empty"><div class="big">😴</div>Kei offeni Spiel im Momänt.<br>Dr CEO mues zersch eis eröffne!</div>';
+      if(!og.length)oe.innerHTML='<div class="empty">Kei offeni Spiel im Momänt.<br>Dr CEO mues zersch eis eröffne!</div>';
       else{oe.innerHTML='';og.forEach(g=>oe.appendChild(mkOpen(g)))}
     }
 
@@ -263,8 +266,7 @@ function render(){
 
 function renderLeaderboard(){
   const wrap=$('leaderboard'); if(!wrap) return;
-  if(!state.bets.length){wrap.innerHTML='';if($('lb-section'))$('lb-section').style.display='none';return}
-  if($('lb-section')) $('lb-section').style.display='flex';
+  if(!state.bets.length){wrap.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);font-size:.88rem">No kei Wette – d\'Rangliste chunt nach de ersten Wette.</div>';return}
   const users={};
   state.bets.forEach(b=>{if(!users[b.userId])users[b.userId]={name:b.userName||'Öpper'}});
   const rows=Object.entries(users).map(([uid,u])=>({uid,name:u.name,...userStats(uid)}));
@@ -337,24 +339,24 @@ function mkOpen(g){
     const bl=document.createElement('div');bl.className='game-bets';
     bets.forEach(b=>{const r=document.createElement('div');r.className='bet-row';const n=b.userName||'?';r.innerHTML=`<div class="left"><div class="bet-avatar" style="background:${avatarColor(n)}">${initials(n)}</div><span class="bet-user">${esc(n)}${b.userId===uid?'<span class="me-tag">DU</span>':''}</span></div><div class="bet-right"><div class="bet-pred">${esc(b.prediction)}</div><div class="bet-amount">${BET_COST} Fr.</div></div>`;bl.appendChild(r)});
     c.appendChild(bl);
-  }else{const e=document.createElement('div');e.className='game-empty';e.textContent='🎲 No kei Wette – sig dr Erschti!';c.appendChild(e)}
+  }else{const e=document.createElement('div');e.className='game-empty';e.textContent='No kei Wette – sig dr Erschti!';c.appendChild(e)}
 
   const qp=document.createElement('div');qp.className='quick-picks';
-  qp.innerHTML='<div class="label">⚡ Quick-Tipp (Gottéron : Gägner)</div>';
+  qp.innerHTML='<div class="label">Quick-Tipp (Gottéron : Gägner)</div>';
   const inp=document.createElement('input');inp.type='text';inp.placeholder='oder eige Tipp, z.B. 4:2';
   QUICK.forEach(q=>{const b=document.createElement('button');b.className='qp';b.textContent=q;b.addEventListener('click',()=>{inp.value=q;inp.focus()});qp.appendChild(b)});
   c.appendChild(qp);
 
   const f=document.createElement('div');f.className='game-form';
-  const btn=document.createElement('button');btn.textContent='🎯 Wette · '+BET_COST+' Fr.';
+  const btn=document.createElement('button');btn.textContent='Wette · '+BET_COST+' Fr.';
   btn.addEventListener('click',()=>placeBet(g.id,inp));inp.addEventListener('keydown',e=>{if(e.key==='Enter')placeBet(g.id,inp)});
   f.appendChild(inp);f.appendChild(btn);c.appendChild(f);
 
   if(state.isAdmin){
-    const cp=document.createElement('div');cp.className='close-picker';cp.innerHTML='<div class="hint">👔 CEO: Gwünner uswähle</div>';const sel=new Set();
+    const cp=document.createElement('div');cp.className='close-picker';cp.innerHTML='<div class="hint">CEO: Gwünner uswähle</div>';const sel=new Set();
     if(!bets.length)cp.innerHTML+='<div style="color:var(--muted);font-size:.82rem">No kei Wette</div>';
     bets.forEach(b=>{const lb=document.createElement('label');const cb=document.createElement('input');cb.type='checkbox';cb.addEventListener('change',()=>{cb.checked?sel.add(b.id):sel.delete(b.id)});const sp=document.createElement('span');sp.textContent=`${b.userName||'?'} → ${b.prediction}`;lb.appendChild(cb);lb.appendChild(sp);cp.appendChild(lb)});
-    const ac=document.createElement('div');ac.className='close-actions';const cb=document.createElement('button');cb.textContent='🏁 Spiel abschliesse & usszahle';cb.addEventListener('click',()=>{if(!bets.length){toast('Kei Wette');return}if(!confirm(sel.size?`${sel.size} Gwünner uswählt. Abschliesse?`:'Kei Gwünner – ganze Topf is Bierkässeli. Sicher?'))return;closeGame(g.id,[...sel])});ac.appendChild(cb);cp.appendChild(ac);c.appendChild(cp);
+    const ac=document.createElement('div');ac.className='close-actions';const cb=document.createElement('button');cb.textContent='Spiel abschliesse & usszahle';cb.addEventListener('click',()=>{if(!bets.length){toast('Kei Wette');return}if(!confirm(sel.size?`${sel.size} Gwünner uswählt. Abschliesse?`:'Kei Gwünner – ganze Topf is Bierkässeli. Sicher?'))return;closeGame(g.id,[...sel])});ac.appendChild(cb);cp.appendChild(ac);c.appendChild(cp);
   }
   return c;
 }
@@ -365,6 +367,6 @@ function mkClosed(g){
   c.innerHTML=`<div class="game-top"><div class="game-info"><div class="matchup">Gottéron <span class="vs">VS</span> ${esc(g.opponent||'?')}</div><div class="date">${fmtDate(g.date)}</div></div><span class="status-closed">Abgschlosse</span></div>`;
   if(bets.length){const bl=document.createElement('div');bl.className='game-bets';bets.forEach(b=>{const isW=wids.includes(b.id),n=b.userName||'?';const r=document.createElement('div');r.className='bet-row'+(isW?' winner':'');r.innerHTML=`<div class="left"><div class="bet-avatar" style="background:${avatarColor(n)}">${initials(n)}</div><span class="bet-user">${esc(n)}${isW?' 🏆':''}${b.userId===uid?'<span class="me-tag">DU</span>':''}</span></div><div class="bet-right"><div class="bet-pred">${esc(b.prediction)}</div><div class="bet-amount">${BET_COST} Fr.</div></div>`;bl.appendChild(r)});c.appendChild(bl)}
   const sm=document.createElement('div');sm.className='closed-summary';const pot=g.pot||bets.length,pw=g.perWinner||0,wc=(g.winnerUserIds||[]).length;
-  sm.innerHTML=wc>0?`💰 Topf <b>${pot} Fr.</b> · 🏆 Jackpot <b>${fmtFr(g.jackpotHalf||pot/2)} Fr.</b> für ${wc} Gwünner (je <b>${fmtFr(pw)} Fr.</b>) · 🍻 Bierkässeli <b>+${fmtFr(g.kontoHalf||pot/2)} Fr.</b>`:`💰 Topf <b>${pot} Fr.</b> · Kein Gwünner – 🍻 alles <b>${fmtFr(pot)} Fr.</b> is Bierkässeli`;
+  sm.innerHTML=wc>0?`Topf <b>${pot} Fr.</b> · Jackpot <b>${fmtFr(g.jackpotHalf||pot/2)} Fr.</b> für ${wc} Gwünner (je <b>${fmtFr(pw)} Fr.</b>) · Bierkässeli <b>+${fmtFr(g.kontoHalf||pot/2)} Fr.</b>`:`Topf <b>${pot} Fr.</b> · Kein Gwünner – alles <b>${fmtFr(pot)} Fr.</b> is Bierkässeli`;
   c.appendChild(sm);return c;
 }
