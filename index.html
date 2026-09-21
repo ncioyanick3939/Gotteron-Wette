@@ -3,172 +3,218 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gottéron Spielette</title>
+<title>Gottéron Spielette 🏒</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0b0e14;--surface:#141820;--card:#1a1f2b;--card2:#1e2433;
-  --border:#252d3d;--text:#e8eaee;--muted:#6b7385;--accent:#e52535;
-  --accent2:#ff3a4a;--green:#22c55e;--gold:#f5a623;--purple:#a78bfa;
-  --input-bg:#111520;
+  --bg:#0a0d13;--surface:#12161f;--card:#181d29;--card2:#1e2432;
+  --border:#252c3b;--text:#eef0f4;--muted:#6e7689;--accent:#e52535;
+  --accent2:#ff3a4a;--green:#22c55e;--gold:#f5b731;--purple:#a78bfa;--blue:#3b82f6;
+  --input-bg:#0f131c;
 }
-html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow-x:hidden}
+.display{font-family:'Bebas Neue','Outfit',sans-serif;letter-spacing:1px}
+
+/* ANIMATED BG */
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(229,37,53,.12),transparent);pointer-events:none;z-index:0}
+
+/* CONFETTI */
+.confetti-piece{position:fixed;width:10px;height:10px;top:-10px;z-index:9999;pointer-events:none;animation:confetti-fall linear forwards}
+@keyframes confetti-fall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
 
 /* HERO */
-.hero{position:relative;height:220px;overflow:hidden;border-bottom:2px solid var(--accent)}
-.hero-slides{display:flex;width:300%;height:100%;animation:slideshow 12s ease-in-out infinite}
-.hero-slide{flex:0 0 33.333%;height:100%;background-size:cover;background-position:center 30%;filter:brightness(.45)}
-@keyframes slideshow{0%,30%{transform:translateX(0)}33%,63%{transform:translateX(-33.333%)}66%,96%{transform:translateX(-66.666%)}100%{transform:translateX(0)}}
-.hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,14,20,.3) 0%,rgba(11,14,20,.85) 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 20px 22px;text-align:center}
-.hero-overlay .logo{font-size:2rem;font-weight:900;letter-spacing:1px;text-shadow:0 2px 20px rgba(0,0,0,.5)}
-.hero-overlay .logo .red{color:var(--accent)}
-.hero-overlay .tagline{color:var(--muted);font-size:.88rem;margin-top:4px;font-weight:500}
+.hero{position:relative;height:240px;overflow:hidden;border-bottom:3px solid var(--accent)}
+.hero-slides{display:flex;width:300%;height:100%;animation:slideshow 15s ease-in-out infinite}
+.hero-slide{flex:0 0 33.333%;height:100%;background-size:cover;background-position:center 35%;filter:brightness(.4) saturate(1.2)}
+@keyframes slideshow{0%,28%{transform:translateX(0)}33%,61%{transform:translateX(-33.333%)}66%,94%{transform:translateX(-66.666%)}100%{transform:translateX(0)}}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,13,19,.2) 0%,rgba(10,13,19,.9) 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 20px 20px;text-align:center}
+.hero-overlay .logo{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:3px;line-height:1;text-shadow:0 4px 30px rgba(229,37,53,.5)}
+.hero-overlay .logo .red{color:var(--accent2)}
+.hero-overlay .tagline{color:#a8b0c0;font-size:.85rem;margin-top:6px;font-weight:500;letter-spacing:.5px}
+.hero-chant{position:absolute;top:14px;right:14px;background:rgba(229,37,53,.9);border:none;color:#fff;padding:8px 14px;border-radius:20px;font-weight:700;font-size:.78rem;cursor:pointer;font-family:inherit;backdrop-filter:blur(4px);transition:transform .15s}
+.hero-chant:active{transform:scale(.92)}
+.chant-bubble{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:var(--accent);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:2px;padding:20px 40px;border-radius:20px;z-index:200;pointer-events:none;transition:transform .3s cubic-bezier(.34,1.56,.64,1);text-align:center;box-shadow:0 20px 60px rgba(229,37,53,.6)}
+.chant-bubble.show{transform:translate(-50%,-50%) scale(1)}
 
 /* NAV */
-.nav{display:flex;align-items:center;justify-content:flex-end;padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border)}
-.nav .user-pill{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted)}
-.nav .user-pill .uname{color:var(--text);font-weight:600}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border);position:relative;z-index:1}
+.nav .my-stats{display:flex;gap:14px;font-size:.78rem;color:var(--muted)}
+.nav .my-stats b{color:var(--text)}
+.nav .user-pill{display:flex;align-items:center;gap:8px;font-size:.82rem}
+.nav .user-pill .uname{color:var(--text);font-weight:700}
 .nav .user-pill button{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;font-size:.75rem;cursor:pointer;font-family:inherit;transition:.15s}
 .nav .user-pill button:hover{border-color:var(--accent);color:var(--accent)}
 
 /* OVERVIEW */
-.overview{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:16px;background:var(--border);border-radius:12px;overflow:hidden}
-.stat-card{background:var(--surface);padding:22px 16px;text-align:center}
-.stat-card .figure{font-size:2.6rem;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
-.stat-card .figure .unit{font-size:1rem;font-weight:600;margin-left:3px;opacity:.6}
-.stat-card.jackpot .figure{color:var(--accent2)}
-.stat-card.bier .figure{color:var(--gold)}
-.stat-card .caption{margin-top:6px;font-size:.78rem;color:var(--muted);font-weight:500}
-
-/* LEADERBOARD */
-.leaderboard{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-.lb-title{padding:14px 16px 10px;font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-.lb-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--border);font-size:.88rem}
-.lb-rank{width:22px;text-align:center;font-weight:800;color:var(--muted);font-size:.82rem}
-.lb-rank.gold{color:var(--gold)}
-.lb-rank.silver{color:#94a3b8}
-.lb-rank.bronze{color:#cd7f32}
-.lb-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;flex-shrink:0}
-.lb-name{flex:1;font-weight:600}
-.lb-stats{text-align:right;display:flex;align-items:center;gap:8px}
-.lb-count{font-weight:700;font-variant-numeric:tabular-nums}
-.lb-trophy{font-size:1.1rem}
-.lb-bar{height:4px;border-radius:2px;background:var(--border);margin-top:3px;position:relative;overflow:hidden}
-.lb-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
-.lb-name-wrap{flex:1;min-width:0}
+.overview{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:16px;background:var(--border);border-radius:14px;overflow:hidden;position:relative;z-index:1}
+.stat-card{background:var(--surface);padding:24px 16px;text-align:center;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;top:-50%;right:-20%;width:120px;height:120px;border-radius:50%;opacity:.06}
+.stat-card.jackpot::after{background:var(--accent)}
+.stat-card.bier::after{background:var(--gold)}
+.stat-card .figure{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:1px;position:relative}
+.stat-card .figure .unit{font-size:1.2rem;margin-left:4px;opacity:.6}
+.stat-card.jackpot .figure{color:var(--accent2);text-shadow:0 0 30px rgba(255,58,74,.4)}
+.stat-card.bier .figure{color:var(--gold);text-shadow:0 0 30px rgba(245,183,49,.3)}
+.stat-card .caption{margin-top:6px;font-size:.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.stat-card .sub{font-size:.72rem;color:var(--muted);margin-top:3px}
 
 /* SECTIONS */
-.section{margin:20px 16px 8px}
-.section-title{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.section{margin:22px 16px 10px;display:flex;align-items:center;justify-content:space-between}
+.section-title{font-size:.75rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+.section-count{font-size:.72rem;color:var(--muted);background:var(--card);padding:2px 8px;border-radius:10px;border:1px solid var(--border)}
 
 /* NOTIFICATIONS */
-.notifs{margin:0 16px}
-.notif{border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;position:relative}
-.notif.pay{background:linear-gradient(135deg,#1a1028,#1f1535);border:1px solid #6b21a8}
-.notif.win{background:linear-gradient(135deg,#0c2214,#0f2a18);border:1px solid #16a34a}
+.notifs{margin:0 16px;position:relative;z-index:1}
+.notif{border-radius:12px;padding:16px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;position:relative;animation:slideIn .4s ease-out}
+@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.notif.pay{background:linear-gradient(135deg,#1a1028,#221838);border:1px solid #7c3aed}
+.notif.win{background:linear-gradient(135deg,#0c2214,#0f2e1a);border:1px solid #22c55e;box-shadow:0 0 30px rgba(34,197,94,.15)}
 .notif.neutral{background:var(--surface);border:1px solid var(--border)}
-.notif-icon{font-size:1.5rem;flex-shrink:0;margin-top:2px}
-.notif-body{flex:1;font-size:.88rem;line-height:1.5}
-.notif-body .title{font-weight:700;margin-bottom:3px}
+.notif-icon{font-size:1.8rem;flex-shrink:0;line-height:1}
+.notif-body{flex:1;font-size:.88rem;line-height:1.55}
+.notif-body .title{font-weight:800;margin-bottom:4px;font-size:.95rem}
 .notif-body .detail{color:var(--muted)}
-.notif-body .twint-amount{font-weight:800;font-size:1.1rem}
-.notif.pay .twint-amount{color:#a78bfa}
+.notif-body .twint-amount{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px}
+.notif.pay .twint-amount{color:var(--purple)}
 .notif.win .twint-amount{color:var(--green)}
-.notif-close{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px;line-height:1}
+.notif-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1}
+
+/* LEADERBOARD */
+.leaderboard{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;position:relative;z-index:1}
+.lb-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);position:relative;transition:background .15s}
+.lb-row:last-child{border-bottom:none}
+.lb-row.me{background:rgba(229,37,53,.06)}
+.lb-row.me::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.lb-rank{width:26px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--muted)}
+.lb-rank.r1{color:var(--gold)}
+.lb-rank.r2{color:#c0c8d8}
+.lb-rank.r3{color:#d4915d}
+.lb-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.lb-info{flex:1;min-width:0}
+.lb-name{font-weight:700;font-size:.92rem;display:flex;align-items:center;gap:6px}
+.lb-badges{font-size:.85rem;letter-spacing:1px}
+.lb-meta{font-size:.72rem;color:var(--muted);margin-top:2px;display:flex;gap:10px}
+.lb-meta .wins{color:var(--green)}
+.lb-bar{height:4px;border-radius:2px;background:var(--border);margin-top:5px;overflow:hidden}
+.lb-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .6s ease-out}
+.lb-count{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--text);min-width:40px;text-align:right}
+.lb-count small{font-size:.65rem;font-family:'Outfit';color:var(--muted);display:block;line-height:1;margin-top:-2px}
+.lb-trophy-progress{font-size:.7rem;color:var(--muted);text-align:right}
 
 /* GAME CARD */
-.game{background:var(--card);border:1px solid var(--border);border-radius:10px;margin:0 16px 12px;overflow:hidden;transition:border-color .15s}
-.game:hover{border-color:#3a4155}
-.game-top{padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
-.game-info .matchup{font-weight:700;font-size:1.05rem}
-.game-info .matchup .vs{color:var(--muted);font-weight:500;margin:0 6px}
-.game-info .date{color:var(--muted);font-size:.78rem;margin-top:2px}
+.game{background:var(--card);border:1px solid var(--border);border-radius:14px;margin:0 16px 12px;overflow:hidden;transition:border-color .15s,transform .15s;position:relative;z-index:1}
+.game.open{border-color:#2a3549}
+.game.open:hover{border-color:var(--accent);transform:translateY(-1px)}
+.game-top{padding:16px;display:flex;justify-content:space-between;align-items:center}
+.game-info .matchup{font-weight:800;font-size:1.1rem;display:flex;align-items:center;gap:6px}
+.game-info .matchup .vs{color:var(--accent);font-size:.75rem;font-weight:700;background:rgba(229,37,53,.15);padding:2px 6px;border-radius:4px}
+.game-info .date{color:var(--muted);font-size:.78rem;margin-top:3px}
+.game-info .countdown{color:var(--gold);font-size:.75rem;font-weight:600;margin-top:2px}
 .game-pot{text-align:right}
-.game-pot .amount{font-size:1.6rem;font-weight:900;color:var(--accent2);font-variant-numeric:tabular-nums}
-.game-pot .amount .unit{font-size:.8rem;font-weight:600}
-.game-pot .label{font-size:.7rem;color:var(--muted);margin-top:1px}
+.game-pot .amount{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent2);line-height:1;letter-spacing:1px}
+.game-pot .amount .unit{font-size:.9rem}
+.game-pot .label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.game-pot .bettors{font-size:.7rem;color:var(--muted);margin-top:2px}
 
 .game-bets{border-top:1px solid var(--border);padding:0 16px}
 .bet-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:.87rem}
 .bet-row:last-child{border-bottom:none}
 .bet-row .left{display:flex;align-items:center;gap:10px}
-.bet-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff;flex-shrink:0}
+.bet-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:#fff;flex-shrink:0}
 .bet-user{font-weight:600}
+.bet-user .me-tag{font-size:.65rem;background:var(--accent);color:#fff;padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:middle}
 .bet-right{text-align:right}
-.bet-pred{font-weight:700}
-.bet-amount{color:var(--muted);font-size:.75rem}
-.bet-row.winner{background:linear-gradient(90deg,rgba(245,166,35,.1),transparent);margin:0 -16px;padding:10px 16px}
+.bet-pred{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1px;line-height:1}
+.bet-amount{color:var(--muted);font-size:.72rem}
+.bet-row.winner{background:linear-gradient(90deg,rgba(245,183,49,.12),transparent);margin:0 -16px;padding:10px 16px}
 .bet-row.winner .bet-pred{color:var(--gold)}
 
-.game-form{border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:8px}
-.game-form input{flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:.9rem;font-family:inherit}
-.game-form input::placeholder{color:var(--muted)}
-.game-form input:focus{outline:none;border-color:var(--accent)}
-.game-form button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:8px;padding:11px 18px;font-weight:700;font-size:.85rem;cursor:pointer;font-family:inherit;white-space:nowrap;transition:opacity .15s}
-.game-form button:hover{opacity:.9}
+.quick-picks{border-top:1px solid var(--border);padding:12px 16px 4px;display:flex;gap:6px;flex-wrap:wrap}
+.quick-picks .label{width:100%;font-size:.7rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+.qp{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Bebas Neue';letter-spacing:1px;transition:all .12s}
+.qp:hover{background:var(--accent);border-color:var(--accent)}
+.qp:active{transform:scale(.95)}
 
-.game-empty{color:var(--muted);font-size:.82rem;padding:14px 16px;border-top:1px solid var(--border)}
-.status-closed{background:var(--border);color:var(--muted);padding:3px 10px;border-radius:6px;font-size:.72rem;font-weight:600}
-.closed-summary{padding:10px 16px;border-top:1px dashed var(--border);font-size:.8rem;color:var(--muted);line-height:1.5}
-.closed-summary b{color:var(--text);font-weight:600}
+.game-form{padding:10px 16px 14px;display:flex;gap:8px}
+.game-form input{flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:.95rem;font-family:inherit}
+.game-form input::placeholder{color:var(--muted)}
+.game-form input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(229,37,53,.15)}
+.game-form button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;padding:12px 20px;font-weight:800;font-size:.88rem;cursor:pointer;font-family:inherit;white-space:nowrap;transition:transform .12s,box-shadow .12s;box-shadow:0 4px 15px rgba(229,37,53,.3)}
+.game-form button:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(229,37,53,.4)}
+.game-form button:active{transform:scale(.97)}
+
+.game-empty{color:var(--muted);font-size:.85rem;padding:14px 16px;border-top:1px solid var(--border);text-align:center}
+.status-closed{background:var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.closed-summary{padding:12px 16px;border-top:1px dashed var(--border);font-size:.8rem;color:var(--muted);line-height:1.6}
+.closed-summary b{color:var(--text);font-weight:700}
 
 /* ADMIN */
-.admin-section{margin:0 16px 16px}
-.admin-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.admin-section{margin:0 16px 16px;position:relative;z-index:1}
+.admin-card{background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.admin-card .admin-badge{font-size:.68rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
 .admin-row{display:flex;gap:8px}
-.admin-card input{flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:.9rem;font-family:inherit}
+.admin-card input{flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:.9rem;font-family:inherit}
 .admin-card input::placeholder{color:var(--muted)}
-.admin-card button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 14px;font-weight:700;font-size:.85rem;cursor:pointer;font-family:inherit}
+.admin-card button{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px 16px;font-weight:800;font-size:.85rem;cursor:pointer;font-family:inherit}
 
-.close-picker{border-top:1px solid var(--border);padding:12px 16px}
-.close-picker .hint{color:var(--muted);font-size:.75rem;margin-bottom:8px}
-.close-picker label{display:flex;align-items:center;gap:8px;font-size:.85rem;padding:4px 0;cursor:pointer}
-.close-picker label input{accent-color:var(--accent)}
-.close-actions{margin-top:10px}
-.close-actions button{background:var(--gold);color:#1a1200;border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:.82rem;cursor:pointer;font-family:inherit}
+.close-picker{border-top:1px solid var(--border);padding:14px 16px;background:rgba(245,183,49,.03)}
+.close-picker .hint{color:var(--gold);font-size:.72rem;margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.close-picker label{display:flex;align-items:center;gap:10px;font-size:.87rem;padding:6px 0;cursor:pointer}
+.close-picker label input{accent-color:var(--gold);width:16px;height:16px}
+.close-actions{margin-top:12px}
+.close-actions button{background:var(--gold);color:#1a1200;border:none;border-radius:10px;padding:10px 16px;font-weight:800;font-size:.85rem;cursor:pointer;font-family:inherit;width:100%}
 
-.empty{color:var(--muted);font-size:.88rem;text-align:center;padding:28px 16px}
+.empty{color:var(--muted);font-size:.88rem;text-align:center;padding:32px 16px}
+.empty .big{font-size:2.5rem;margin-bottom:8px}
+
+/* FOOTER */
+.footer{text-align:center;padding:30px 16px 40px;color:var(--muted);font-size:.75rem;position:relative;z-index:1}
+.footer .chant{font-family:'Bebas Neue';font-size:1.3rem;color:var(--accent2);letter-spacing:2px;margin-bottom:4px}
 
 /* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:8px;font-size:.85rem;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:60;white-space:nowrap}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--text);color:var(--bg);padding:12px 22px;border-radius:10px;font-size:.88rem;font-weight:700;opacity:0;transition:all .25s;pointer-events:none;z-index:60;white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.4)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* AUTH */
 .auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
-.auth-box{width:100%;max-width:380px}
-.auth-header{text-align:center;margin-bottom:28px}
-.auth-header .brand{font-size:1.6rem;font-weight:900;margin-bottom:4px}
-.auth-header .brand .red{color:var(--accent)}
-.auth-header p{color:var(--muted);font-size:.88rem}
-.auth-tabs{display:flex;margin-bottom:20px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
-.auth-tab{flex:1;padding:12px;text-align:center;font-weight:600;font-size:.9rem;cursor:pointer;background:var(--surface);color:var(--muted);border:none;font-family:inherit;transition:all .15s}
-.auth-tab.active{background:var(--accent);color:#fff}
+.auth-overlay::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(229,37,53,.2),transparent)}
+.auth-box{width:100%;max-width:380px;position:relative}
+.auth-header{text-align:center;margin-bottom:32px}
+.auth-header .brand{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:3px;line-height:1;text-shadow:0 4px 30px rgba(229,37,53,.4)}
+.auth-header .brand .red{color:var(--accent2)}
+.auth-header p{color:var(--muted);font-size:.88rem;margin-top:8px}
+.auth-tabs{display:flex;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;gap:4px}
+.auth-tab{flex:1;padding:11px;text-align:center;font-weight:700;font-size:.9rem;cursor:pointer;background:none;color:var(--muted);border:none;border-radius:9px;font-family:inherit;transition:all .15s}
+.auth-tab.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(229,37,53,.3)}
 .auth-form{display:flex;flex-direction:column;gap:12px}
-.auth-form input{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;color:var(--text);font-size:.95rem;font-family:inherit;-webkit-appearance:none;appearance:none}
+.auth-form input{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 16px;color:var(--text);font-size:.95rem;font-family:inherit;-webkit-appearance:none;appearance:none}
 .auth-form input::placeholder{color:var(--muted)}
-.auth-form input:focus{outline:none;border-color:var(--accent)}
-.auth-error{color:var(--accent);font-size:.82rem;text-align:center;min-height:1.2em}
-.auth-form button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;padding:14px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px}
-.auth-form button:disabled{opacity:.5}
+.auth-form input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(229,37,53,.15)}
+.auth-error{color:var(--accent2);font-size:.82rem;text-align:center;min-height:1.2em;font-weight:600}
+.auth-form button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:15px;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:4px;box-shadow:0 6px 20px rgba(229,37,53,.35);transition:transform .12s}
+.auth-form button:hover{transform:translateY(-1px)}
+.auth-form button:disabled{opacity:.5;transform:none}
 </style>
 </head>
 <body>
 
+<div class="chant-bubble" id="chant-bubble"></div>
+
 <div class="auth-overlay" id="auth-overlay">
   <div class="auth-box">
     <div class="auth-header">
-      <div class="brand">🏒 GOTTÉRON <span class="red">SPIELETTE</span></div>
-      <p>5 Franke pro Wett · Jackpot pro Spiel</p>
+      <div class="brand">🏒 GOTTÉRON<br><span class="red">SPIELETTE</span></div>
+      <p>5 Franke pro Wett · Jackpot pro Spiel · Hopp Gottéron!</p>
     </div>
     <div class="auth-tabs">
       <button class="auth-tab active" id="tab-login" onclick="document.getElementById('login-name').style.display='none';document.getElementById('login-btn').textContent='Iilogge';document.getElementById('login-error').textContent='';this.classList.add('active');document.getElementById('tab-register').classList.remove('active');window._authMode='login'">Iilogge</button>
-      <button class="auth-tab" id="tab-register" onclick="document.getElementById('login-name').style.display='block';document.getElementById('login-btn').textContent='Registriere';document.getElementById('login-error').textContent='';this.classList.add('active');document.getElementById('tab-login').classList.remove('active');window._authMode='register'">Registriere</button>
+      <button class="auth-tab" id="tab-register" onclick="document.getElementById('login-name').style.display='block';document.getElementById('login-btn').textContent='Los geits! 🚀';document.getElementById('login-error').textContent='';this.classList.add('active');document.getElementById('tab-login').classList.remove('active');window._authMode='register'">Registriere</button>
     </div>
-    <div class="auth-form" id="auth-form">
-      <input type="text" id="login-name" placeholder="Dis Name" maxlength="30" autocomplete="name" style="display:none">
+    <div class="auth-form">
+      <input type="text" id="login-name" placeholder="Dis Name (so gsehsch alli)" maxlength="30" autocomplete="name" style="display:none">
       <input type="email" id="login-email" placeholder="Email" maxlength="80" autocomplete="email">
       <input type="password" id="login-pass" placeholder="Passwort (min. 6 Zeiche)" maxlength="60" autocomplete="current-password">
       <div class="auth-error" id="login-error"></div>
@@ -180,19 +226,21 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ou
 <div id="app-content" style="display:none">
 
 <div class="hero">
-  <div class="hero-slides" id="hero-slides">
-    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?w=1200&q=80');"></div>
-    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1515703407324-5f753afd8be8?w=1200&q=80');"></div>
-    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1570939274717-7eda259b50ed?w=1200&q=80');"></div>
+  <div class="hero-slides">
+    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?w=1200&q=80')"></div>
+    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1515703407324-5f753afd8be8?w=1200&q=80')"></div>
+    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1570939274717-7eda259b50ed?w=1200&q=80')"></div>
   </div>
+  <button class="hero-chant" id="chant-btn">📣 HOPP!</button>
   <div class="hero-overlay">
-    <div class="logo">🏒 GOTTÉRON <span class="red">SPIELETTE</span></div>
-    <div class="tagline">Hopp Gottéron! · 5 Fr. pro Wett · Jackpot pro Spiel</div>
+    <div class="logo">GOTTÉRON <span class="red">SPIELETTE</span></div>
+    <div class="tagline">5 Fr. pro Wett · Jackpot pro Spiel · Volli Gläser am Ändi</div>
   </div>
 </div>
 
 <nav class="nav">
-  <div class="user-pill" id="user-pill">
+  <div class="my-stats" id="my-stats"></div>
+  <div class="user-pill">
     <span class="uname" id="whoami-name"></span>
     <button id="logout-btn">Usloge</button>
   </div>
@@ -201,41 +249,48 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ou
 <div class="overview">
   <div class="stat-card jackpot">
     <div class="figure" id="jackpot-value">0<span class="unit">Fr.</span></div>
-    <div class="caption">Jackpot · offeni Spiel</div>
+    <div class="caption">Jackpot</div>
+    <div class="sub" id="jackpot-sub">offeni Spiel</div>
   </div>
   <div class="stat-card bier">
     <div class="figure" id="konto-value">0<span class="unit">Fr.</span></div>
-    <div class="caption">Bierkässeli 🍻</div>
+    <div class="caption">Bierkässeli</div>
+    <div class="sub" id="konto-sub">🍻 fürs Saisonändi</div>
   </div>
 </div>
 
 <div class="notifs" id="notifs"></div>
 
+<div class="section" id="lb-section" style="display:none"><div class="section-title">🏆 Rangliste</div><div class="section-count" id="lb-count"></div></div>
 <div id="leaderboard"></div>
 
 <div id="admin-new-game" style="display:none">
-  <div class="section"><div class="section-title">Neus Spiel eröffne</div></div>
   <div class="admin-section">
     <div class="admin-card">
+      <div class="admin-badge">👔 CEO-Bereich · Neus Spiel</div>
       <input type="text" id="ng-opponent" placeholder="Gägner, z.B. ZSC Lions">
       <div class="admin-row">
         <input type="date" id="ng-date">
-        <button id="ng-create">Erstelle</button>
+        <button id="ng-create">Eröffne 🏒</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="section"><div class="section-title" id="open-title">Offeni Spiel</div></div>
+<div class="section"><div class="section-title">🔥 Offeni Spiel</div><div class="section-count" id="open-count"></div></div>
 <div id="open-games"><div class="empty">Lade…</div></div>
 
-<div class="section" id="closed-section" style="display:none"><div class="section-title">Abgschlosseni Spiel</div></div>
+<div class="section" id="closed-section" style="display:none"><div class="section-title">📋 Abgschlosse</div><div class="section-count" id="closed-count"></div></div>
 <div id="closed-games"></div>
+
+<div class="footer">
+  <div class="chant">HOPP GOTTÉRON! 🔴⚪</div>
+  Möge dr Glücklichschti gwünne – und dr Rescht vo üs wieder z'viel wette 😂
+</div>
 
 </div>
 
 <div class="toast" id="toast"></div>
-
 <script type="module" src="./app.js"></script>
 </body>
 </html>
