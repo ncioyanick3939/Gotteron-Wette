@@ -139,15 +139,39 @@ async function submitAuth(){
 }
 
 async function createGame(){
-  const oEl=$('ng-opponent'),dEl=$('ng-date'),btn=$('ng-create');
-  const o=oEl.value.trim(),d=dEl.value;
+  const oEl=$('ng-opponent'),dEl=$('ng-date'),cEl=$('ng-cutoff'),btn=$('ng-create');
+  const o=oEl.value.trim(),d=dEl.value,c=cEl?cEl.value:'19:30';
   if(!o){toast('Bitte Gägner iigäh');return}
   btn.disabled=true;
   try{
-    await addDoc(collection(db,'games'),{opponent:o,date:d,status:'open',createdAt:Date.now()});
+    await addDoc(collection(db,'games'),{opponent:o,date:d,cutoffTime:c||'19:30',status:'open',createdAt:Date.now()});
     oEl.value='';toast('Spiel eröffnet! Los gahts 🏒');
   }catch(e){toast('Fehler: '+e.message)}
   btn.disabled=false;
+}
+
+function isCutoffPassed(g){
+  if(!g.date)return false;
+  const t=g.cutoffTime||'19:30';
+  const [hh,mm]=t.split(':').map(Number);
+  const cutoff=new Date(g.date+'T00:00:00');
+  cutoff.setHours(hh||19,mm||30,0,0);
+  return Date.now()>cutoff.getTime();
+}
+
+function cutoffText(g){
+  if(!g.date)return '';
+  const t=g.cutoffTime||'19:30';
+  const [hh,mm]=t.split(':').map(Number);
+  const cutoff=new Date(g.date+'T00:00:00');
+  cutoff.setHours(hh||19,mm||30,0,0);
+  const diff=cutoff.getTime()-Date.now();
+  if(diff<=0)return '🔒 Wette-Stopp verbi';
+  const mins=Math.floor(diff/60000);
+  if(mins<60)return `⏰ No ${mins} Min. zum Wette`;
+  const hrs=Math.floor(mins/60);
+  if(hrs<24)return `⏰ Wette-Stopp: hüt ${t} (no ${hrs}h)`;
+  return `⏰ Wette-Stopp: ${t} am Spieltag`;
 }
 
 onAuthStateChanged(auth,user=>{
@@ -191,6 +215,8 @@ async function placeBet(gid,inp){
   const p=inp.value.trim();
   if(!p){toast('Bitte Tipp iigäh 👆');inp.focus();return}
   if(!state.user)return;
+  const g=state.games.find(x=>x.id===gid);
+  if(g&&isCutoffPassed(g)){toast('🔒 Wette-Stopp verbi – zu spät!');return}
   try{
     // 1. Wett speichere
     await addDoc(collection(db,'bets'),{gameId:gid,userId:state.user.uid,userName:state.user.displayName||state.user.email,prediction:p,createdAt:Date.now()});
@@ -234,7 +260,8 @@ function userStats(uid){
   let wins=0,earned=0,spent=my.length*BET_COST;
   closed.forEach(g=>{if((g.winnerUserIds||[]).includes(uid)){wins++;earned+=g.perWinner||0}});
   const gamesPlayed=new Set(my.map(b=>b.gameId)).size;
-  return{bets:my.length,wins,earned,spent,gamesPlayed,net:earned-spent};
+  const bierBeitrag=my.length*(BET_COST/2); // 2.50 pro Wett is Bierkässeli
+  return{bets:my.length,wins,earned,spent,gamesPlayed,net:earned-spent,bierBeitrag};
 }
 
 function badges(uid,stats,rank){
@@ -244,7 +271,6 @@ function badges(uid,stats,rank){
   if(stats.wins>=3)b.push('🍀');
   if(stats.wins>=1&&stats.wins===stats.gamesPlayed&&stats.gamesPlayed>=2)b.push('🎯');
   if(stats.bets>=25)b.push('🔥');
-  if(stats.net>0)b.push('💰');
   return b.join('');
 }
 
@@ -259,10 +285,10 @@ function render(){
     const jp=og.reduce((s,g)=>s+betsFor(g.id).length*(BET_COST/2),0);
     animateFigure('jackpot-value',jp);
     if($('jackpot-sub')) $('jackpot-sub').textContent=og.length?`½ pro Wett · ${og.reduce((s,g)=>s+betsFor(g.id).length,0)} Wette total`:'kei offeni Spiel';
-    if($('konto-sub')) $('konto-sub').textContent=state.konto>0?`🍻 ca. ${Math.floor(state.konto/6)} Bier`:'🍻 fürs Saisonändi';
+    if($('konto-sub')) $('konto-sub').textContent=state.konto>0?`total gspart · ca. ${Math.floor(state.konto/6)} Bier 🍻`:'no nüt gspart';
 
     const ms=userStats(state.user.uid);
-    if($('my-stats')) $('my-stats').innerHTML=`<span><b>${ms.bets}</b> Wette</span><span><b>${ms.wins}</b> Sieg${ms.wins===1?'':'e'}</span><span style="color:${ms.net>=0?'var(--green)':'var(--accent2)'}"><b>${ms.net>=0?'+':''}${fmtFr(ms.net)}</b> Fr.</span>`;
+    if($('my-stats')) $('my-stats').innerHTML=`<span><b>${ms.bets}</b> Wette</span><span><b>${ms.wins}</b> Sieg${ms.wins===1?'':'e'}</span><span style="color:var(--gold)">🍻 <b>${fmtFr(ms.bierBeitrag)}</b> Fr. · ${Math.floor(ms.bierBeitrag/6)} Bier</span>`;
 
     renderNotifs(cg);
     renderLeaderboard();
@@ -303,7 +329,7 @@ function renderLeaderboard(){
       <div class="lb-avatar" style="background:${avatarColor(r.name)}">${initials(r.name)}</div>
       <div class="lb-info">
         <div class="lb-name">${esc(r.name)}${isMe?' <span style="font-size:.65rem;color:var(--accent)">DU</span>':''} <span class="lb-badges">${bd}</span></div>
-        <div class="lb-meta"><span class="wins">${r.wins} Sieg${r.wins===1?'':'e'}</span><span>${r.spent} Fr. gsetzt</span><span style="color:${r.net>=0?'var(--green)':'var(--accent2)'}">${r.net>=0?'+':''}${fmtFr(r.net)} Fr.</span></div>
+        <div class="lb-meta"><span class="wins">${r.wins} Sieg${r.wins===1?'':'e'}</span><span style="color:var(--gold)">🍻 ${fmtFr(r.bierBeitrag)} Fr. · ${Math.floor(r.bierBeitrag/6)} Bier</span></div>
         <div class="lb-bar"><div class="lb-bar-fill" style="width:${pct}%"></div></div>
       </div>
       <div><div class="lb-count">${r.bets}<small>Wette</small></div>${toTrophy>0?`<div class="lb-trophy-progress">no ${toTrophy} bis 🏆</div>`:''}</div>
@@ -353,8 +379,9 @@ function mkOpen(g){
   const bets=betsFor(g.id),pot=bets.length*(BET_COST/2),uid=state.user.uid;
   const d=daysUntil(g.date),cd=countdownText(d);
   const bettors=new Set(bets.map(b=>b.userId)).size;
-  const c=document.createElement('div');c.className='game open';
-  c.innerHTML=`<div class="game-top"><div class="game-info"><div class="matchup">Gottéron <span class="vs">VS</span> ${esc(g.opponent||'?')}</div><div class="date">${fmtDate(g.date)}</div>${cd?`<div class="countdown">${cd}</div>`:''}</div><div class="game-pot"><div class="amount">${pot}<span class="unit">Fr.</span></div><div class="label">Jackpot</div><div class="bettors">${bettors} Spieler · ${bets.length} Wette</div></div></div>`;
+  const locked=isCutoffPassed(g),coTxt=cutoffText(g);
+  const c=document.createElement('div');c.className='game open'+(locked?' locked':'');
+  c.innerHTML=`<div class="game-top"><div class="game-info"><div class="matchup">Gottéron <span class="vs">VS</span> ${esc(g.opponent||'?')}</div><div class="date">${fmtDate(g.date)}</div>${cd?`<div class="countdown">${cd}</div>`:''}${coTxt?`<div class="cutoff ${locked?'locked':''}">${coTxt}</div>`:''}</div><div class="game-pot"><div class="amount">${pot}<span class="unit">Fr.</span></div><div class="label">Jackpot</div><div class="bettors">${bettors} Spieler · ${bets.length} Wette</div></div></div>`;
 
   if(bets.length){
     const bl=document.createElement('div');bl.className='game-bets';
@@ -369,7 +396,9 @@ function mkOpen(g){
   c.appendChild(qp);
 
   const f=document.createElement('div');f.className='game-form';
-  const btn=document.createElement('button');btn.textContent='Wette · '+BET_COST+' Fr.';
+  const btn=document.createElement('button');
+  if(locked){btn.textContent='🔒 Wette-Stopp verbi';btn.disabled=true;inp.disabled=true;inp.placeholder='Kei Wette meh möglich';}
+  else{btn.textContent='Wette · '+BET_COST+' Fr.';}
   btn.addEventListener('click',()=>placeBet(g.id,inp));inp.addEventListener('keydown',e=>{if(e.key==='Enter')placeBet(g.id,inp)});
   f.appendChild(inp);f.appendChild(btn);c.appendChild(f);
 
