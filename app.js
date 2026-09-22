@@ -645,11 +645,13 @@ function renderRanking() {
   const lead = rows[0];
   const gap = lead && idx > 0 ? lead.wins - me.wins : 0;
   $('my-rank').innerHTML = `<div class="stats">
-      <div><div class="stat-v num">${idx >= 0 ? '#' + (idx + 1) : '–'}</div><div class="stat-l">Position</div></div>
-      <div><div class="stat-v num">${idx >= 0 ? gap : '–'}</div><div class="stat-l">Rückstand</div></div>
+      <div><div class="stat-v num">${idx >= 0 ? '#' + (idx + 1) : '0'}</div><div class="stat-l">Position</div></div>
+      <div><div class="stat-v num">${idx >= 0 ? gap : '0'}</div><div class="stat-l">Rückstand</div></div>
       <div><div class="stat-v num">${me.bets}</div><div class="stat-l">Tipps</div></div>
       <div><div class="stat-v num">${me.wins}</div><div class="stat-l">Siege</div></div>
-    </div><p class="stat-note">${idx === 0 ? 'Du füehrsch d\'Rangliste.' : 'Rückstand: Siege hinter Platz 1.'} Sortiert nach Siege, denn Gwinn, denn Aazahl Tipps.</p>`;
+    </div>${idx >= 0
+      ? `<p class="stat-note">${idx === 0 ? 'Du füehrsch d\'Rangliste.' : 'Rückstand: Siege hinter Platz 1.'} Sortiert nach Siege, denn Gwinn, denn Aazahl Tipps.</p>`
+      : `<p class="empty-line">Du hesch no kei Tipp abgäh.</p><button class="btn-secondary sm" onclick="showView('home')">Jetzt tippe</button>`}`;
   if (!rows.length) { wrap.innerHTML = '<p class="empty-line" style="margin-top:20px">D\'Rangliste erschiint nach em erschte Tipp.</p>'; return; }
   const max = Math.max(lead.wins, 1);
   wrap.innerHTML = `<ol class="lb">${rows.map((r, i) => {
