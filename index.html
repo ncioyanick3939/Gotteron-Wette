@@ -48,6 +48,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .nav .user-pill .uname{color:var(--text);font-weight:700}
 .nav .user-pill button{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;font-size:.75rem;cursor:pointer;font-family:inherit;transition:.15s}
 .nav .user-pill button:hover{border-color:var(--accent);color:var(--accent)}
+.game .cutoff{font-size:.72rem;color:var(--gold);margin-top:4px;font-weight:600}
+.game .cutoff.locked{color:var(--accent2)}
+.game.locked{opacity:.7}
+.game.locked .game-form button{background:var(--border);cursor:not-allowed}
 .nav-right{display:flex;align-items:center;gap:10px}
 .nav-btn{background:var(--accent);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
 .nav-btn:hover{background:var(--accent2);transform:translateY(-1px)}
@@ -287,8 +291,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <input type="text" id="ng-opponent" placeholder="Gägner, z.B. ZSC Lions">
       <div class="admin-row">
         <input type="date" id="ng-date">
+        <input type="time" id="ng-cutoff" value="19:30" style="max-width:120px" title="Wette-Stopp am Spieltag">
         <button id="ng-create">Eröffne</button>
       </div>
+      <div style="font-size:.72rem;color:var(--muted);margin-top:2px">Wette-Stopp: bis zu dere Uhrzit am Spieltag chöi Wette platziert wärde</div>
       <button id="reset-konto" style="background:none;border:1px solid var(--border);color:var(--muted);padding:8px;border-radius:8px;font-size:.75rem;cursor:pointer;font-family:inherit;margin-top:6px">Bierkässeli zruggsetze (nur bi Fehler)</button>
     </div>
   </div>
