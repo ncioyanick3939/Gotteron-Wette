@@ -52,6 +52,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .game .cutoff.locked{color:var(--accent2)}
 .game.locked{opacity:.7}
 .game.locked .game-form button{background:var(--border);cursor:not-allowed}
+.game.collapsed .game-details{display:none}
+.game-top.clickable{cursor:pointer;user-select:none;transition:background .15s}
+.game-top.clickable:hover{background:rgba(255,255,255,.03)}
+.game.collapsed .status-closed{transform:rotate(0deg)}
+.status-closed{transition:transform .2s;display:inline-block}
 .nav-right{display:flex;align-items:center;gap:10px}
 .nav-btn{background:var(--accent);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
 .nav-btn:hover{background:var(--accent2);transform:translateY(-1px)}
