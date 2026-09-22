@@ -30,7 +30,7 @@ function fmtFr(n){const r=Math.round(n*100)/100;return r%1===0?String(r):r.toFix
 function fmtDate(d){if(!d)return'';try{return new Date(d+'T00:00:00').toLocaleDateString('de-CH',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}catch(e){return d}}
 function esc(s){const d=document.createElement('div');d.textContent=s??'';return d.innerHTML}
 function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}
-function avatarColor(n){let h=0;for(let i=0;i<(n||'').length;i++)h=n.charCodeAt(i)+((h<<5)-h);const c=['#e52535','#3b82f6','#22c55e','#f5b731','#a855f7','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16'];return c[Math.abs(h)%c.length]}
+function avatarColor(n){let h=0;for(let i=0;i<(n||'').length;i++)h=n.charCodeAt(i)+((h<<5)-h);const c=['#1e5eff','#3b82f6','#22c55e','#f5b731','#a855f7','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16'];return c[Math.abs(h)%c.length]}
 
 function daysUntil(dateStr){
   if(!dateStr)return null;
@@ -41,7 +41,7 @@ function daysUntil(dateStr){
 function countdownText(d){
   if(d===null)return'';
   if(d<0)return'⏱ Spiel isch verbi – warte uf Uswärtig';
-  if(d===0)return'🔴 HÜT ISCH SPIELTAG!';
+  if(d===0)return'🔵 HÜT ISCH SPIELTAG!';
   if(d===1)return'⏰ Morn geits los!';
   return`📅 no ${d} Täg`;
 }
@@ -61,7 +61,7 @@ function animateFigure(id,target){
 
 // ===== CONFETTI =====
 function confetti(count=120){
-  const colors=['#e52535','#ffffff','#f5b731','#ff3a4a','#22c55e'];
+  const colors=['#1e5eff','#ffffff','#f5b731','#4a85ff','#22c55e'];
   for(let i=0;i<count;i++){
     const p=document.createElement('div');p.className='confetti-piece';
     p.style.left=Math.random()*100+'vw';
@@ -75,7 +75,7 @@ function confetti(count=120){
   }
 }
 
-const CHANTS=['HOPP GOTTÉRON! 🔴⚪','ALLEZ LES DRAGONS! 🐉','FRIBOURG! FRIBOURG! 📣','WIR SIND GOTTÉRON! 💪','HOPP HOPP HOPP! 🏒','GOTTÉRON MEISTER! 🏆','VAMOS DRAGONS! 🔥','DRAGONS ON FIRE! 🐲'];
+const CHANTS=['HOPP GOTTÉRON! 🔵⚪','ALLEZ LES DRAGONS! 🐉','FRIBOURG! FRIBOURG! 📣','WIR SIND GOTTÉRON! 💪','HOPP HOPP HOPP! 🏒','GOTTÉRON MEISTER! 🏆','VAMOS DRAGONS! 🔥','DRAGONS ON FIRE! 🐲'];
 function showChant(){
   const b=$('chant-bubble'); if(!b) return;
   b.textContent=CHANTS[Math.floor(Math.random()*CHANTS.length)];
