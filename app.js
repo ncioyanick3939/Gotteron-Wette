@@ -108,7 +108,7 @@ function phase(g, now = Date.now()) {
   if (now < t.kick + LIVE_MIN * 60000) return 'live';
   return 'pending';
 }
-const PHASE = { planned: 'Wetten no nid offe', open: 'Jetzt tippe', locked: 'Wetten gschlosse', visible: 'Tipps sichtbar', live: 'Spiel lauft', pending: 'Uswärtig usstehend', done: 'Abgrechnet' };
+const PHASE = { planned: 'No nid offe', open: 'Tipps offe', locked: 'Gschlosse', visible: 'Tipps sichtbar', live: 'Live', pending: 'Uswärtig offe', done: 'Abgrechnet' };
 const statusHtml = g => { const p = phase(g); return `<span class="status st-${p}">${PHASE[p]}</span>`; };
 const isRevealed = g => ['visible', 'live', 'pending', 'done'].includes(phase(g));
 const canSeeAll = g => state.isAdmin || isRevealed(g);
@@ -441,7 +441,11 @@ function pickCurrent(up) {
   return up.find(g => g.id === state.selectedId) || up.find(g => phase(g) !== 'pending') || up[0] || null;
 }
 
-// ---- Home ----
+const statsGrp = cells => `<div class="grp stats${cells.length === 3 ? ' three' : ''}">${cells.map(([v, l]) =>
+  `<div><div class="stat-v num">${v}</div><div class="stat-l">${l}</div></div>`).join('')}</div>`;
+const tagMe = uid => uid === state.user.uid ? '<span class="tag-me">Du</span>' : '';
+
+// ---- Spiel ----
 function renderHome(up, done) {
   if (!state.loaded) return;
   const g = pickCurrent(up);
@@ -453,26 +457,24 @@ function renderHome(up, done) {
   $('next-block').hidden = !rest.length;
   $('next-games').innerHTML = rest.map(x => {
     const t = times(x), n = betsFor(x.id).length;
-    return `<li><button class="grow" data-id="${x.id}">
-      <div class="row-main"><div class="game-t">${esc(matchName(x))}</div><div class="row-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}${x.home === false ? ', uswärts' : ''}</div>${statusHtml(x)}</div>
-      ${n ? `<div style="text-align:right"><div class="money num" style="font-weight:700">${chf(n * HALF)}</div><div class="row-s">${plural(n, 'Tipp', 'Tipps')}</div></div>` : ''}
-      ${icon('chev')}
-    </button></li>`;
+    return `<li><button class="row tap" data-id="${x.id}">
+      <div class="row-main"><div class="row-t">${esc(matchName(x))}</div><div class="row-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}${x.home === false ? ', uswärts' : ''}${n ? `, Jackpot ${chf(n * HALF)}` : ''}</div></div>
+      ${statusHtml(x)}${icon('chev', 'chev')}</button></li>`;
   }).join('');
-  $('next-games').querySelectorAll('.grow').forEach(b => b.addEventListener('click', () => {
+  $('next-games').querySelectorAll('[data-id]').forEach(b => b.addEventListener('click', () => {
     state.selectedId = b.dataset.id; render(); window.scrollTo({ top: 0, behavior: 'smooth' });
   }));
 }
 
 function renderMatch(g, done) {
-  const box = $('match');
+  const box = $('match'), konto = computedKonto();
+  const money = (pot, n) => `<div class="grp two">
+    <div><div class="k">Jackpot</div><div class="v" id="pot-value">${chf(pot)}</div><div class="s">${plural(n, 'Tipp', 'Tipps')}</div></div>
+    <div><div class="k">Bierkässeli</div><div class="v">${chf(konto)}</div><div class="s">${konto >= BEER_PRICE ? 'ca. ' + Math.floor(konto / BEER_PRICE) + ' Bier' : 'Saison 26/27'}</div></div></div>`;
   if (!g) {
-    box.className = 'match match-empty';
-    box.innerHTML = `<svg class="rink" aria-hidden="true"><use href="#rink"/></svg>
-      <span class="status st-done">Kei offes Spiel</span>
-      <div class="team">S'nächschte Spiel folgt</div>
-      <p>Sobald dr CEO s'nächschte Spiel erfasst, gsehsch es hie.${done.length ? ' Unde findsch ds letschte Resultat.' : ''}</p>
-      ${state.isAdmin ? `<button class="btn-secondary" style="margin-top:14px" onclick="showView('admin');setAdminTab('spiel')">Spiel erstelle</button>` : ''}`;
+    box.innerHTML = `<div class="grp empty"><div class="empty-t">Kei offes Spiel</div>
+      <p class="empty-s">Sobald dr CEO s'nächschte Spiel erfasst, chasch hie tippe.</p>
+      ${state.isAdmin ? `<button class="btn-secondary" onclick="showView('admin');setAdminTab('spiel')">${icon('plus')}Spiel erstelle</button>` : ''}</div>` + money(0, 0);
     return;
   }
   const p = phase(g), t = times(g), bets = betsFor(g.id), uid = state.user.uid;
@@ -480,68 +482,60 @@ function renderMatch(g, done) {
   const draft = ui.drafts[g.id] || (ui.drafts[g.id] = { h: null, a: null });
   const slip = ui.slips[g.id] || (ui.slips[g.id] = []);
   const pot = bets.length * HALF;
-
   const cd = { planned: ['Wetten öffne in', t.open], open: ['Tipp-Stopp in', t.stop], locked: ['Tipps sichtbar in', t.reveal], visible: ['Aaspiel in', t.kick] }[p];
-  const stepper = side => {
+  const score = side => {
+    if (p !== 'open') return `<span class="m-score num">–</span>`;
     const v = draft[side], team = side === 'h' ? 'Gottéron' : (g.opponent || 'Gägner');
-    return `<div class="stepper" data-side="${side}">
-      <button class="st-btn" data-act="-1" aria-label="${esc(team)} ei Tor weniger">${icon('minus')}</button>
-      <output class="st-val num ${v === null ? 'is-empty' : ''}" aria-label="Tore ${esc(team)}">${v === null ? '–' : v}</output>
-      <button class="st-btn" data-act="1" aria-label="${esc(team)} ei Tor meh">${icon('plus')}</button></div>`;
+    return `<div class="stp" data-side="${side}">
+      <button class="stp-b" data-act="-1" aria-label="${esc(team)} ei Tor weniger">${icon('minus')}</button>
+      <output class="stp-v ${v === null ? 'is-empty' : ''}" aria-label="Tore ${esc(team)}">${v === null ? '–' : v}</output>
+      <button class="stp-b" data-act="1" aria-label="${esc(team)} ei Tor meh">${icon('plus')}</button></div>`;
   };
-  const score = side => p === 'open' ? stepper(side) : `<div class="sb-score">–</div>`;
   const msgs = {
-    planned: `Wetten no nid offe. Tippe chasch ab <b>${esc(dateShort(t.open))}, ${hm(t.open)}</b>.`,
-    locked: `Wetten gschlosse. Dini Tipps chöi nüm gänderet wärde. D'Tipps wärde ab <b>${hm(t.reveal)}</b> für alli sichtbar.`,
+    planned: `Wetten öffne am <b>${esc(dateShort(t.open))} um ${hm(t.open)}</b>.`,
+    locked: `Wetten gschlosse. Dini Tipps chöi nüm gänderet wärde. Ab <b>${hm(t.reveal)}</b> sy alli Tipps sichtbar.`,
     visible: `Alli Tipps sy jetzt sichtbar. Aaspiel um <b>${hm(t.kick)}</b>.`,
     live: `S'Spiel lauft. S'Resultat wird nach em Spiel erfasst.`,
     pending: `Uswärtig steit no us. Sobald dr CEO s'Resultat iiträit, wird abgrechnet.`
   };
-
-  box.className = 'match';
-  box.innerHTML = `<svg class="rink" aria-hidden="true"><use href="#rink"/></svg>
-    <div class="m-top">${statusHtml(g)}${cd ? `<span class="m-count">${cd[0]} <span class="num" data-until="${cd[1]}">${fmtUntil(cd[1] - Date.now())}</span></span>` : ''}</div>
-    <div class="m-head">
-      <div><div class="m-date">${esc(dayLabel(t.kick))}</div><div class="m-kick wide num">${hm(t.kick)}</div><div class="m-venue">${g.home === false ? 'Uswärtsspiel' : g.home === true ? 'Heimspiel' : ''}</div></div>
-      <div class="m-pot"><div class="m-pot-l">Jackpot</div><div class="m-pot-v wide money num" id="pot-value">${chf(pot)}</div><div class="m-pot-s">${plural(bets.length, 'Tipp', 'Tipps')}</div></div>
-    </div>
-    <div class="sb" role="group" aria-label="Din Tipp: Gottéron zersch">
-      <div class="sb-row gott"><div class="team">Gottéron</div>${score('h')}</div>
-      <div class="sb-row"><div class="team">${esc(g.opponent || '?')}</div>${score('a')}</div>
+  box.innerHTML = `<div class="grp">
+      <div class="m-meta">${statusHtml(g)}<div class="m-when">${esc(dayLabel(t.kick).split(',')[0])}, <b>${hm(t.kick)}</b><span class="m-venue">${g.home === false ? 'Uswärtsspiel' : g.home === true ? 'Heimspiel' : ''}</span></div></div>
+      <div class="m-row"><span class="m-team"><i class="dot gott"></i><span>Gottéron</span></span>${score('h')}</div>
+      <div class="m-row"><span class="m-team"><i class="dot"></i><span>${esc(g.opponent || '?')}</span></span>${score('a')}</div>
+      ${cd ? `<div class="m-foot"><span>${cd[0]}</span><b data-until="${cd[1]}">${fmtUntil(cd[1] - Date.now())}</b></div>` : ''}
+      ${mine.length ? `<div class="m-foot"><span>Dini Tipps</span><span class="m-mine">${mine.map(b => `<b>${esc(b.prediction)}</b>`).join('')}</span></div>` : ''}
     </div>
     ${p === 'open' ? `
-      <div class="quick" role="group" aria-label="Schnälltipps">${QUICK.map(q => `<button class="qt num" data-q="${q}">${q}</button>`).join('')}</div>
+      <div class="pills" role="group" aria-label="Schnälltipps">${QUICK.map(q => `<button class="qt" data-q="${q}">${q}</button>`).join('')}</div>
       <div class="slip"><span id="slip"></span><button class="add-btn" id="add-btn">${icon('plus')}Weitere Tipp</button></div>
-      <button class="btn-primary split" id="bet-btn" style="margin-top:12px"><span>Tipp abgäh</span><span class="num">${chf(BET_COST)}</span></button>
-      <p class="m-fine">Pro Tipp ${chf(BET_COST)}: ${chf(HALF)} in Jackpot, ${chf(HALF)} is Bierkässeli.</p>`
-    : `<p class="m-msg">${msgs[p] || ''}</p>${state.isAdmin && ['live', 'pending', 'visible', 'locked'].includes(p) ? `<button class="btn-secondary sm" style="margin-top:12px" onclick="showView('admin');setAdminTab('resultat')">Resultat erfasse</button>` : ''}`}
-    ${mine.length ? `<div class="m-mine">Dini Tipps${mine.map(b => `<b class="num">${esc(b.prediction)}</b>`).join('')}</div>` : ''}`;
+      <button class="btn-primary split" id="bet-btn"><span>Tipp abgäh</span><span class="num">${chf(BET_COST)}</span></button>
+      <p class="fine">Pro Tipp ${chf(BET_COST)}: ${chf(HALF)} in Jackpot, ${chf(HALF)} is Bierkässeli.</p>`
+    : `<p class="msg">${msgs[p] || ''}</p>${state.isAdmin && ['locked', 'visible', 'live', 'pending'].includes(p) ? `<button class="btn-secondary" style="margin-top:12px;width:100%" onclick="showView('admin');setAdminTab('resultat')">Resultat erfasse</button>` : ''}`}
+    ${money(pot, bets.length)}`;
 
-  // Jackpot-Update sichtbar mache
   if (ui.lastPot[g.id] !== undefined && pot > ui.lastPot[g.id]) $('pot-value').classList.add('bump');
   ui.lastPot[g.id] = pot;
-
   if (p !== 'open') return;
+
   const current = () => draft.h !== null && draft.a !== null ? draft.h + ':' + draft.a : null;
   const sync = () => {
-    box.querySelectorAll('.stepper').forEach(st => {
-      const v = draft[st.dataset.side], out = st.querySelector('.st-val');
+    box.querySelectorAll('.stp').forEach(st => {
+      const v = draft[st.dataset.side], out = st.querySelector('.stp-v');
       out.textContent = v === null ? '–' : v; out.classList.toggle('is-empty', v === null);
       st.querySelector('[data-act="-1"]').disabled = v === null || v === 0;
     });
     const cur = current();
     box.querySelectorAll('.qt').forEach(b => b.classList.toggle('is-on', b.dataset.q === cur));
-    const n = slip.length + (cur ? 1 : 0);
-    const bet = $('bet-btn');
+    const n = slip.length + (cur ? 1 : 0), bet = $('bet-btn');
     bet.disabled = n === 0;
     bet.firstElementChild.textContent = n === 0 ? 'Resultat iistelle' : n === 1 ? 'Tipp ' + (cur || slip[0]) + ' abgäh' : n + ' Tipps abgäh';
     bet.lastElementChild.textContent = chf(Math.max(n, 1) * BET_COST);
     $('add-btn').disabled = !cur;
     const sl = $('slip');
-    sl.innerHTML = (slip.length ? `<span class="slip-l">Uf em Zettel</span>` : '') + slip.map((s, i) => `<span class="chip num">${s}<button data-rm="${i}" aria-label="Tipp ${s} entferne">${icon('x')}</button></span>`).join('');
+    sl.innerHTML = (slip.length ? '<span class="slip-l">Uf em Zettel</span>' : '') + slip.map((s, i) => `<span class="chip">${s}<button data-rm="${i}" aria-label="Tipp ${s} entferne">${icon('x')}</button></span>`).join('');
     sl.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => { slip.splice(Number(b.dataset.rm), 1); sync(); }));
   };
-  box.querySelectorAll('.stepper').forEach(st => st.querySelectorAll('.st-btn').forEach(b => b.addEventListener('click', () => {
+  box.querySelectorAll('.stp').forEach(st => st.querySelectorAll('.stp-b').forEach(b => b.addEventListener('click', () => {
     const side = st.dataset.side, step = Number(b.dataset.act), v = draft[side];
     draft[side] = v === null ? (step > 0 ? 1 : 0) : Math.max(0, Math.min(15, v + step));
     sync();
@@ -568,7 +562,7 @@ function renderTipsList(g) {
   if (!g || phase(g) === 'planned') { tb.hidden = true; return; }
   tb.hidden = false;
   const bets = betsFor(g.id), uid = state.user.uid, t = times(g), see = canSeeAll(g), hint = $('tips-hint');
-  $('tips-count').textContent = bets.length ? plural(bets.length, 'Tipp', 'Tipps') + ' vo ' + plural(new Set(bets.map(b => b.userId)).size, 'Spieler', 'Spieler') : '';
+  $('tips-count').textContent = bets.length ? plural(bets.length, 'Tipp', 'Tipps') : '';
   hint.hidden = isRevealed(g);
   hint.textContent = isRevealed(g) ? '' : state.isAdmin
     ? `Nume du gsehsch alli Tipps. Für di andere sichtbar ab ${hm(t.reveal)}.`
@@ -576,38 +570,37 @@ function renderTipsList(g) {
   $('tips').innerHTML = bets.length
     ? bets.map(b => {
         const show = see || b.userId === uid;
-        return `<li><div class="row"><span class="name"><span>${esc(b.userName || '?')}</span>${b.userId === uid ? '<span class="tag-me">Du</span>' : ''}</span>${show
-          ? `<span class="tip num">${esc(b.prediction)}</span>` : `<span class="hidden-tip">${icon('lock')}Tipp verdeckt</span>`}</div></li>`;
+        return `<li><div class="row"><span class="name"><span>${esc(b.userName || '?')}</span>${tagMe(b.userId)}</span>${show
+          ? `<span class="tip">${esc(b.prediction)}</span>` : `<span class="hidden-tip">${icon('lock')}verdeckt</span>`}</div></li>`;
       }).join('')
-    : `<li class="empty-line">No kei Tipps. Du chasch dr Erscht sy.</li>`;
+    : `<li><div class="row"><span class="row-s">No kei Tipps. Du chasch dr Erscht sy.</span></div></li>`;
 }
 
 function renderLast(done) {
   const g = done[0], block = $('last-block');
   block.hidden = !g; if (!g) return;
   const t = times(g), bets = betsFor(g.id), pay = payoutsOf(g), winners = Object.keys(pay), uid = state.user.uid;
-  const jackpot = g.jackpotHalf ?? bets.length * HALF;
+  const jackpot = g.jackpotHalf ?? bets.length * HALF, wids = g.winnerBetIds || [];
   $('last-date').textContent = dateShort(t.kick);
-  const score = g.result ? `${g.result.h} : ${g.result.a}` : '–';
-  const wids = g.winnerBetIds || [];
   let note;
   if (!bets.length) note = 'Kei Tipps bi däm Spiel.';
-  else if (!winners.length) note = `Kei richtige Tipp. Dr Jackpot vo <b class="money">${chf(jackpot)}</b> gaht is Bierkässeli.`;
-  else if (winners.length > 1) note = `${winners.length} Gwünner teile dr Jackpot vo <b class="money">${chf(jackpot)}</b>.`;
-  else note = `Jackpot <b class="money">${chf(jackpot)}</b>`;
+  else if (!winners.length) note = `Kei richtige Tipp. Dr Jackpot vo ${chf(jackpot)} gaht is Bierkässeli.`;
+  else if (winners.length > 1) note = `${winners.length} Gwünner teile dr Jackpot vo ${chf(jackpot)}.`;
+  else note = `Jackpot ${chf(jackpot)}`;
   const mine = settlement(g).filter(x => (x.from === uid || x.to === uid) && !paid.has(payKey(x)));
   const owe = mine.filter(x => x.from === uid).reduce((s, x) => s + x.amount, 0);
   const get = mine.filter(x => x.to === uid).reduce((s, x) => s + x.amount, 0);
-  $('last-result').innerHTML = `<div class="lr">
-    <div class="lr-score"><span class="lr-team">Gottéron</span><span class="lr-num num">${score}</span><span class="lr-team">${esc(g.opponent || '?')}</span></div>
-    <p class="lr-note">${note}</p>
-    ${winners.length ? `<ul class="list">${winners.map(w => {
-      const tips = bets.filter(b => b.userId === w && wids.includes(b.id)).map(b => b.prediction);
-      return `<li><div class="row"><span class="name"><span>${esc(nameOf(w))}</span>${w === uid ? '<span class="tag-me">Du</span>' : ''}</span><span class="tip num">${esc(tips.join(' '))}</span><span class="money num" style="font-weight:700;min-width:96px;text-align:right">${chf(pay[w])}</span></div></li>`;
-    }).join('')}</ul>` : ''}
-    ${owe > 0 ? `<div class="me-line"><span>Du schuldisch <b class="money num">${chf(owe)}</b></span><button class="btn-secondary sm" onclick="showView('kasse')">Zur Kasse</button></div>` : ''}
-    ${get > 0 ? `<div class="me-line plus"><span>Du bechunnsch <b class="money num">${chf(get)}</b></span><button class="btn-secondary sm" onclick="showView('kasse')">Zur Kasse</button></div>` : ''}
-  </div>`;
+  $('last-result').innerHTML = `<div class="grp">
+    <div class="lr"><span class="lr-t">Gottéron</span><span class="lr-n">${g.result ? `${g.result.h} : ${g.result.a}` : '–'}</span><span class="lr-t r">${esc(g.opponent || '?')}</span></div>
+    <ul class="list">
+      <li><div class="row"><span class="row-s">${note}</span></div></li>
+      ${winners.map(w => {
+        const tips = bets.filter(b => b.userId === w && wids.includes(b.id)).map(b => b.prediction);
+        return `<li><div class="row won"><span class="name"><span>${esc(nameOf(w))}</span>${tagMe(w)}</span><span class="tip">${icon('check')}${esc(tips.join(' '))}</span><span class="row-end pos num" style="font-weight:700;min-width:84px">${chf(pay[w])}</span></div></li>`;
+      }).join('')}
+      ${owe > 0 ? `<li><button class="row tap" onclick="showView('kasse')"><div class="row-main">Du schuldisch <b class="num">${chf(owe)}</b></div>${icon('chev', 'chev')}</button></li>` : ''}
+      ${get > 0 ? `<li><button class="row tap" onclick="showView('kasse')"><div class="row-main">Du bechunnsch <b class="num pos">${chf(get)}</b></div>${icon('chev', 'chev')}</button></li>` : ''}
+    </ul></div>`;
 }
 
 // ---- Mini Tipps ----
@@ -615,26 +608,19 @@ function renderMyTips() {
   const uid = state.user.uid, mine = state.bets.filter(b => b.userId === uid), s = userStats(uid);
   $('mt-count').textContent = mine.length ? plural(mine.length, 'Tipp', 'Tipps') : '';
   const openCount = mine.filter(b => { const g = state.games.find(x => x.id === b.gameId); return g && g.status !== 'closed'; }).length;
-  $('mt-summary').innerHTML = `<div class="stats">
-    <div><div class="stat-v num">${s.bets}</div><div class="stat-l">Tipps</div></div>
-    <div><div class="stat-v num">${openCount}</div><div class="stat-l">Offe</div></div>
-    <div><div class="stat-v money num">${amt(s.staked)}</div><div class="stat-l">Iisatz</div></div>
-    <div><div class="stat-v money num">${amt(s.earned)}</div><div class="stat-l">Gwinn</div></div>
-  </div>`;
-  const group = (g, rows) => {
-    const t = times(g);
-    return `<div class="tg"><div class="tg-head"><div><div class="game-t">${esc(matchName(g))}</div><div class="tg-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}${g.result ? `, Resultat ${g.result.h}:${g.result.a}` : ''}</div></div>${statusHtml(g)}</div><ul class="tl">${rows}</ul></div>`;
-  };
+  $('mt-summary').innerHTML = statsGrp([[s.bets, 'Tipps'], [openCount, 'Offe'], [amt(s.staked), 'Iisatz'], [amt(s.earned), 'Gwinn']]);
+  const head = g => { const t = times(g); return `<li><div class="row"><div class="row-main"><div class="row-t">${esc(matchName(g))}</div><div class="row-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}${g.result ? `, Resultat ${g.result.h}:${g.result.a}` : ''}</div></div>${statusHtml(g)}</div></li>`; };
   const openGames = upcoming().filter(g => mine.some(b => b.gameId === g.id));
   $('mt-open').innerHTML = openGames.length
-    ? openGames.map(g => group(g, mine.filter(b => b.gameId === g.id).map(b => `<li><span class="tip num">${esc(b.prediction)}</span><span class="amt num">${chf(BET_COST)}</span><span class="res-t open">Offe</span></li>`).join(''))).join('')
-    : `<p class="empty-line">Kei offeni Tipps.</p>${upcoming().some(g => phase(g) === 'open') ? `<button class="btn-secondary sm" onclick="showView('home')">Jetzt tippe</button>` : ''}`;
+    ? openGames.map(g => `<ul class="grp list" style="margin-bottom:14px">${head(g)}${mine.filter(b => b.gameId === g.id).map(b =>
+        `<li><div class="row"><span class="tip" style="flex:1">${esc(b.prediction)}</span><span class="amt">${chf(BET_COST)}</span><span class="tl-res no">Offe</span></div></li>`).join('')}</ul>`).join('')
+    : `<div class="grp empty"><div class="empty-s">Kei offeni Tipps.</div>${upcoming().some(g => phase(g) === 'open') ? `<button class="btn-secondary" onclick="showView('home')">Jetzt tippe</button>` : ''}</div>`;
   const doneGames = settled().filter(g => mine.some(b => b.gameId === g.id));
   $('mt-done-block').hidden = !doneGames.length;
-  $('mt-done').innerHTML = doneGames.map(g => group(g, mine.filter(b => b.gameId === g.id).map(b => {
+  $('mt-done').innerHTML = doneGames.map(g => `<ul class="grp list" style="margin-bottom:14px">${head(g)}${mine.filter(b => b.gameId === g.id).map(b => {
     const win = tipPayout(g, b);
-    return `<li class="${win ? 'won' : ''}"><span class="tip num">${win ? icon('check') : ''}${esc(b.prediction)}</span><span class="amt num ${win ? 'pos' : ''}">${win ? '+ ' + chf(win) : '− ' + chf(HALF)}</span><span class="res-t ${win ? 'ok' : 'no'}">${win ? 'Richtig' : 'Falsch'}</span></li>`;
-  }).join(''))).join('');
+    return `<li><div class="row ${win ? 'won' : ''}"><span class="tip" style="flex:1">${win ? icon('check') : ''}${esc(b.prediction)}</span><span class="amt ${win ? 'pos' : ''}">${win ? '+ ' + chf(win) : '− ' + chf(HALF)}</span><span class="tl-res ${win ? 'ok' : 'no'}">${win ? 'Richtig' : 'Falsch'}</span></div></li>`;
+  }).join('')}</ul>`).join('');
 }
 
 // ---- Rangliste ----
@@ -642,58 +628,57 @@ function renderRanking() {
   const rows = ranking(), uid = state.user.uid, wrap = $('leaderboard');
   $('lb-count').textContent = rows.length ? plural(rows.length, 'Spieler', 'Spieler') : '';
   const idx = rows.findIndex(r => r.uid === uid), me = idx >= 0 ? rows[idx] : { bets: 0, wins: 0 };
-  const lead = rows[0];
-  const gap = lead && idx > 0 ? lead.wins - me.wins : 0;
-  $('my-rank').innerHTML = `<div class="stats">
-      <div><div class="stat-v num">${idx >= 0 ? '#' + (idx + 1) : '0'}</div><div class="stat-l">Position</div></div>
-      <div><div class="stat-v num">${idx >= 0 ? gap : '0'}</div><div class="stat-l">Rückstand</div></div>
-      <div><div class="stat-v num">${me.bets}</div><div class="stat-l">Tipps</div></div>
-      <div><div class="stat-v num">${me.wins}</div><div class="stat-l">Siege</div></div>
-    </div>${idx >= 0
-      ? `<p class="stat-note">${idx === 0 ? 'Du füehrsch d\'Rangliste.' : 'Rückstand: Siege hinter Platz 1.'} Sortiert nach Siege, denn Gwinn, denn Aazahl Tipps.</p>`
-      : `<p class="empty-line">Du hesch no kei Tipp abgäh.</p><button class="btn-secondary sm" onclick="showView('home')">Jetzt tippe</button>`}`;
-  if (!rows.length) { wrap.innerHTML = '<p class="empty-line" style="margin-top:20px">D\'Rangliste erschiint nach em erschte Tipp.</p>'; return; }
+  const lead = rows[0], gap = lead && idx > 0 ? lead.wins - me.wins : 0;
+  $('my-rank').innerHTML = statsGrp([[idx >= 0 ? '#' + (idx + 1) : '0', 'Position'], [idx >= 0 ? gap : '0', 'Rückstand'], [me.bets, 'Tipps'], [me.wins, 'Siege']])
+    + (idx >= 0
+      ? `<p class="fine">${idx === 0 ? 'Du füehrsch d\'Rangliste.' : 'Rückstand: Siege hinter Platz 1.'} Bi Gliichstand zellt dr Gwinn, denn d'Aazahl Tipps.</p>`
+      : `<p class="fine">Du hesch no kei Tipp abgäh.</p><button class="btn-secondary" style="margin-top:10px" onclick="showView('home')">Jetzt tippe</button>`);
+  if (!rows.length) { wrap.innerHTML = '<div class="grp empty"><div class="empty-s">D\'Rangliste erschiint nach em erschte Tipp.</div></div>'; return; }
   const max = Math.max(lead.wins, 1);
-  wrap.innerHTML = `<ol class="lb">${rows.map((r, i) => {
+  wrap.innerHTML = `<ul class="grp list">${rows.map((r, i) => {
     const tags = BADGES.filter(b => b.done(r)).map(b => b.name), d = lead.wins - r.wins;
-    return `<li class="lb-row ${i === 0 ? 'lead' : ''} ${r.uid === uid ? 'me' : ''}">
-      <div class="lb-rank num">${i + 1}</div>
-      <div style="min-width:0">
-        <div class="lb-name"><span>${esc(r.name)}</span>${r.uid === uid ? '<span class="tag-me">Du</span>' : ''}</div>
-        <div class="lb-meta"><span>${plural(r.bets, 'Tipp', 'Tipps')}</span><span>Gwinn <span class="money num">${chf(r.earned)}</span></span>${i > 0 && d > 0 ? `<span class="lb-gap">${plural(d, 'Sieg', 'Siege')} Rückstand</span>` : ''}</div>
+    return `<li><div class="row ${i === 0 ? 'lead' : ''} ${r.uid === uid ? 'me-row' : ''}" style="align-items:flex-start">
+      <span class="rank">${i + 1}</span>
+      <div class="row-main">
+        <div class="name"><span class="row-t">${esc(r.name)}</span>${tagMe(r.uid)}</div>
+        <div class="row-s">${plural(r.bets, 'Tipp', 'Tipps')}, Gwinn ${chf(r.earned)}${i > 0 && d > 0 ? `, ${plural(d, 'Sieg', 'Siege')} Rückstand` : ''}</div>
         ${tags.length ? `<div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
-        <div class="lb-track"><i style="width:${Math.max(3, Math.round(r.wins / max * 100))}%"></i></div>
+        <div class="track"><i style="width:${Math.max(3, Math.round(r.wins / max * 100))}%"></i></div>
       </div>
-      <div class="lb-score"><div class="num">${r.wins}</div><div class="lb-score-l">${r.wins === 1 ? 'Sieg' : 'Siege'}</div></div>
-    </li>`;
-  }).join('')}</ol>`;
+      <div class="lb-score"><b class="num">${r.wins}</b><span>${r.wins === 1 ? 'Sieg' : 'Siege'}</span></div>
+    </div></li>`;
+  }).join('')}</ul>`;
 }
 
 // ---- Kasse ----
 function renderKasse(up) {
   const uid = state.user.uid, konto = computedKonto(), s = userStats(uid);
-  $('konto-value').textContent = chf(konto);
-  $('konto-sub').textContent = konto >= BEER_PRICE ? 'Reicht für ca. ' + Math.floor(konto / BEER_PRICE) + ' Bier' : 'No leer';
-  $('my-contrib').textContent = chf(s.bier);
-  $('konto-total').textContent = chf(konto);
+  $('kasse-bier').innerHTML = `<div class="grp">
+      <div class="big"><div class="k">Bierkässeli</div><div class="v num">${chf(konto)}</div><div class="s">${konto >= BEER_PRICE ? 'Reicht für ca. ' + Math.floor(konto / BEER_PRICE) + ' Bier' : 'No leer'}</div></div>
+    </div>
+    <div class="grp two">
+      <div><div class="k">Du zahlsch am Saisonändi</div><div class="v num">${chf(s.bier)}</div></div>
+      <div><div class="k">Total vo allne</div><div class="v num">${chf(konto)}</div></div>
+    </div>
+    <p class="fine">CHF 2.50 vo jedem Tipp, plus dr Jackpot vo Spiel ohni richtige Tipp.</p>`;
 
-  const open = openTransfers();
-  const owe = open.filter(t => t.from === uid), get = open.filter(t => t.to === uid);
+  const open = openTransfers(), owe = open.filter(t => t.from === uid), get = open.filter(t => t.to === uid);
   const byPerson = (list, key) => Object.values(list.reduce((m, t) => {
-    const p = t[key]; (m[p] = m[p] || { uid: p, amount: 0, games: new Set(), list: [] });
-    m[p].amount += t.amount; m[p].games.add(t.gameId); m[p].list.push(t); return m;
+    const p = t[key]; (m[p] = m[p] || { uid: p, amount: 0, games: new Set() });
+    m[p].amount += t.amount; m[p].games.add(t.gameId); return m;
   }, {}));
   const gameName = id => { const g = state.games.find(x => x.id === id); return g ? matchName(g) : ''; };
-  const section = (title, list, key, btnText) => {
+  const group = (title, list, key, btn) => {
     const people = byPerson(list, key), total = list.reduce((a, t) => a + t.amount, 0);
-    return `<div class="owe"><div><div class="k-l">${title}</div><div class="owe-v wide money num">${chf(total)}</div></div></div>
-      <ul class="list">${people.map(p => `<li><div class="row pay-row"><div class="row-main"><div class="row-t">${esc(nameOf(p.uid))}</div><div class="row-s">${[...p.games].map(gameName).map(esc).join(', ')}</div></div>
-        <span class="money num" style="font-weight:700">${chf(p.amount)}</span><button class="btn-secondary" data-key="${key}" data-uid="${p.uid}">${btnText}</button></div></li>`).join('')}</ul>`;
+    return `<ul class="grp list" style="margin-bottom:14px">
+      <li><div class="row"><div class="row-main"><div class="k">${title}</div><div class="v num">${chf(total)}</div></div></div></li>
+      ${people.map(p => `<li><div class="row"><div class="row-main"><div class="row-t">${esc(nameOf(p.uid))}</div><div class="row-s">${[...p.games].map(gameName).map(esc).join(', ')}</div></div>
+        <span class="num" style="font-weight:700">${chf(p.amount)}</span><button class="btn-secondary btn-small" data-key="${key}" data-uid="${p.uid}">${btn}</button></div></li>`).join('')}</ul>`;
   };
   let html = '';
-  if (owe.length) html += section('Du schuldisch', owe, 'to', 'Erledigt') + `<button class="btn-primary" id="twint-open" style="margin-top:14px">Twint öffne</button><p class="hint" style="margin-top:10px">Nach em Überwiise bi dr Person uf «Erledigt» tippe.</p>`;
-  if (get.length) html += `<div style="margin-top:${owe.length ? 22 : 0}px">` + section('Du bechunnsch', get, 'from', 'Erhalte') + '</div>';
-  if (!html) html = `<p class="empty-line">Alles usglichen. Nach em nächschte abgrechnete Spiel gsehsch hie, wär wäm wie vil schuldet.</p>`;
+  if (owe.length) html += group('Du schuldisch', owe, 'to', 'Erledigt') + `<button class="btn-primary" id="twint-open" style="margin-top:0">Twint öffne</button><p class="fine">Nach em Überwiise uf «Erledigt» tippe.</p>`;
+  if (get.length) html += `<div style="margin-top:${owe.length ? 18 : 0}px">` + group('Du bechunnsch', get, 'from', 'Erhalte') + '</div>';
+  if (!html) html = `<div class="grp empty"><div class="empty-t">Alles usglichen</div><p class="empty-s">Nach em nächschte abgrechnete Spiel gsehsch hie, wär wäm wie vil schuldet.</p></div>`;
   $('twint').innerHTML = html;
   $('twint').querySelectorAll('[data-uid]').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.key, p = b.dataset.uid;
@@ -706,91 +691,77 @@ function renderKasse(up) {
     try { await navigator.clipboard.writeText(total); toast('Betrag ' + total + ' kopiert. Öffne jetzt d\'Twint-App.'); }
     catch (e) { toast('Öffne d\'Twint-App und überwiis ' + chf(Number(total))); }
   });
-
   const withBets = up.filter(g => betsFor(g.id).length);
   $('jackpots').innerHTML = withBets.length
-    ? `<ul class="list">${withBets.map(g => { const n = betsFor(g.id).length, t = times(g); return `<li><div class="row"><div class="row-main"><div class="game-t">${esc(matchName(g))}</div><div class="row-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}, ${plural(n, 'Tipp', 'Tipps')}</div></div><span class="wide money num" style="font-size:20px">${chf(n * HALF)}</span></div></li>`; }).join('')}</ul>`
-    : '<p class="empty-line">Momentan kei offeni Jackpots.</p>';
+    ? `<ul class="grp list">${withBets.map(g => { const n = betsFor(g.id).length, t = times(g); return `<li><div class="row"><div class="row-main"><div class="row-t">${esc(matchName(g))}</div><div class="row-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}, ${plural(n, 'Tipp', 'Tipps')}</div></div><span class="num" style="font-weight:800;font-size:18px">${chf(n * HALF)}</span></div></li>`; }).join('')}</ul>`
+    : '<div class="grp empty"><div class="empty-s">Momentan kei offeni Jackpots.</div></div>';
 }
 
 // ---- Profil ----
 function renderProfil() {
   const u = state.user, s = userStats(u.uid), name = u.displayName || u.email;
-  $('profil').innerHTML = `<div class="prof"><div class="avatar">${esc(initials(name))}</div><div class="row-main">
-      <div class="prof-name"><span>${esc(name)}</span>${state.isAdmin ? '<span class="tag">CEO</span>' : ''}</div><div class="prof-mail">${esc(u.email || '')}</div></div></div>
-    <div class="stats">
-      <div><div class="stat-v num">${s.bets}</div><div class="stat-l">Tipps</div></div>
-      <div><div class="stat-v num">${s.wins}</div><div class="stat-l">Siege</div></div>
-      <div><div class="stat-v money num">${amt(s.earned)}</div><div class="stat-l">Gwinn</div></div>
-      <div><div class="stat-v money num">${amt(s.bier)}</div><div class="stat-l">Bierkässeli</div></div>
-    </div>`;
+  $('profil').innerHTML = `<div class="grp"><div class="row" style="padding:14px 16px"><div class="avatar">${esc(initials(name))}</div>
+      <div class="row-main"><div class="prof-n"><span>${esc(name)}</span>${state.isAdmin ? '<span class="tag-me">CEO</span>' : ''}</div><div class="row-s">${esc(u.email || '')}</div></div></div></div>`
+    + statsGrp([[s.bets, 'Tipps'], [s.wins, 'Siege'], [amt(s.earned), 'Gwinn'], [amt(s.bier), 'Bierkässeli']]);
   $('badges').innerHTML = BADGES.map(b => {
     const ok = b.done(s);
-    return `<div class="badge ${ok ? 'on' : ''}"><span class="tag">${b.name}</span><span class="badge-d">${b.text}</span><span class="badge-p num">${ok ? icon('check') + 'Erreicht' : b.prog(s)}</span></div>`;
+    return `<li><div class="row ${ok ? 'on' : ''}"><div class="row-main"><div class="row-t">${b.name}</div><div class="row-s">${b.text}</div></div><span class="badge-p num">${ok ? icon('check') + 'Erreicht' : b.prog(s)}</span></div></li>`;
   }).join('');
   const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   $('install-block').hidden = !!standalone;
 }
 
-// ---- Admin ----
+// ---- CEO ----
 function renderAdmin(up, done) {
-  // Übersicht
   const g = pickCurrent(up), konto = computedKonto();
   const pendingGames = up.filter(x => ['locked', 'visible', 'live', 'pending'].includes(phase(x)));
-  let dash = '';
+  let dash = '<section class="sec" style="margin-top:22px">';
   if (g) {
     const n = betsFor(g.id).length, t = times(g);
-    dash += `<section class="block flush"><div class="h2-row"><h2 class="h2">Nächschts Spiel</h2>${statusHtml(g)}</div>
-      <div class="game-t" style="font-size:20px">${esc(matchName(g))}</div>
-      <div class="row-s" style="margin-bottom:12px">${esc(dateLong(t.kick))}, ${hm(t.kick)}, Tipp-Stopp ${hm(t.stop)}, sichtbar ${hm(t.reveal)}</div>
-      <div class="stats">
-        <div><div class="stat-v num">${n}</div><div class="stat-l">Tipps</div></div>
-        <div><div class="stat-v money num">${amt(n * BET_COST)}</div><div class="stat-l">Iinahme</div></div>
-        <div><div class="stat-v money num">${amt(n * HALF)}</div><div class="stat-l">Jackpot</div></div>
-        <div><div class="stat-v money num">${amt(n * HALF)}</div><div class="stat-l">Bierkässeli</div></div>
-      </div></section>`;
-  } else dash += `<section class="block flush"><p class="empty-line">Kei plannts Spiel.</p></section>`;
-  dash += pendingGames.map(x => `<div class="todo"><span>Resultat erfasse: <b>${esc(matchName(x))}</b></span><button class="btn-secondary sm" onclick="setAdminTab('resultat')">Erfasse</button></div>`).join('');
-  dash += `<section class="block" style="margin-top:12px"><div class="h2-row"><h2 class="h2">Saison</h2></div><div class="stats three">
-      <div><div class="stat-v money num">${amt(konto)}</div><div class="stat-l">Bierkässeli</div></div>
-      <div><div class="stat-v num">${done.length}</div><div class="stat-l">Abgrechnet</div></div>
-      <div><div class="stat-v num">${new Set(state.bets.map(b => b.userId)).size}</div><div class="stat-l">Spieler</div></div>
-    </div>
-    <div class="actions"><button class="btn-secondary" onclick="setAdminTab('spiel')">${icon('plus')}Spiel erstelle</button><button class="btn-secondary" onclick="setAdminTab('abrechnig')">Abrächnig</button></div></section>`;
+    dash += `<div class="sec-h"><h2>Nächschts Spiel</h2></div>
+      <div class="grp"><div class="row"><div class="row-main"><div class="row-t">${esc(matchName(g))}</div><div class="row-s">${esc(dateLong(t.kick))}, ${hm(t.kick)}</div><div class="row-s">Tipp-Stopp ${hm(t.stop)}, sichtbar ab ${hm(t.reveal)}</div></div>${statusHtml(g)}</div></div>
+      ${statsGrp([[n, 'Tipps'], [amt(n * BET_COST), 'Iinahme'], [amt(n * HALF), 'Jackpot'], [amt(n * HALF), 'Bierkässeli']])}`;
+  } else dash += `<div class="grp empty"><div class="empty-t">Kei plannts Spiel</div><button class="btn-secondary" onclick="setAdminTab('spiel')">${icon('plus')}Spiel erstelle</button></div>`;
+  dash += '</section>';
+  if (pendingGames.length) dash += `<section class="sec"><div class="sec-h"><h2>Z'erledige</h2></div><ul class="grp list">${pendingGames.map(x =>
+    `<li><button class="row tap" onclick="setAdminTab('resultat')"><div class="row-main"><div class="row-t">Resultat erfasse</div><div class="row-s">${esc(matchName(x))}</div></div>${statusHtml(x)}${icon('chev', 'chev')}</button></li>`).join('')}</ul></section>`;
+  dash += `<section class="sec"><div class="sec-h"><h2>Saison</h2></div>${statsGrp([[amt(konto), 'Bierkässeli'], [done.length, 'Abgrechnet'], [new Set(state.bets.map(b => b.userId)).size, 'Spieler']])}
+    <div class="actions"><button class="btn-secondary" onclick="setAdminTab('spiel')">${icon('plus')}Spiel</button><button class="btn-secondary" onclick="setAdminTab('abrechnig')">Abrächnig</button></div></section>`;
   $('adm-dash').innerHTML = dash;
 
-  // Plannti Spiel
   $('adm-games').innerHTML = up.length ? up.map(x => {
     const t = times(x), n = betsFor(x.id).length;
-    return `<li><button class="grow" data-edit="${x.id}"><div class="row-main"><div class="game-t">${esc(matchName(x))}</div><div class="row-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}, ${x.home === false ? 'uswärts' : 'heim'}, ${plural(n, 'Tipp', 'Tipps')}</div>${statusHtml(x)}</div>${icon('chev')}</button></li>`;
-  }).join('') : '<li class="empty-line">No kei Spiel plannt.</li>';
+    return `<li><button class="row tap" data-edit="${x.id}"><div class="row-main"><div class="row-t">${esc(matchName(x))}</div><div class="row-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}, ${x.home === false ? 'uswärts' : 'heim'}, ${plural(n, 'Tipp', 'Tipps')}</div></div>${statusHtml(x)}${icon('chev', 'chev')}</button></li>`;
+  }).join('') : '<li><div class="row"><span class="row-s">No kei Spiel plannt.</span></div></li>';
   $('adm-games').querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => editGame(state.games.find(x => x.id === b.dataset.edit))));
 
-  // Resultat erfasse
   const wrap = $('adm-results');
   wrap.innerHTML = pendingGames.length ? pendingGames.map(x => {
     const r = ui.results[x.id] || (ui.results[x.id] = { h: null, a: null }), t = times(x);
-    const st = side => `<div class="stepper" data-side="${side}"><button class="st-btn" data-act="-1" aria-label="Ei Tor weniger">${icon('minus')}</button><output class="st-val num ${r[side] === null ? 'is-empty' : ''}">${r[side] === null ? '–' : r[side]}</output><button class="st-btn" data-act="1" aria-label="Ei Tor meh">${icon('plus')}</button></div>`;
-    return `<div class="adm-game" data-id="${x.id}">
-      <div class="h2-row"><div><div class="game-t">${esc(matchName(x))}</div><div class="row-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}, ${plural(betsFor(x.id).length, 'Tipp', 'Tipps')}</div></div>${statusHtml(x)}</div>
-      <div class="adm-sb"><div class="sb-row gott"><div class="team">Gottéron</div>${st('h')}</div><div class="sb-row"><div class="team">${esc(x.opponent || '?')}</div>${st('a')}</div></div>
-      <p class="preview" data-preview></p>
-      <button class="btn-primary" data-save style="margin-top:12px">Resultat speichere</button></div>`;
-  }).join('') : '<p class="empty-line" style="margin-top:12px">Kei Spiel zum Uswärte. Resultat chasch erfasse, sobald dr Tipp-Stopp verbi isch.</p>';
+    const st = side => `<div class="stp" data-side="${side}"><button class="stp-b" data-act="-1" aria-label="Ei Tor weniger">${icon('minus')}</button><output class="stp-v ${r[side] === null ? 'is-empty' : ''}">${r[side] === null ? '–' : r[side]}</output><button class="stp-b" data-act="1" aria-label="Ei Tor meh">${icon('plus')}</button></div>`;
+    return `<section class="sec adm-game" data-id="${x.id}" style="margin-top:18px">
+      <div class="grp">
+        <div class="m-meta">${statusHtml(x)}<div class="m-when">${esc(dateShort(t.kick))}, <b>${hm(t.kick)}</b><span class="m-venue">${plural(betsFor(x.id).length, 'Tipp', 'Tipps')}</span></div></div>
+        <div class="m-row"><span class="m-team"><i class="dot gott"></i><span>Gottéron</span></span>${st('h')}</div>
+        <div class="m-row"><span class="m-team"><i class="dot"></i><span>${esc(x.opponent || '?')}</span></span>${st('a')}</div>
+        <div class="m-foot" data-preview></div>
+      </div>
+      <button class="btn-primary" data-save>Resultat speichere</button></section>`;
+  }).join('') : '<div class="grp empty" style="margin-top:16px"><div class="empty-t">Nüt z\'uswärte</div><p class="empty-s">Resultat chasch erfasse, sobald dr Tipp-Stopp vo me Spiel verbi isch.</p></div>';
   wrap.querySelectorAll('.adm-game').forEach(el => {
     const x = state.games.find(y => y.id === el.dataset.id), r = ui.results[x.id];
     const preview = () => {
       const pv = el.querySelector('[data-preview]'), save = el.querySelector('[data-save]');
-      el.querySelectorAll('.stepper').forEach(st => { const v = r[st.dataset.side], o = st.querySelector('.st-val'); o.textContent = v === null ? '–' : v; o.classList.toggle('is-empty', v === null); });
+      el.querySelectorAll('.stp').forEach(st => { const v = r[st.dataset.side], o = st.querySelector('.stp-v'); o.textContent = v === null ? '–' : v; o.classList.toggle('is-empty', v === null); st.querySelector('[data-act="-1"]').disabled = v === null || v === 0; });
       if (r.h === null || r.a === null) { pv.textContent = 'Schlussresultat iistelle.'; save.disabled = true; return; }
       save.disabled = false;
       const gb = betsFor(x.id), jackpot = gb.length * HALF;
       const win = gb.filter(b => { const s = parseScore(b.prediction); return s && s[0] === r.h && s[1] === r.a; });
-      if (!gb.length) pv.innerHTML = 'Kei Tipps. Ds Spiel wird ohni Uszahlig abgschlosse.';
-      else if (!win.length) pv.innerHTML = `Kei richtige Tipp. Dr Jackpot vo <b class="money">${chf(jackpot)}</b> gaht is Bierkässeli.`;
-      else pv.innerHTML = `${plural(win.length, 'richtige Tipp', 'richtigi Tipps')}: <b>${[...new Set(win.map(b => esc(b.userName || '?')))].join(', ')}</b>. ${win.length > 1 ? 'Je' : 'Uszahlig'} <b class="money">${chf(jackpot / win.length)}</b>${win.length > 1 ? ' pro Tipp' : ''}.`;
+      if (!gb.length) pv.innerHTML = '<span>Kei Tipps. Ds Spiel wird ohni Uszahlig abgschlosse.</span>';
+      else if (!win.length) pv.innerHTML = `<span>Kei richtige Tipp. Dr Jackpot vo <b>${chf(jackpot)}</b> gaht is Bierkässeli.</span>`;
+      else pv.innerHTML = `<span>${plural(win.length, 'richtige Tipp', 'richtigi Tipps')}: <b>${[...new Set(win.map(b => esc(b.userName || '?')))].join(', ')}</b>. ${win.length > 1 ? 'Je' : 'Uszahlig'} <b>${chf(jackpot / win.length)}</b>.</span>`;
     };
-    el.querySelectorAll('.stepper').forEach(st => st.querySelectorAll('.st-btn').forEach(b => b.addEventListener('click', () => {
+    el.querySelectorAll('.stp').forEach(st => st.querySelectorAll('.stp-b').forEach(b => b.addEventListener('click', () => {
       const side = st.dataset.side, step = Number(b.dataset.act), v = r[side];
       r[side] = v === null ? (step > 0 ? 1 : 0) : Math.max(0, Math.min(15, v + step)); preview();
     })));
@@ -801,14 +772,13 @@ function renderAdmin(up, done) {
     preview();
   });
 
-  // Abrächnig
-  const rows = ranking();
-  const sumBier = rows.reduce((a, r) => a + r.bier, 0);
-  $('adm-billing').innerHTML = `<section class="block flush" style="padding-top:14px"><div class="h2-row"><h2 class="h2">Bierkässeli pro Person</h2><span class="h2-aside">am Saisonändi iizieh</span></div>
-    <ul class="list billing"><li><span class="h">Name</span><span class="h r">Tipps</span><span class="h r">Bierkässeli</span></li>
-    ${rows.map(r => `<li><div class="row-main"><div class="row-t">${esc(r.name)}</div><div class="row-s">Jackpot-Saldo ${r.jackpotNet > 0 ? '+ ' : ''}${chf(r.jackpotNet)}</div></div><span class="r num">${r.bets}</span><span class="r money num">${chf(r.bier)}</span></li>`).join('')}
-    <li><span class="row-t">Total</span><span class="r num">${state.bets.length}</span><span class="r money num" style="font-weight:700">${chf(sumBier)}</span></li></ul>
-    <p class="hint" style="margin-top:10px">Jackpot-Saldo: gwunne minus iigsetzti Jackpot-Aateil (CHF 2.50 pro Tipp). D'Jackpots wärde nach jedem Spiel direkt per Twint usglichen.</p></section>`;
+  const rows = ranking(), sumBier = rows.reduce((a, r) => a + r.bier, 0);
+  $('adm-billing').innerHTML = `<section class="sec" style="margin-top:22px"><div class="sec-h"><h2>Bierkässeli pro Person</h2><span>am Saisonändi</span></div>
+    <ul class="grp list">
+      <li><div class="row billing"><span class="h">Name</span><span class="h r">Tipps</span><span class="h r">Bierkässeli</span></div></li>
+      ${rows.map(r => `<li><div class="row billing"><div style="min-width:0"><div class="row-t">${esc(r.name)}</div><div class="row-s">Jackpot-Saldo ${r.jackpotNet > 0 ? '+ ' : ''}${chf(r.jackpotNet)}</div></div><span class="r num">${r.bets}</span><span class="r num" style="font-weight:700">${chf(r.bier)}</span></div></li>`).join('')}
+      <li><div class="row billing"><span class="row-t">Total</span><span class="r num">${state.bets.length}</span><span class="r num" style="font-weight:800">${chf(sumBier)}</span></div></li>
+    </ul><p class="fine">Jackpot-Saldo: gwunne minus iigsetzti Jackpot-Aateil. D'Jackpots wärde nach jedem Spiel per Twint usglichen.</p></section>`;
 }
 
 // ===== Live: Countdown und automatische Status-Wächsel =====
