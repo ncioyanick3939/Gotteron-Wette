@@ -1,7 +1,7 @@
 import { firebaseConfig, ADMIN_EMAIL, BET_COST } from './firebase-config.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, getDoc, onSnapshot, query, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, getDoc, getDocs, deleteDoc, onSnapshot, query, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 // ===== INIT =====
 let app, auth, db;
@@ -100,10 +100,17 @@ function setupEvents(){
 }
 
 async function resetKonto(){
-  if(!confirm('Bierkässeli uf 0 zruggsetze? (Nur bi Test-Fehler!)'))return;
+  if(!confirm('ALLI Wette und Spiel lösche? (Nur für Test-Reset vor em echte Start!) Ds cha mer nid zruggmache.'))return;
   try{
-    await setDoc(doc(db,'meta','konto'),{total:0});
-    toast('Bierkässeli zruggsetzt');
+    // Alli Wette lösche
+    const bs=await getDocs(collection(db,'bets'));
+    for(const b of bs.docs){await deleteDoc(doc(db,'bets',b.id))}
+    // Alli Spiel lösche
+    const gs=await getDocs(collection(db,'games'));
+    for(const g of gs.docs){await deleteDoc(doc(db,'games',g.id))}
+    // Alte meta/konto au uf 0
+    try{await setDoc(doc(db,'meta','konto'),{total:0})}catch(e){}
+    toast('Alles zruggsetzt – bereit für dr echte Start!');
   }catch(e){toast('Fehler: '+e.message)}
 }
 
@@ -206,9 +213,6 @@ function startSubs(){
   onSnapshot(collection(db,'bets'),
     s=>{state.bets=s.docs.map(d=>({id:d.id,...d.data()}));render()},
     e=>console.error('bets sub error:',e));
-  onSnapshot(doc(db,'meta','konto'),
-    s=>{state.konto=(s.exists()&&s.data().total)||0;animateFigure('konto-value',state.konto)},
-    e=>console.error('konto sub error:',e));
 }
 
 async function placeBet(gid,inp){
@@ -218,11 +222,7 @@ async function placeBet(gid,inp){
   const g=state.games.find(x=>x.id===gid);
   if(g&&isCutoffPassed(g)){toast('🔒 Wette-Stopp verbi – zu spät!');return}
   try{
-    // 1. Wett speichere
     await addDoc(collection(db,'bets'),{gameId:gid,userId:state.user.uid,userName:state.user.displayName||state.user.email,prediction:p,createdAt:Date.now()});
-    // 2. Sofort d'Hälfti (2.50) is Bierkässeli
-    const kr=doc(db,'meta','konto'),ks=await getDoc(kr);
-    ks.exists()?await updateDoc(kr,{total:increment(BET_COST/2)}):await setDoc(kr,{total:BET_COST/2});
     inp.value='';
     toast(BET_TOASTS[Math.floor(Math.random()*BET_TOASTS.length)]+' – '+BET_COST+' Fr.');
     const myCount=state.bets.filter(b=>b.userId===state.user.uid).length+1;
@@ -231,23 +231,31 @@ async function placeBet(gid,inp){
   }catch(e){toast('Fehler: '+e.message)}
 }
 
+// Ds Bierkässeli wird direkt us de Wette + verlorene Spiel gerechnet
+function computedKonto(){
+  const bierPerBet=BET_COST/2;
+  let total=state.bets.length*bierPerBet; // 2.50 pro Wett
+  // Bi Spiel ohni Gwünner gaht au dr Jackpot-Aateil is Bierkässeli
+  state.games.forEach(g=>{
+    if(g.status==='closed'&&(!g.winnerUserIds||g.winnerUserIds.length===0)){
+      const gb=state.bets.filter(b=>b.gameId===g.id);
+      total+=gb.length*bierPerBet;
+    }
+  });
+  return total;
+}
+
 async function closeGame(gid,selIds){
   const gb=state.bets.filter(b=>b.gameId===gid),pot=gb.length*BET_COST;
   if(!pot){toast('Kei Wette bi däm Spiel');return}
   const w=gb.filter(b=>selIds.includes(b.id)),wu=[...new Set(w.map(x=>x.userId))];
   const hasW=wu.length>0;
-  // D'Hälfti isch scho im Bierkässeli. Di ander Hälfti isch dr Jackpot.
-  const jackpot = pot/2; // total Jackpot
-  const kontoAlreadyIn = pot/2; // scho bim Wette drazuegloffe
-  const pw = hasW ? jackpot/wu.length : 0;
-  // Wenn kei Gwünner: dr Jackpot gaht au is Bierkässeli
-  const extraToKonto = hasW ? 0 : jackpot;
+  const jackpot=pot/2;
+  const kontoFromBets=pot/2; // scho durch Wette drin
+  const pw=hasW?jackpot/wu.length:0;
+  const extraToKonto=hasW?0:jackpot; // wenn kei Gwünner: Jackpot au is Kässeli
   try{
-    await updateDoc(doc(db,'games',gid),{status:'closed',closedAt:Date.now(),pot,winnerBetIds:selIds,winnerUserIds:wu,jackpotHalf:jackpot,kontoHalf:kontoAlreadyIn+extraToKonto,perWinner:pw});
-    if(extraToKonto>0){
-      const kr=doc(db,'meta','konto'),ks=await getDoc(kr);
-      ks.exists()?await updateDoc(kr,{total:increment(extraToKonto)}):await setDoc(kr,{total:extraToKonto});
-    }
+    await updateDoc(doc(db,'games',gid),{status:'closed',closedAt:Date.now(),pot,winnerBetIds:selIds,winnerUserIds:wu,jackpotHalf:jackpot,kontoHalf:kontoFromBets+extraToKonto,perWinner:pw});
     confetti(100);toast(hasW?'🏆 Spiel abgschlosse!':'🍻 Alles is Bierkässeli!');
   }catch(e){toast('Fehler: '+e.message)}
 }
@@ -285,7 +293,10 @@ function render(){
     const jp=og.reduce((s,g)=>s+betsFor(g.id).length*(BET_COST/2),0);
     animateFigure('jackpot-value',jp);
     if($('jackpot-sub')) $('jackpot-sub').textContent=og.length?`½ pro Wett · ${og.reduce((s,g)=>s+betsFor(g.id).length,0)} Wette total`:'kei offeni Spiel';
-    if($('konto-sub')) $('konto-sub').textContent=state.konto>0?`total gspart · ca. ${Math.floor(state.konto/6)} Bier 🍻`:'no nüt gspart';
+    // Bierkässeli live us Wette rechne
+    const kontoTotal=computedKonto();
+    animateFigure('konto-value',kontoTotal);
+    if($('konto-sub')) $('konto-sub').textContent=kontoTotal>0?`total gspart · ca. ${Math.floor(kontoTotal/6)} Bier 🍻`:'no nüt gspart';
 
     const ms=userStats(state.user.uid);
     if($('my-stats')) $('my-stats').innerHTML=`<span><b>${ms.bets}</b> Wette</span><span><b>${ms.wins}</b> Sieg${ms.wins===1?'':'e'}</span><span style="color:var(--gold)">🍻 <b>${fmtFr(ms.bierBeitrag)}</b> Fr. · ${Math.floor(ms.bierBeitrag/6)} Bier</span>`;
