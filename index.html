@@ -3,325 +3,264 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#080B11">
+<meta name="theme-color" content="#F2F2F7">
 <title>Gottéron Spielwette</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spielwette">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400..800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#080B11;--band:#0D121B;--raise:#111826;--line:#1A2130;--line-2:#283144;
-  --text:#EEF1F6;--text-2:#A3ACBB;--text-3:#697386;
-  --blue:#2F6BFF;--blue-hi:#7AA3FF;--blue-dim:rgba(47,107,255,.16);
-  --gold:#E9B949;--win:#3FCB82;--stop:#FF7A66;--live:#FF5A4F;
-  --f:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --bg:#F2F2F7;--card:#FFFFFF;--fill:#EEF0F4;--fill-2:#E4E7ED;--sep:#E5E6EB;
+  --text:#111318;--text-2:#646B76;--text-3:#9AA0A8;
+  --blue:#1747C9;--blue-press:#123AA6;--blue-soft:#E8EEFB;
+  --green:#15803D;--green-soft:#E4F5EA;
+  --orange:#B45309;--orange-soft:#FCEFDD;
+  --red:#D92D20;--red-soft:#FDECEA;
+  --f:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter Tight","Segoe UI",Roboto,sans-serif;
+  --safe-b:env(safe-area-inset-bottom);--safe-t:env(safe-area-inset-top);
 }
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f);font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 [hidden]{display:none!important}
-button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;-webkit-tap-highlight-color:transparent;text-align:inherit}
 input{font:inherit}
-a{color:inherit;-webkit-tap-highlight-color:transparent}
-:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
-.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+a{color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .num{font-variant-numeric:tabular-nums}
-.wide{font-stretch:125%;font-weight:800}
-.money{color:var(--gold)}
-.pos{color:var(--win)}
-.shell{max-width:640px;margin:0 auto;padding:0 20px}
+.pos{color:var(--green)}
+.shell{max-width:600px;margin:0 auto;padding:0 16px}
+main.shell{padding-bottom:calc(104px + var(--safe-b))}
 
-/* ---------- Top bar + nav ---------- */
-.topbar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
-.topbar-in{display:flex;align-items:center;gap:12px;height:54px}
-.brand{font-stretch:125%;font-weight:800;font-size:14px;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;text-decoration:none}
-.season{margin-left:auto;font-size:12px;font-weight:600;color:var(--text-3);white-space:nowrap}
-.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-.nav-i{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0 8px;font-size:10.5px;font-weight:600;color:var(--text-3);position:relative}
-.nav-i .ic{width:22px;height:22px}
-.nav-i.is-active{color:var(--text)}
-.nav-i.is-active .ic{color:var(--blue-hi)}
-.nav-i.is-active::before{content:'';position:absolute;top:-1px;left:26%;right:26%;height:2px;background:var(--blue)}
-main.shell{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
-.view:not([hidden]){animation:vin .18s ease-out}
-@keyframes vin{from{opacity:0}to{opacity:1}}
+/* ---------- Titel ---------- */
+.lt{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding:calc(var(--safe-t) + 22px) 4px 14px}
+.lt h1{margin:0;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-.025em}
+.lt-a{font-size:14px;color:var(--text-3);padding-bottom:5px;white-space:nowrap}
+.navbar{position:fixed;left:0;right:0;top:0;z-index:40;padding-top:var(--safe-t);background:rgba(242,242,247,.86);-webkit-backdrop-filter:saturate(1.8) blur(18px);backdrop-filter:saturate(1.8) blur(18px);border-bottom:1px solid transparent;opacity:0;pointer-events:none;transition:opacity .18s,border-color .18s}
+.navbar.show{opacity:1;border-bottom-color:var(--sep)}
+.navbar-in{height:44px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600}
+
+/* ---------- Startbild ---------- */
+.hero-img{position:relative;border-radius:16px;overflow:hidden;background:#111318;line-height:0}
+.hero-img img{width:100%;height:150px;object-fit:cover;object-position:50% 32%;display:block}
+@media(min-width:560px){.hero-img img{height:200px}}
+
+/* ---------- Gruppe ---------- */
+.grp{background:var(--card);border-radius:16px;overflow:hidden}
+.grp + .grp,.grp + .btn-primary,.btn-primary + .grp,.fine + .grp,.msg + .grp,.btn-secondary + .grp{margin-top:14px}
+.sec{margin-top:30px}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 4px 8px}
+.sec-h h2{margin:0;font-size:20px;font-weight:700;letter-spacing:-.015em}
+.sec-h span{font-size:14px;color:var(--text-3);white-space:nowrap}
+.sec-note{margin:-2px 4px 10px;font-size:14px;color:var(--text-2)}
+.list{list-style:none;margin:0;padding:0}
+.list > li{position:relative}
+.list > li + li::before,.grp > .row + .row::before,.grp > .row + .list > li:first-child::before{content:'';position:absolute;top:0;left:16px;right:0;height:1px;background:var(--sep)}
+.row{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:11px 16px}
+.row.tap:active{background:var(--fill)}
+.row-main{flex:1;min-width:0}
+.row-t{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.row-s{font-size:14px;color:var(--text-2);margin-top:1px}
+.row-end{text-align:right;white-space:nowrap}
+.chev{color:#C4C8CF;width:18px;height:18px}
+.name{display:flex;align-items:center;gap:8px;min-width:0;flex:1;font-weight:500}
+.name > span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag-me{font-size:12px;font-weight:700;color:var(--blue);background:var(--blue-soft);border-radius:6px;padding:1px 6px;flex:none}
+.tip{font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tip .ic{width:17px;height:17px;color:var(--green);stroke-width:2.4}
+.won .tip{color:var(--green)}
+.hidden-tip{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--text-3);white-space:nowrap}
+.hidden-tip .ic{width:15px;height:15px}
+.empty{padding:22px 16px}
+.empty-t{font-size:19px;font-weight:700}
+.empty-s{margin:4px 0 0;color:var(--text-2);font-size:15px}
+.empty .btn-secondary{margin-top:14px}
 
 /* ---------- Status ---------- */
-.status{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--text-2);white-space:nowrap}
-.status::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--text-3)}
-.st-open{color:var(--win)}.st-open::before{background:var(--win)}
-.st-locked{color:var(--stop)}.st-locked::before{background:var(--stop)}
-.st-visible{color:var(--blue-hi)}.st-visible::before{background:var(--blue-hi)}
-.st-live{color:var(--live)}.st-live::before{background:var(--live);animation:blink 1.4s ease-in-out infinite}
-.st-pending{color:var(--gold)}.st-pending::before{background:var(--gold)}
-.st-planned,.st-done{color:var(--text-2)}
-@keyframes blink{50%{opacity:.25}}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap;background:var(--fill);color:var(--text-2)}
+.status::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.st-open{background:var(--green-soft);color:var(--green)}
+.st-locked{background:var(--orange-soft);color:var(--orange)}
+.st-visible{background:var(--blue-soft);color:var(--blue)}
+.st-live{background:var(--red-soft);color:var(--red)}
+.st-live::before{animation:pulse 1.4s ease-in-out infinite}
+.st-pending{background:var(--orange-soft);color:var(--orange)}
+@keyframes pulse{50%{opacity:.25}}
 
-/* ---------- Match (scoreboard) ---------- */
-.match{position:relative;overflow:hidden;margin:0 -20px;padding:18px 20px 22px;background:var(--band);border-bottom:1px solid var(--line)}
-.match::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--blue)}
-.rink{position:absolute;right:-96px;top:-84px;width:300px;height:300px;color:#141B28;pointer-events:none}
-.rink *{fill:none;stroke:currentColor;stroke-width:2}
-.match > :not(.rink){position:relative}
-.m-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:4px}
-.m-count{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--text-3);white-space:nowrap}
-.m-count .num{font-size:17px;font-weight:700;color:var(--text);letter-spacing:.02em}
-.m-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:16px}
-.m-date{font-size:14px;font-weight:600;color:var(--text)}
-.m-kick{font-size:30px;line-height:1.05;margin-top:2px}
-.m-venue{font-size:13px;color:var(--text-3)}
-.m-pot{text-align:right;flex:none}
-.m-pot-l{font-size:12px;color:var(--text-3)}
-.m-pot-v{font-size:30px;line-height:1.05}
-.m-pot-s{font-size:12px;color:var(--text-3)}
-.bump{animation:bump .6s ease-out}
-@keyframes bump{0%{opacity:.35}100%{opacity:1}}
-
-.sb{margin-top:16px;border-top:1px solid var(--line-2)}
-.sb-row{display:flex;align-items:center;gap:12px;min-height:72px;padding:8px 0 8px 16px;border-bottom:1px solid var(--line-2);position:relative}
-.sb-row::before{content:'';position:absolute;left:0;top:16px;bottom:16px;width:3px;background:var(--line-2)}
-.sb-row.gott::before{background:var(--blue)}
-.team{flex:1;min-width:0;font-stretch:112%;font-weight:800;font-size:clamp(20px,6.4vw,30px);line-height:1.05;text-transform:uppercase;overflow-wrap:break-word;hyphens:auto}
-.stepper{display:flex;align-items:center;flex:none}
-.st-btn{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line-2);border-radius:6px;color:var(--text-2)}
-.st-btn:hover{color:var(--text);border-color:var(--text-3)}
-.st-btn:active{background:var(--line);transform:scale(.96)}
-.st-btn:disabled{opacity:.3;cursor:default}
-.st-val{width:48px;text-align:center;font-stretch:125%;font-weight:800;font-size:36px;line-height:1}
-.st-val.is-empty{color:var(--text-3);font-size:22px;font-weight:500}
-.sb-score{width:128px;text-align:right;font-stretch:125%;font-weight:800;font-size:36px;line-height:1;color:var(--text-3)}
-.sb-score.final{color:var(--text)}
-
-.quick{display:flex;gap:8px;margin:16px -20px 0;padding:0 20px;overflow-x:auto;scrollbar-width:none}
-.quick::-webkit-scrollbar{display:none}
-.qt{flex:none;height:34px;padding:0 12px;border:1px solid var(--line-2);border-radius:6px;color:var(--text-2);font-weight:600;font-size:14px}
-.qt:hover{color:var(--text)}
-.qt.is-on{border-color:var(--blue);color:var(--text);background:var(--blue-dim)}
-.slip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
-.slip-l{font-size:13px;color:var(--text-3);margin-right:2px}
-.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 6px 0 12px;border:1px solid var(--line-2);border-radius:6px;background:var(--raise);font-stretch:125%;font-weight:800;font-size:15px}
-.chip button{width:24px;height:24px;display:grid;place-items:center;color:var(--text-3);border-radius:4px}
-.chip button:hover{color:var(--text)}
-.chip .ic{width:15px;height:15px}
+/* ---------- Spiel ---------- */
+.m-meta{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 16px 10px}
+.m-when{text-align:right;font-size:14px;color:var(--text-2);line-height:1.3}
+.m-when b{color:var(--text);font-weight:700}
+.m-venue{display:block;font-size:12px;color:var(--text-3)}
+.m-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:8px 16px;border-top:1px solid var(--sep)}
+.m-team{display:flex;align-items:center;gap:10px;min-width:0;font-size:20px;font-weight:700;letter-spacing:-.015em}
+.m-team span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:10px;height:10px;border-radius:3px;background:#C9CDD3;flex:none}
+.dot.gott{background:var(--blue)}
+.stp{display:flex;align-items:center;background:var(--fill);border-radius:11px;flex:none}
+.stp-b{width:42px;height:38px;display:grid;place-items:center;color:var(--blue);border-radius:11px}
+.stp-b .ic{width:18px;height:18px;stroke-width:2.2}
+.stp-b:active{background:var(--fill-2)}
+.stp-b:disabled{color:#BFC4CC;cursor:default}
+.stp-v{width:34px;text-align:center;font-size:23px;font-weight:800;font-variant-numeric:tabular-nums}
+.stp-v.is-empty{color:var(--text-3);font-weight:500}
+.m-score{font-size:23px;font-weight:800;color:var(--text-3);min-width:40px;text-align:right}
+.m-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--sep);font-size:14px;color:var(--text-2)}
+.m-foot b{color:var(--text);font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.m-mine{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.m-mine b{font-size:15px}
+.pills{display:flex;gap:8px;margin:14px -16px 0;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.pills::-webkit-scrollbar{display:none}
+.qt{flex:none;height:36px;padding:0 14px;border-radius:999px;background:var(--card);font-weight:600;font-size:15px;font-variant-numeric:tabular-nums;color:var(--text)}
+.qt.is-on{background:var(--blue);color:#fff}
+.slip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
 #slip{display:contents}
-.add-btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px dashed var(--line-2);border-radius:6px;font-size:13px;font-weight:600;color:var(--text-2)}
-.add-btn:hover:not(:disabled){color:var(--text);border-color:var(--text-3)}
-.add-btn:disabled{opacity:.4;cursor:default}
-.add-btn .ic{width:15px;height:15px}
-.btn-primary span{white-space:nowrap}
-.actions{display:flex;gap:10px;margin-top:14px}
-.btn-primary{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:48px;padding:0 16px;background:var(--blue);color:#fff;border-radius:6px;font-weight:600;font-size:15px;transition:background .15s,transform .1s}
+.slip-l{font-size:14px;color:var(--text-2);margin-right:2px}
+.chip{display:inline-flex;align-items:center;gap:4px;height:34px;padding:0 6px 0 12px;border-radius:999px;background:var(--blue-soft);color:var(--blue);font-weight:700;font-variant-numeric:tabular-nums}
+.chip button{width:24px;height:24px;display:grid;place-items:center;border-radius:50%}
+.chip .ic{width:14px;height:14px;stroke-width:2.4}
+.add-btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:999px;background:var(--card);color:var(--blue);font-weight:600;font-size:15px}
+.add-btn .ic{width:15px;height:15px;stroke-width:2.4}
+.add-btn:disabled{color:var(--text-3)}
+.fine{margin:10px 4px 0;font-size:13px;color:var(--text-3)}
+.msg{margin:12px 4px 0;font-size:15px;color:var(--text-2)}
+.msg b{color:var(--text)}
+.bump{animation:bump .5s ease-out}
+@keyframes bump{from{opacity:.3}to{opacity:1}}
+
+/* ---------- Buttons ---------- */
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:52px;padding:0 18px;margin-top:14px;border-radius:14px;background:var(--blue);color:#fff;font-size:17px;font-weight:600;transition:transform .1s,background .15s}
 .btn-primary.split{justify-content:space-between}
-.btn-primary:hover:not(:disabled){background:#2560f0}
-.btn-primary:active:not(:disabled){transform:scale(.99)}
-.btn-primary:disabled{background:var(--line);color:var(--text-3);cursor:not-allowed}
-.btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 16px;border:1px solid var(--line-2);border-radius:6px;font-weight:600;font-size:14px;color:var(--text);white-space:nowrap;text-decoration:none}
-.btn-secondary.sm{height:38px;padding:0 12px;font-size:13px}
-.btn-secondary:hover{border-color:var(--text-3)}
+.btn-primary.split span:last-child{opacity:.85;font-weight:500}
+.btn-primary span{white-space:nowrap}
+.btn-primary:active:not(:disabled){background:var(--blue-press);transform:scale(.985)}
+.btn-primary:disabled{background:#C9D2E6;color:#fff;cursor:default}
+.btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:44px;padding:0 16px;border-radius:12px;background:var(--card);color:var(--blue);font-size:16px;font-weight:600;white-space:nowrap}
+.btn-secondary:active{background:var(--fill-2)}
+.grp .btn-secondary{background:var(--fill)}
 .btn-secondary .ic{width:18px;height:18px}
-.btn-danger{color:var(--stop);border-color:rgba(255,122,102,.35)}
-.actions .btn-secondary{flex:none}
-.m-fine{margin:10px 0 0;font-size:12px;color:var(--text-3)}
-.m-msg{margin:14px 0 0;font-size:14px;color:var(--text-2);max-width:48ch}
-.m-msg b{color:var(--text);font-weight:600}
-.m-mine{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin:14px 0 0;font-size:13px;color:var(--text-2)}
-.m-mine b{font-stretch:125%;font-weight:800;font-size:15px;color:var(--text)}
-.match-empty .team{color:var(--text-2);margin-top:6px}
-.match-empty p{color:var(--text-2);margin:8px 0 0;max-width:40ch}
-@media(min-width:680px){.match{margin:24px 0 0;border:1px solid var(--line)}}
+.btn-small{height:32px;padding:0 12px;border-radius:999px;font-size:14px}
+.btn-danger{color:var(--red)}
+.actions{display:flex;gap:10px;margin-top:14px}
+.actions > *{flex:1}
 
-/* ---------- Sections ---------- */
-.block{padding:22px 0 18px;border-top:1px solid var(--line)}
-.flush{border-top:0}
-.h2-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px}
-.h2{margin:0;font-stretch:112%;font-weight:700;font-size:17px}
-.h2-aside{font-size:13px;color:var(--text-3);text-align:right}
-.hint{margin:0 0 6px;font-size:13px;color:var(--text-3);max-width:52ch}
-.empty-line{color:var(--text-3);font-size:14px;margin:4px 0 12px}
-.list{list-style:none;margin:0;padding:0}
-.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
-.list > li:last-child > .row,.list > .row:last-child{border-bottom:0}
-.row-main{flex:1;min-width:0}
-.row-t{font-weight:600}
-.row-s{font-size:13px;color:var(--text-3)}
-.name{display:flex;align-items:center;gap:8px;min-width:0}
-.name > span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tag-me{font-size:11px;font-weight:700;color:var(--blue-hi);border:1px solid rgba(122,163,255,.45);border-radius:4px;padding:0 5px;line-height:17px;flex:none}
-.tip{display:flex;align-items:center;gap:6px;font-stretch:125%;font-weight:800;font-size:18px;white-space:nowrap}
-.tip .ic{width:16px;height:16px;stroke-width:2.25;color:var(--win)}
-.won .tip{color:var(--win)}
-.hidden-tip{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-3);white-space:nowrap}
-.hidden-tip .ic{width:15px;height:15px}
-.game-t{font-stretch:112%;font-weight:700;font-size:15px;text-transform:uppercase}
-.grow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 0;border-bottom:1px solid var(--line)}
-.list > li:last-child .grow{border-bottom:0}
-.grow > .ic{color:var(--text-3)}
-.grow .status{font-size:11px;margin-top:4px}
-
-.lr{padding:4px 0 2px}
-.lr-score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
-.lr-team{font-stretch:112%;font-weight:800;text-transform:uppercase;font-size:15px}
-.lr-team + .lr-num + .lr-team{text-align:right}
-.lr-num{font-stretch:125%;font-weight:800;font-size:32px;line-height:1}
-.lr-note{margin:12px 0 0;font-size:14px;color:var(--text-2)}
-.lr-note b{color:var(--text)}
-.me-line{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:12px 14px;background:var(--raise);border-left:3px solid var(--gold)}
-.me-line.plus{border-left-color:var(--win)}
-
-.linkrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);text-decoration:none}
-.linkrow:last-child{border-bottom:0}
-.linkrow .ic{color:var(--text-3);width:18px;height:18px}
-.lk-t{font-weight:600}
-.lk-s{font-size:13px;color:var(--blue-hi)}
-
-/* ---------- Page heads & stats ---------- */
-.page-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:26px 0 14px}
-.h1{margin:0;font-stretch:125%;font-weight:800;font-size:26px;line-height:1.1;text-transform:uppercase}
-.page-sub{font-size:13px;color:var(--text-3)}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+/* ---------- Zahle ---------- */
+.two{display:grid;grid-template-columns:1fr 1fr}
+.two > div{padding:14px 16px;min-width:0}
+.two > div + div{border-left:1px solid var(--sep)}
+.k{font-size:13px;color:var(--text-2);font-weight:600}
+.v{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:2px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.s{font-size:13px;color:var(--text-3)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr)}
 .stats.three{grid-template-columns:repeat(3,1fr)}
-.stats.two{grid-template-columns:repeat(2,1fr)}
-.stats > div{padding:12px 0 12px 12px;border-left:1px solid var(--line);min-width:0}
-.stats > div:first-child{padding-left:0;border-left:0}
-.stat-v{font-stretch:112%;font-weight:800;font-size:19px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.stat-l{font-size:12px;line-height:1.4;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.stat-note{font-size:13px;color:var(--text-3);margin:10px 0 0}
+.stats > div{padding:12px 10px 12px 14px;min-width:0}
+.stats > div + div{border-left:1px solid var(--sep)}
+.stat-v{font-size:20px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat-l{font-size:12px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.big{padding:16px}
+.big .v{font-size:36px}
 
-/* ---------- Meine Tipps ---------- */
-.tg{padding:14px 0 6px;border-bottom:1px solid var(--line)}
-.tg:last-child{border-bottom:0}
-.tg-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.tg-s{font-size:13px;color:var(--text-3)}
-.tl{list-style:none;margin:6px 0 0;padding:0}
-.tl li{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:16px;padding:8px 0;border-top:1px solid var(--line)}
-.tl .amt{font-size:14px;color:var(--text-2);text-align:right;min-width:78px}
-.res-t{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;text-align:right;min-width:92px}
-.res-t.ok{color:var(--win)}.res-t.no{color:var(--text-3)}.res-t.open{color:var(--text-2)}
+/* ---------- Letschts Resultat ---------- */
+.lr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:16px}
+.lr-t{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis}
+.lr-t.r{text-align:right}
+.lr-n{font-size:30px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+
+/* ---------- Mini Tipps ---------- */
+.tl-res{font-size:14px;font-weight:600;white-space:nowrap}
+.tl-res.ok{color:var(--green)}
+.tl-res.no{color:var(--text-3)}
+.amt{font-size:15px;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* ---------- Rangliste ---------- */
-.lb{list-style:none;margin:18px 0 0;padding:0}
-.lb-row{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:start;padding:14px 0;border-bottom:1px solid var(--line)}
-.lb-row.me{margin:0 -20px;padding-left:20px;padding-right:20px;background:var(--band)}
-.lb-rank{font-stretch:125%;font-weight:800;font-size:22px;line-height:1.1;color:var(--text-3)}
-.lb-row:nth-child(2) .lb-rank,.lb-row:nth-child(3) .lb-rank{color:var(--text)}
-.lb-row.lead .lb-rank{font-size:40px;line-height:1;color:var(--blue-hi)}
-.lb-row.lead .lb-name{font-size:19px}
-.lb-name{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-weight:700;font-size:16px;line-height:1.3}
-.lb-meta{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:3px;font-size:13px;color:var(--text-2)}
-.lb-gap{color:var(--text-3)}
-.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.tag{font-size:11px;font-weight:600;color:var(--text-2);border:1px solid var(--line-2);border-radius:4px;padding:1px 6px}
-.lb-track{height:2px;background:var(--line);margin-top:10px}
-.lb-track i{display:block;height:100%;background:var(--blue)}
+.rank{width:26px;font-size:19px;font-weight:800;color:var(--text-3);text-align:center;flex:none;font-variant-numeric:tabular-nums}
+.lead .rank{color:var(--blue)}
 .lb-score{text-align:right}
-.lb-score .num{font-stretch:125%;font-weight:800;font-size:26px;line-height:1.1}
-.lb-score-l{font-size:12px;color:var(--text-3)}
-
-/* ---------- Kasse ---------- */
-.k-hero{padding:6px 0 16px}
-.k-l{font-size:13px;color:var(--text-2)}
-.k-big{font-size:40px;line-height:1.1;margin-top:2px}
-.k-s{font-size:13px;color:var(--text-3)}
-.k-note{margin:14px 0 0;font-size:14px;color:var(--text-2);max-width:52ch}
-.owe{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:4px 0 10px}
-.owe-v{font-size:30px;line-height:1.1}
-.pay-row .btn-secondary{height:34px;padding:0 10px;font-size:12px}
+.lb-score b{display:block;font-size:22px;font-weight:800;line-height:1.1}
+.lb-score span{font-size:12px;color:var(--text-3)}
+.me-row{background:#F7F9FE}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.tag{font-size:12px;font-weight:600;color:var(--text-2);background:var(--fill);border-radius:6px;padding:1px 7px}
+.track{height:3px;border-radius:2px;background:var(--fill);margin-top:8px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--blue);border-radius:2px}
 
 /* ---------- Profil ---------- */
-.prof{display:flex;align-items:center;gap:14px;padding:4px 0 18px}
-.avatar{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--line-2);font-stretch:125%;font-weight:800;font-size:18px;flex:none}
-.prof-name{font-weight:700;font-size:18px;display:flex;align-items:center;gap:8px}
-.prof-mail{font-size:13px;color:var(--text-3);overflow:hidden;text-overflow:ellipsis}
-.badge{display:grid;grid-template-columns:120px 1fr auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
-.badge:last-child{border-bottom:0}
-.badge .tag{justify-self:start;font-size:12px;padding:2px 8px}
-.badge.on .tag{color:var(--text);border-color:var(--blue);background:var(--blue-dim)}
-.badge-d{font-size:14px;color:var(--text-2)}
-.badge-p{font-size:13px;color:var(--text-3);white-space:nowrap;display:flex;align-items:center;gap:4px}
-.badge.on .badge-p{color:var(--win)}
-.badge-p .ic{width:16px;height:16px;stroke-width:2.25}
-.steps{margin:6px 0 0;padding-left:18px;color:var(--text-2);font-size:14px}
-.steps li{margin:3px 0}
+.avatar{width:54px;height:54px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;font-size:20px;font-weight:700;flex:none}
+.prof-n{font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
+.badge-p{font-size:14px;color:var(--text-3);display:flex;align-items:center;gap:4px;white-space:nowrap}
+.badge-p .ic{width:16px;height:16px;stroke-width:2.4}
+.on .badge-p{color:var(--green)}
+.steps{margin:0;padding:12px 16px 14px 34px;font-size:15px;color:var(--text-2)}
+.steps li + li{margin-top:6px}
+.danger-row{color:var(--red);font-weight:600}
+
+/* ---------- Segmentiert ---------- */
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;padding:2px;border-radius:10px;background:var(--fill-2)}
+.seg-b{height:32px;border-radius:8px;font-size:14px;font-weight:600;color:var(--text);text-align:center;white-space:nowrap;padding:0 4px}
+.seg-b.is-active{background:var(--card);box-shadow:0 1px 3px rgba(17,19,24,.12)}
+
+/* ---------- Formular ---------- */
+.frow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:50px;padding:6px 16px;position:relative}
+.frow + .frow::before{content:'';position:absolute;top:0;left:16px;right:0;height:1px;background:var(--sep)}
+.frow > span{font-size:16px;flex:none}
+.frow input{flex:1;min-width:0;border:0;background:none;text-align:right;font-size:16px;color:var(--text);padding:8px 0;outline:none;-webkit-appearance:none;appearance:none}
+.frow input::placeholder{color:var(--text-3)}
+.frow .seg{flex:none;width:210px}
+.field-note{margin:10px 4px 0;font-size:13px;color:var(--text-3)}
 
 /* ---------- Admin ---------- */
-.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;padding:3px;border:1px solid var(--line-2);border-radius:6px}
-.seg-b{height:36px;border-radius:4px;font-weight:600;font-size:13px;color:var(--text-2);white-space:nowrap;padding:0 6px}
-.seg-b.is-active{background:var(--line-2);color:var(--text)}
-.adm-seg{margin-bottom:6px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px;margin-top:6px}
-.field{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500;color:var(--text-2);min-width:0}
-.field.full{grid-column:1/-1}
-.field input{width:100%;height:46px;padding:0 12px;background:var(--bg);border:1px solid var(--line-2);border-radius:6px;color:var(--text);font-size:16px;-webkit-appearance:none;appearance:none;color-scheme:dark;min-width:0}
-.field input:focus{outline:none;border-color:var(--blue)}
-.field-note{font-size:12px;color:var(--text-3);margin:12px 0 0;max-width:56ch}
-.adm-game{padding:16px 0;border-bottom:1px solid var(--line)}
-.adm-game:last-child{border-bottom:0}
-.adm-sb{margin-top:10px;border-top:1px solid var(--line-2)}
-.adm-sb .sb-row{min-height:60px}
-.adm-sb .team{font-size:20px}
-.preview{margin:12px 0 0;font-size:14px;color:var(--text-2)}
-.preview b{color:var(--text)}
-.todo{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;margin-top:12px;background:var(--raise);border-left:3px solid var(--gold)}
-.billing li{display:grid;grid-template-columns:1fr 72px 92px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
-.billing li:last-child{border-bottom:0}
-.billing .h{font-size:12px;color:var(--text-3);font-weight:500}
+.todo{color:var(--orange)}
+.billing{display:grid;grid-template-columns:1fr 54px 92px;gap:8px;align-items:center}
 .billing .r{text-align:right}
+.billing .h{font-size:13px;color:var(--text-3)}
+
+/* ---------- Tab-Leiste ---------- */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(249,249,251,.92);-webkit-backdrop-filter:saturate(1.8) blur(20px);backdrop-filter:saturate(1.8) blur(20px);border-top:1px solid var(--sep);padding-bottom:var(--safe-b)}
+.tabbar-in{max-width:600px;margin:0 auto;display:flex}
+.tab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0 6px;font-size:10.5px;font-weight:600;color:#8E949C}
+.tab .ic{width:25px;height:25px;stroke-width:1.8}
+.tab.is-active{color:var(--blue)}
 
 /* ---------- Toast ---------- */
-.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;max-width:calc(100% - 40px);padding:10px 16px;background:var(--text);color:var(--bg);font-weight:600;font-size:14px;border-radius:6px;opacity:0;transform:translate(-50%,10px);pointer-events:none;transition:opacity .2s,transform .2s}
+.toast{position:fixed;left:50%;bottom:calc(92px + var(--safe-b));z-index:60;max-width:calc(100% - 32px);padding:11px 18px;border-radius:14px;background:rgba(17,19,24,.92);color:#fff;font-size:15px;font-weight:600;opacity:0;transform:translate(-50%,8px);pointer-events:none;transition:opacity .2s,transform .2s}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
 /* ---------- Login ---------- */
 .auth{position:fixed;inset:0;z-index:100;display:flex;overflow-y:auto;background:var(--bg)}
-.auth .rink{right:-120px;top:-110px;width:380px;height:380px}
-.auth-in{position:relative;width:100%;max-width:420px;margin:auto;padding:56px 24px 40px}
-.auth-brand{font-stretch:125%;font-weight:800;font-size:clamp(30px,9.6vw,50px);line-height:.98;text-transform:uppercase}
-.auth-rule{width:56px;height:3px;background:var(--blue);margin:20px 0 16px}
-.auth-lead{margin:0 0 28px;color:var(--text-2);max-width:34ch}
-.auth .seg{margin-bottom:20px}
-.auth .seg-b{height:38px;font-size:14px}
-.auth-form{display:flex;flex-direction:column;gap:14px}
-.auth-error{font-size:13px;color:var(--stop)}
+.auth-in{width:100%;max-width:420px;margin:auto;padding:calc(var(--safe-t) + 40px) 16px calc(var(--safe-b) + 32px)}
+.app-icon{width:76px;height:76px;border-radius:18px;display:block;margin:0 auto 18px}
+.auth-t{margin:0;text-align:center;font-size:30px;font-weight:800;letter-spacing:-.025em}
+.auth-s{margin:6px 0 26px;text-align:center;color:var(--text-2)}
+.auth .seg{margin-bottom:16px}
+.auth-error{margin:10px 4px 0;font-size:14px;color:var(--red)}
 .auth-error:empty{display:none}
-.auth-link{display:block;margin-top:8px;text-align:center;font-size:14px;font-weight:500;color:var(--blue-hi);text-decoration:none}
+.auth-link{display:block;margin-top:18px;text-align:center;color:var(--blue);font-weight:500}
 
-/* ---------- Desktop ---------- */
-@media(min-width:760px){
-  .topbar .shell{max-width:1120px}
-  .season{margin-left:0;order:3;margin-left:auto}
-  .nav{position:static;border:0;background:none;padding:0;margin-left:20px;height:54px;order:2}
-  .nav-i{flex:none;flex-direction:row;gap:8px;padding:0 11px;font-size:14px;height:54px}
-  .nav-i .ic{width:18px;height:18px}
-  .nav-i:hover{color:var(--text)}
-  .nav-i.is-active::before{top:auto;bottom:-1px;left:11px;right:11px}
-  main.shell{padding-bottom:64px}
-  .toast{bottom:32px}
+@media(max-width:350px){
+  .lt h1{font-size:30px}
+  .m-team{font-size:18px}
+  .stp-b{width:36px}
+  .stp-v{width:30px;font-size:21px}
+  .v{font-size:21px}
+  .stat-v{font-size:17px}
+  .stats > div{padding-left:10px}
+  .tab{font-size:9.5px}
+  .frow .seg{width:180px}
 }
-@media(min-width:1024px){
-  main.shell{max-width:1120px}
-  .view{max-width:720px;margin:0 auto}
-  #view-home{max-width:none}
-  .home-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:40px;align-items:start}
-  .home-side{padding-top:24px}
-  .home-side > .block:first-child{border-top:0;padding-top:0}
-  #view-admin,#view-rangliste{max-width:880px}
-  .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px}
-}
-@media(max-width:380px){.nav-i{font-size:9.5px}.stat-v{font-size:16px}.stat-l{font-size:11px}.stats > div{padding-left:9px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="rink" viewBox="0 0 300 300"><circle cx="150" cy="150" r="118"/><circle cx="150" cy="150" r="5"/><line x1="150" y1="0" x2="150" y2="300"/><line x1="54" y1="0" x2="54" y2="300"/></symbol>
   <symbol id="i-home" viewBox="0 0 24 24"><ellipse cx="12" cy="9" rx="8" ry="3.5"/><path d="M4 9v5c0 1.9 3.6 3.5 8 3.5s8-1.6 8-3.5V9"/></symbol>
   <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5V10a2 2 0 0 0 0 4v2.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5V14a2 2 0 0 0 0-4z"/><path d="M14.5 6.5v1.5M14.5 11v2M14.5 16v1.5"/></symbol>
   <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H5.5A1.5 1.5 0 0 0 4 7.5v.5a3 3 0 0 0 3 3h1.2M16 6h2.5A1.5 1.5 0 0 1 20 7.5v.5a3 3 0 0 1-3 3h-1.2"/><path d="M12 13v4M8.5 20.5h7M10 17h4v3.5h-4z"/></symbol>
@@ -341,152 +280,104 @@ main.shell{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
 
 <!-- ===== Login ===== -->
 <div class="auth" id="auth-overlay">
-  <svg class="rink" aria-hidden="true"><use href="#rink"/></svg>
   <div class="auth-in">
-    <div class="auth-brand">Gottéron<br>Spielwette</div>
-    <div class="auth-rule"></div>
-    <p class="auth-lead">S'Tippspiel für jedes Gottéron-Spiel. Saison 2026/27.</p>
+    <img class="app-icon" src="icon-192.png" alt="">
+    <h1 class="auth-t">Gottéron Spielwette</h1>
+    <p class="auth-s">S'Tippspiel für jedes Gottéron-Spiel</p>
     <div class="seg" role="tablist">
       <button class="seg-b is-active" id="tab-login" role="tab" onclick="setAuthMode('login')">Iilogge</button>
       <button class="seg-b" id="tab-register" role="tab" onclick="setAuthMode('register')">Konto erstelle</button>
     </div>
-    <div class="auth-form">
-      <label class="field" id="name-field" hidden><span>Name</span><input type="text" id="login-name" maxlength="30" autocomplete="nickname" placeholder="So gseh di di andere"></label>
-      <label class="field"><span>E-Mail</span><input type="email" id="login-email" maxlength="80" autocomplete="email" inputmode="email"></label>
-      <label class="field"><span>Passwort</span><input type="password" id="login-pass" maxlength="60" autocomplete="current-password" placeholder="Mindestens 6 Zeiche"></label>
-      <div class="auth-error" id="login-error" role="alert"></div>
-      <button class="btn-primary" id="login-btn">Iilogge</button>
-      <a class="auth-link" href="aleitig.html">So funktioniert d'Spielwette</a>
+    <div class="grp">
+      <label class="frow" id="name-field" hidden><span>Name</span><input type="text" id="login-name" maxlength="30" autocomplete="nickname" placeholder="So gseh di di andere"></label>
+      <label class="frow"><span>E-Mail</span><input type="email" id="login-email" maxlength="80" autocomplete="email" inputmode="email" placeholder="name@beispiel.ch"></label>
+      <label class="frow"><span>Passwort</span><input type="password" id="login-pass" maxlength="60" autocomplete="current-password" placeholder="Mind. 6 Zeiche"></label>
     </div>
+    <div class="auth-error" id="login-error" role="alert"></div>
+    <button class="btn-primary" id="login-btn">Iilogge</button>
+    <a class="auth-link" href="aleitig.html">So funktioniert d'Spielwette</a>
   </div>
 </div>
 
 <!-- ===== App ===== -->
 <div id="app-content" style="display:none">
-
-<header class="topbar">
-  <div class="shell topbar-in">
-    <a class="brand" href="#home" onclick="showView('home');return false">Gottéron Spielwette</a>
-    <span class="season">Saison 2026/27</span>
-    <nav class="nav" aria-label="Navigation">
-      <button class="nav-i is-active" data-view="home" onclick="showView('home')"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>Home</span></button>
-      <button class="nav-i" data-view="tipps" onclick="showView('tipps')"><svg class="ic" aria-hidden="true"><use href="#i-ticket"/></svg><span>Tipps</span></button>
-      <button class="nav-i" data-view="rangliste" onclick="showView('rangliste')"><svg class="ic" aria-hidden="true"><use href="#i-trophy"/></svg><span>Rangliste</span></button>
-      <button class="nav-i" data-view="kasse" onclick="showView('kasse')"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg><span>Kasse</span></button>
-      <button class="nav-i" data-view="profil" onclick="showView('profil')"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg><span>Profil</span></button>
-      <button class="nav-i" data-view="admin" id="nav-admin" onclick="showView('admin')" hidden><svg class="ic" aria-hidden="true"><use href="#i-admin"/></svg><span>Admin</span></button>
-    </nav>
-  </div>
-</header>
+<div class="navbar" id="navbar" aria-hidden="true"><div class="navbar-in" id="navbar-t">Spiel</div></div>
 
 <main class="shell">
 
-  <!-- Home -->
-  <section class="view" id="view-home">
-    <div class="home-grid">
-      <div class="home-main">
-        <section class="match" id="match" aria-label="Aktuells Spiel"><div class="m-date">Lade Spiel…</div></section>
-        <section class="block flush" id="tips-block" hidden>
-          <div class="h2-row"><h2 class="h2">Tipps zu däm Spiel</h2><span class="h2-aside" id="tips-count"></span></div>
-          <p class="hint" id="tips-hint" hidden></p>
-          <ul class="list" id="tips"></ul>
-        </section>
-      </div>
-      <div class="home-side">
-        <section class="block" id="last-block" hidden>
-          <div class="h2-row"><h2 class="h2">Letschts Resultat</h2><span class="h2-aside" id="last-date"></span></div>
-          <div id="last-result"></div>
-        </section>
-        <section class="block" id="next-block" hidden>
-          <div class="h2-row"><h2 class="h2">Nächschti Spiel</h2></div>
-          <ul class="list" id="next-games"></ul>
-        </section>
-        <section class="block">
-          <div class="h2-row"><h2 class="h2">Hockey-Links</h2></div>
-          <a class="linkrow" id="link-topscorers" href="https://topscorers.ch/de" target="_blank" rel="noopener">
-            <div class="row-main"><div class="lk-t">Topscorers</div><div class="lk-s">Hockey Manager App vo dr National League öffne</div></div>
-            <svg class="ic" aria-hidden="true"><use href="#i-ext"/></svg>
-          </a>
-          <a class="linkrow" id="link-nl" href="https://www.nationalleague.ch/" target="_blank" rel="noopener">
-            <div class="row-main"><div class="lk-t">National League</div><div class="lk-s">Offizielli App vo dr National League öffne</div></div>
-            <svg class="ic" aria-hidden="true"><use href="#i-ext"/></svg>
-          </a>
-        </section>
-      </div>
-    </div>
+  <!-- Spiel -->
+  <section class="view" id="view-home" data-title="Spiel">
+    <header class="lt"><h1>Spiel</h1><span class="lt-a">Saison 26/27</span></header>
+    <div class="hero-img"><img src="gotteron.jpg" alt="Fribourg-Gottéron fiiret mit em Meischterpokal"></div>
+    <div id="match" style="margin-top:14px"><div class="grp empty"><div class="empty-s">Lade Spiel…</div></div></div>
+    <section class="sec" id="tips-block" hidden>
+      <div class="sec-h"><h2>Tipps zu däm Spiel</h2><span id="tips-count"></span></div>
+      <p class="sec-note" id="tips-hint" hidden></p>
+      <ul class="grp list" id="tips"></ul>
+    </section>
+    <section class="sec" id="last-block" hidden>
+      <div class="sec-h"><h2>Letschts Resultat</h2><span id="last-date"></span></div>
+      <div id="last-result"></div>
+    </section>
+    <section class="sec" id="next-block" hidden>
+      <div class="sec-h"><h2>Nächschti Spiel</h2></div>
+      <ul class="grp list" id="next-games"></ul>
+    </section>
+    <section class="sec">
+      <div class="sec-h"><h2>Hockey-Links</h2></div>
+      <ul class="grp list">
+        <li><a class="row tap" id="link-topscorers" href="https://topscorers.ch/de" target="_blank" rel="noopener"><div class="row-main"><div class="row-t">Topscorers</div><div class="row-s">Hockey Manager App vo dr National League</div></div><svg class="ic chev" aria-hidden="true"><use href="#i-ext"/></svg></a></li>
+        <li><a class="row tap" id="link-nl" href="https://www.nationalleague.ch/" target="_blank" rel="noopener"><div class="row-main"><div class="row-t">National League</div><div class="row-s">Offizielli App vo dr Liga</div></div><svg class="ic chev" aria-hidden="true"><use href="#i-ext"/></svg></a></li>
+      </ul>
+    </section>
   </section>
 
-  <!-- Meine Tipps -->
-  <section class="view" id="view-tipps" hidden>
-    <div class="page-head"><h1 class="h1">Mini Tipps</h1><span class="page-sub" id="mt-count"></span></div>
+  <!-- Mini Tipps -->
+  <section class="view" id="view-tipps" data-title="Mini Tipps" hidden>
+    <header class="lt"><h1>Mini Tipps</h1><span class="lt-a" id="mt-count"></span></header>
     <div id="mt-summary"></div>
-    <section class="block flush" id="mt-open-block">
-      <div class="h2-row"><h2 class="h2">Offe</h2></div>
-      <div id="mt-open"></div>
-    </section>
-    <section class="block" id="mt-done-block">
-      <div class="h2-row"><h2 class="h2">Uswärtet</h2></div>
-      <div id="mt-done"></div>
-    </section>
+    <section class="sec" id="mt-open-block"><div class="sec-h"><h2>Offe</h2></div><div id="mt-open"></div></section>
+    <section class="sec" id="mt-done-block"><div class="sec-h"><h2>Uswärtet</h2></div><div id="mt-done"></div></section>
   </section>
 
   <!-- Rangliste -->
-  <section class="view" id="view-rangliste" hidden>
-    <div class="page-head"><h1 class="h1">Rangliste</h1><span class="page-sub" id="lb-count"></span></div>
+  <section class="view" id="view-rangliste" data-title="Rangliste" hidden>
+    <header class="lt"><h1>Rangliste</h1><span class="lt-a" id="lb-count"></span></header>
     <div id="my-rank"></div>
-    <div id="leaderboard"></div>
+    <section class="sec"><div class="sec-h"><h2>Alli Spieler</h2><span>nach Siege</span></div><div id="leaderboard"></div></section>
   </section>
 
   <!-- Kasse -->
-  <section class="view" id="view-kasse" hidden>
-    <div class="page-head"><h1 class="h1">Kasse</h1><span class="page-sub">Saison 2026/27</span></div>
-    <section class="block flush">
-      <div class="k-hero">
-        <div class="k-l">Bierkässeli</div>
-        <div class="k-big wide money num" id="konto-value">CHF 0.–</div>
-        <div class="k-s" id="konto-sub"></div>
-      </div>
-      <div class="stats two">
-        <div><div class="stat-v money num" id="my-contrib">CHF 0.–</div><div class="stat-l">Dis Biitrag</div></div>
-        <div><div class="stat-v money num" id="konto-total">CHF 0.–</div><div class="stat-l">Total vo allne</div></div>
-      </div>
-      <p class="k-note">S'Bierkässeli wird am Saisonändi iizahlt: CHF 2.50 vo jedem Tipp, plus dr Jackpot vo Spiel ohni richtige Tipp.</p>
-    </section>
-    <section class="block">
-      <div class="h2-row"><h2 class="h2">Twint</h2><span class="h2-aside">nach jedem Spiel</span></div>
-      <div id="twint"></div>
-    </section>
-    <section class="block">
-      <div class="h2-row"><h2 class="h2">Offeni Jackpots</h2></div>
-      <div id="jackpots"></div>
-    </section>
+  <section class="view" id="view-kasse" data-title="Kasse" hidden>
+    <header class="lt"><h1>Kasse</h1><span class="lt-a">Saison 26/27</span></header>
+    <div id="kasse-bier"></div>
+    <section class="sec"><div class="sec-h"><h2>Twint</h2><span>nach jedem Spiel</span></div><div id="twint"></div></section>
+    <section class="sec"><div class="sec-h"><h2>Offeni Jackpots</h2></div><div id="jackpots"></div></section>
   </section>
 
   <!-- Profil -->
-  <section class="view" id="view-profil" hidden>
-    <div class="page-head"><h1 class="h1">Profil</h1><button class="btn-secondary sm" id="logout-top"><svg class="ic" aria-hidden="true"><use href="#i-logout"/></svg>Usloge</button></div>
+  <section class="view" id="view-profil" data-title="Profil" hidden>
+    <header class="lt"><h1>Profil</h1></header>
     <div id="profil"></div>
-    <section class="block">
-      <div class="h2-row"><h2 class="h2">Uszeichnige</h2></div>
-      <div id="badges"></div>
+    <section class="sec"><div class="sec-h"><h2>Uszeichnige</h2></div><ul class="grp list" id="badges"></ul></section>
+    <section class="sec" id="install-block">
+      <div class="sec-h"><h2>Als App installiere</h2></div>
+      <div class="grp"><ol class="steps">
+        <li><b>iPhone:</b> Link i Safari öffne, Teile-Symbol, «Zum Home-Bildschirm».</li>
+        <li><b>Android:</b> Link i Chrome öffne, drei Pünktli, «App installieren».</li>
+      </ol></div>
     </section>
-    <section class="block" id="install-block">
-      <div class="h2-row"><h2 class="h2">Als App installiere</h2></div>
-      <p class="hint">Link im Browser öffne, nid im WhatsApp-Fänschter.</p>
-      <ol class="steps">
-        <li><b>iPhone:</b> i Safari s'Teile-Symbol tippe, denn «Zum Home-Bildschirm».</li>
-        <li><b>Android:</b> i Chrome d'drei Pünktli tippe, denn «App installieren».</li>
-      </ol>
-    </section>
-    <section class="block">
-      <a class="linkrow" href="aleitig.html"><div class="row-main"><div class="lk-t">Aleitig</div><div class="lk-s">So funktioniert d'Spielwette</div></div><svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg></a>
-      <button class="btn-secondary" id="logout-btn" style="margin-top:16px"><svg class="ic" aria-hidden="true"><use href="#i-logout"/></svg>Usloge</button>
+    <section class="sec">
+      <ul class="grp list">
+        <li><a class="row tap" href="aleitig.html"><div class="row-main"><div class="row-t">Aleitig</div></div><svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+        <li><button class="row tap danger-row" id="logout-btn"><div class="row-main">Usloge</div></button></li>
+      </ul>
     </section>
   </section>
 
-  <!-- Admin -->
-  <section class="view" id="view-admin" hidden>
-    <div class="page-head"><h1 class="h1">Admin</h1><span class="page-sub">Nume für dr CEO</span></div>
+  <!-- CEO -->
+  <section class="view" id="view-admin" data-title="CEO" hidden>
+    <header class="lt"><h1>CEO</h1><span class="lt-a">Nume für di</span></header>
     <div class="seg adm-seg" role="tablist">
       <button class="seg-b is-active" data-tab="dash" onclick="setAdminTab('dash')">Übersicht</button>
       <button class="seg-b" data-tab="spiel" onclick="setAdminTab('spiel')">Spiel</button>
@@ -497,47 +388,56 @@ main.shell{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
     <div class="pane" id="pane-dash"><div id="adm-dash"></div></div>
 
     <div class="pane" id="pane-spiel" hidden>
-      <section class="block flush" id="game-form">
-        <div class="h2-row"><h2 class="h2" id="gf-title">Spiel erstelle</h2><button class="btn-secondary sm" id="gf-cancel" hidden>Abbräche</button></div>
-        <div class="form-grid">
-          <label class="field full"><span>Gägner</span><input type="text" id="gf-opp" maxlength="40" placeholder="z.B. ZSC Lions"></label>
-          <div class="field full"><span>Ort</span>
-            <div class="seg"><button class="seg-b is-active" id="gf-home" type="button">Heimspiel</button><button class="seg-b" id="gf-away" type="button">Uswärtsspiel</button></div>
-          </div>
-          <label class="field"><span>Datum</span><input type="date" id="gf-date"></label>
-          <label class="field"><span>Aaspiel</span><input type="time" id="gf-kick" value="19:45"></label>
-          <label class="field full"><span>Wetten öffne</span><input type="datetime-local" id="gf-open"></label>
-          <label class="field"><span>Tipp-Stopp</span><input type="time" id="gf-stop" value="19:30"></label>
-          <label class="field"><span>Tipps sichtbar</span><input type="time" id="gf-reveal" value="19:35"></label>
+      <section class="sec" id="game-form" style="margin-top:22px">
+        <div class="sec-h"><h2 id="gf-title">Spiel erstelle</h2><button class="btn-secondary btn-small" id="gf-cancel" hidden>Abbräche</button></div>
+        <div class="grp">
+          <label class="frow"><span>Gägner</span><input type="text" id="gf-opp" maxlength="40" placeholder="z.B. ZSC Lions"></label>
+          <div class="frow"><span>Ort</span><div class="seg"><button class="seg-b is-active" id="gf-home" type="button">Heimspiel</button><button class="seg-b" id="gf-away" type="button">Uswärts</button></div></div>
+          <label class="frow"><span>Datum</span><input type="date" id="gf-date"></label>
+          <label class="frow"><span>Aaspiel</span><input type="time" id="gf-kick" value="19:45"></label>
         </div>
-        <p class="field-note">Standard: Wetten öffne 2 Täg vor em Aaspiel, Tipp-Stopp 15 Minute und Tipps sichtbar 10 Minute vor em Aaspiel. Wenn du Datum oder Aaspiel änderisch, rächnet d'App die Ziite nöi.</p>
-        <div class="actions">
-          <button class="btn-primary" id="gf-save">Spiel speichere</button>
-          <button class="btn-secondary btn-danger" id="gf-delete" hidden><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Lösche</button>
+        <div class="grp">
+          <label class="frow"><span>Wetten öffne</span><input type="datetime-local" id="gf-open"></label>
+          <label class="frow"><span>Tipp-Stopp</span><input type="time" id="gf-stop" value="19:30"></label>
+          <label class="frow"><span>Tipps sichtbar</span><input type="time" id="gf-reveal" value="19:35"></label>
         </div>
+        <p class="field-note">Standard: Wetten öffne 2 Täg vorher, Tipp-Stopp 15 Minute und Tipps sichtbar 10 Minute vor em Aaspiel. Wenn du Datum oder Aaspiel änderisch, rächnet d'App die Ziite nöi.</p>
+        <button class="btn-primary" id="gf-save">Spiel speichere</button>
+        <button class="btn-secondary btn-danger" id="gf-delete" style="width:100%;margin-top:10px" hidden><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Spiel lösche</button>
       </section>
-      <section class="block">
-        <div class="h2-row"><h2 class="h2">Plannti Spiel</h2><span class="h2-aside">tippe zum Bearbeite</span></div>
-        <ul class="list" id="adm-games"></ul>
+      <section class="sec">
+        <div class="sec-h"><h2>Plannti Spiel</h2><span>tippe zum Bearbeite</span></div>
+        <ul class="grp list" id="adm-games"></ul>
       </section>
     </div>
 
     <div class="pane" id="pane-resultat" hidden>
-      <p class="hint" style="margin-top:14px">S'Resultat us Gottéron-Sicht iigäh. D'App bestimmt d'Gwünner, rächnet Jackpot, Bierkässeli und Twint-Beträg und schliesst ds Spiel ab.</p>
+      <p class="sec-note" style="margin-top:18px">S'Schlussresultat iistelle. D'App bestimmt d'Gwünner und rächnet Jackpot, Bierkässeli und Twint-Beträg.</p>
       <div id="adm-results"></div>
     </div>
 
     <div class="pane" id="pane-abrechnig" hidden>
       <div id="adm-billing"></div>
-      <section class="block">
-        <div class="h2-row"><h2 class="h2">Test-Date</h2></div>
-        <p class="hint">Löscht alli Spiel und Tipps. Nume vor em Saisonstart bruuche.</p>
-        <button class="btn-secondary btn-danger" id="reset-all"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Alli Spiel und Tipps lösche</button>
+      <section class="sec">
+        <div class="sec-h"><h2>Test-Date</h2></div>
+        <p class="sec-note">Löscht alli Spiel und Tipps. Nume vor em Saisonstart bruuche.</p>
+        <button class="btn-secondary btn-danger" id="reset-all" style="width:100%"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Alli Spiel und Tipps lösche</button>
       </section>
     </div>
   </section>
 
 </main>
+
+<nav class="tabbar" aria-label="Navigation">
+  <div class="tabbar-in">
+    <button class="tab is-active" data-view="home" onclick="showView('home')"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>Spiel</span></button>
+    <button class="tab" data-view="tipps" onclick="showView('tipps')"><svg class="ic" aria-hidden="true"><use href="#i-ticket"/></svg><span>Tipps</span></button>
+    <button class="tab" data-view="rangliste" onclick="showView('rangliste')"><svg class="ic" aria-hidden="true"><use href="#i-trophy"/></svg><span>Rangliste</span></button>
+    <button class="tab" data-view="kasse" onclick="showView('kasse')"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg><span>Kasse</span></button>
+    <button class="tab" data-view="profil" onclick="showView('profil')"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg><span>Profil</span></button>
+    <button class="tab" data-view="admin" id="nav-admin" onclick="showView('admin')" hidden><svg class="ic" aria-hidden="true"><use href="#i-admin"/></svg><span>CEO</span></button>
+  </div>
+</nav>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -557,11 +457,13 @@ window.showView=function(v){
   var adm=document.getElementById('nav-admin');
   if(v==='admin'&&adm&&adm.hidden)v='home';
   if(!document.getElementById('view-'+v))v='home';
-  document.querySelectorAll('.view').forEach(function(s){s.hidden=(s.id!=='view-'+v)});
-  document.querySelectorAll('.nav-i[data-view]').forEach(function(b){
+  var cur;
+  document.querySelectorAll('.view').forEach(function(s){var on=s.id==='view-'+v;s.hidden=!on;if(on)cur=s});
+  document.querySelectorAll('.tab[data-view]').forEach(function(b){
     var on=b.dataset.view===v;b.classList.toggle('is-active',on);
     if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
   });
+  document.getElementById('navbar-t').textContent=cur?cur.dataset.title:'';
   window.scrollTo(0,0);
   try{history.replaceState(null,'','#'+v)}catch(e){}
 };
@@ -569,6 +471,9 @@ window.setAdminTab=function(t){
   document.querySelectorAll('.adm-seg .seg-b').forEach(function(b){b.classList.toggle('is-active',b.dataset.tab===t)});
   document.querySelectorAll('#view-admin .pane').forEach(function(p){p.hidden=(p.id!=='pane-'+t)});
 };
+window.addEventListener('scroll',function(){
+  document.getElementById('navbar').classList.toggle('show',window.scrollY>48);
+},{passive:true});
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){})})}
 </script>
 <script type="module" src="./app.js"></script>
