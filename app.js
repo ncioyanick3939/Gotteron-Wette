@@ -56,15 +56,23 @@ function dayLabel(g) {
   if (d === 1) return 'Morn, ' + long.replace(/^[^,]+,\s*/, '');
   return long;
 }
-function cutoffTime(g) { return g.cutoffTime || '19:30'; }
-function cutoffMs(g) {
-  if (!g.date) return Infinity;
-  const [hh, mm] = cutoffTime(g).split(':').map(Number);
-  const c = new Date(g.date + 'T00:00:00');
-  c.setHours(Number.isFinite(hh) ? hh : 19, Number.isFinite(mm) ? mm : 30, 0, 0);
+function timeOnDate(date, hhmm) {
+  if (!date) return Infinity;
+  const [hh, mm] = String(hhmm).split(':').map(Number);
+  const c = new Date(date + 'T00:00:00');
+  c.setHours(Number.isFinite(hh) ? hh : 0, Number.isFinite(mm) ? mm : 0, 0, 0);
   return c.getTime();
 }
+function cutoffTime(g) { return g.cutoffTime || '19:30'; }
+function cutoffMs(g) { return timeOnDate(g.date, cutoffTime(g)); }
 const isCutoffPassed = g => Date.now() > cutoffMs(g);
+
+// Tipps vo de andere sy verdeckt bis zur Freigab-Zit (Standard 22:00),
+// nie vor em Wette-Stopp. Dr CEO gseht alli Tipps immer.
+function revealTime(g) { return g.revealTime || '22:00'; }
+function revealMs(g) { return Math.max(timeOnDate(g.date, revealTime(g)), cutoffMs(g)); }
+const isRevealed = g => g.status === 'closed' || Date.now() >= revealMs(g);
+const canSeeTips = g => state.isAdmin || isRevealed(g);
 function fmtCountdown(ms) {
   if (ms >= 86400000) { const d = Math.floor(ms / 86400000); return 'in ' + d + (d === 1 ? ' Tag' : ' Täg'); }
   const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
@@ -166,13 +174,14 @@ function startSubs() {
 }
 
 async function createGame() {
-  const oEl = $('ng-opponent'), dEl = $('ng-date'), cEl = $('ng-cutoff'), btn = $('ng-create');
-  const o = oEl.value.trim(), d = dEl.value, c = (cEl && cEl.value) || '19:30';
+  const oEl = $('ng-opponent'), dEl = $('ng-date'), cEl = $('ng-cutoff'), rEl = $('ng-reveal'), btn = $('ng-create');
+  const o = oEl.value.trim(), d = dEl.value, c = (cEl && cEl.value) || '19:30', r = (rEl && rEl.value) || '22:00';
   if (!o) { toast('Bitte e Gägner iigäh'); oEl.focus(); return; }
   if (!d) { toast('Bitte es Spieldatum wähle'); dEl.focus(); return; }
+  if (r < c) { toast('«Tipps sichtbar ab» muess nach em Wette-Stopp sy'); rEl.focus(); return; }
   btn.disabled = true;
   try {
-    const ref = await addDoc(collection(db, 'games'), { opponent: o, date: d, cutoffTime: c, status: 'open', createdAt: Date.now() });
+    const ref = await addDoc(collection(db, 'games'), { opponent: o, date: d, cutoffTime: c, revealTime: r, status: 'open', createdAt: Date.now() });
     oEl.value = '';
     state.selectedId = ref.id;
     toast('Spiel eröffnet');
@@ -356,8 +365,19 @@ function renderMatch(og) {
   // Tipps vo allne für das Spiel
   tb.hidden = false;
   $('tips-count').textContent = bets.length ? plural(bets.length, 'Tipp', 'Tipps') + ' vo ' + plural(new Set(bets.map(b => b.userId)).size, 'Spieler', 'Spieler') : '';
+  const open = isRevealed(g), see = canSeeTips(g), hint = $('tips-hint');
+  hint.hidden = open;
+  hint.innerHTML = open ? '' : (state.isAdmin
+    ? `Nume du gsehsch d'Tipps. Für alli andere sichtbar ab ${esc(revealTime(g))}.`
+    : `D'Tipps vo de andere sy verdeckt bis ${esc(revealTime(g))}. Diini eigete gsehsch immer.`)
+    + `<span data-reveal="${revealMs(g)}" hidden></span>`;
   $('tips').innerHTML = bets.length
-    ? bets.map(b => `<li><span class="tl-name"><span>${esc(b.userName || '?')}</span>${b.userId === uid ? '<span class="tag-me">Du</span>' : ''}</span><span class="tl-tip num">${esc(b.prediction)}</span></li>`).join('')
+    ? bets.map(b => {
+        const show = see || b.userId === uid;
+        return `<li><span class="tl-name"><span>${esc(b.userName || '?')}</span>${b.userId === uid ? '<span class="tag-me">Du</span>' : ''}</span>${show
+          ? `<span class="tl-tip num">${esc(b.prediction)}</span>`
+          : `<span class="tl-hidden">${icon('lock')}verdeckt</span>`}</li>`;
+      }).join('')
     : `<li class="empty-line" style="border:0">No kei Tipps. Du chasch dr Erscht sy.</li>`;
 }
 
@@ -512,7 +532,7 @@ function renderCeo(og) {
     const sum = !bets.length ? 'No kei Tipps.' : wu ? `${plural(wu, 'Gwünner', 'Gwünner')}, je ${chf(jp / wu)} us em Jackpot.` : `Kei Gwünner uswählt: dr Jackpot vo ${chf(jp)} gaht is Bierkässeli.`;
     return `<div class="ceo-game" data-id="${g.id}">
       <div class="res-match">${esc(matchName(g))}</div>
-      <div class="res-date">${esc(dateShort(g.date))}, ${isCutoffPassed(g) ? 'Tipps gschlosse' : 'Tipps no offe bis ' + esc(cutoffTime(g))}</div>
+      <div class="res-date">${esc(dateShort(g.date))}, ${isCutoffPassed(g) ? 'Tipps gschlosse' : 'Tipps no offe bis ' + esc(cutoffTime(g))}, ${isRevealed(g) ? 'für alli sichtbar' : 'für alli sichtbar ab ' + esc(revealTime(g))}</div>
       ${bets.length ? `<ul class="pick">${bets.map(b => `<li><button class="pick-row ${sel.has(b.id) ? 'on' : ''}" data-bid="${b.id}" aria-pressed="${sel.has(b.id)}">
         <span class="pick-box">${icon('check')}</span><span class="pick-name">${esc(b.userName || '?')}</span><span class="pick-tip num">${esc(b.prediction)}</span></button></li>`).join('')}</ul>` : ''}
       <p class="ceo-sum">${sum}</p>
@@ -541,5 +561,6 @@ setInterval(() => {
     const left = Number(el.dataset.cutoff) - Date.now();
     if (left <= 0) expired = true; else el.textContent = fmtCountdown(left);
   });
+  document.querySelectorAll('[data-reveal]').forEach(el => { if (Date.now() >= Number(el.dataset.reveal)) expired = true; });
   if (expired) render();
 }, 1000);
