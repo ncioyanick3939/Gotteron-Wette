@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#080B11">
 <title>Gottéron Spielwette</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Spielwette">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
@@ -147,6 +154,9 @@ main{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
 .tl-tip{display:flex;align-items:center;gap:6px;font-stretch:125%;font-weight:800;font-size:18px}
 .tl-tip .ic{width:16px;height:16px;color:var(--win);stroke-width:2.25}
 .tiplist li.won .tl-tip{color:var(--win)}
+.tl-hidden{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-3)}
+.tl-hidden .ic{width:15px;height:15px}
+.tips-hint{margin:0 0 6px;font-size:13px;color:var(--text-3);max-width:52ch}
 
 .glist{list-style:none;margin:0;padding:0}
 .grow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 0;border-bottom:1px solid var(--line)}
@@ -337,6 +347,7 @@ main{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
 
     <section class="block" id="tips-block" hidden>
       <div class="h2-row"><h2 class="h2">Tipps</h2><span class="h2-aside" id="tips-count"></span></div>
+      <p class="tips-hint" id="tips-hint" hidden></p>
       <ul class="tiplist" id="tips"></ul>
     </section>
 
@@ -387,8 +398,9 @@ main{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
       <div class="h2-row"><h2 class="h2">Neus Spiel eröffne</h2></div>
       <div class="form-grid">
         <label class="field full"><span>Gägner</span><input type="text" id="ng-opponent" maxlength="40" placeholder="z.B. ZSC Lions"></label>
-        <label class="field"><span>Spieldatum</span><input type="date" id="ng-date"></label>
+        <label class="field full"><span>Spieldatum</span><input type="date" id="ng-date"></label>
         <label class="field"><span>Wette-Stopp</span><input type="time" id="ng-cutoff" value="19:30"></label>
+        <label class="field"><span>Tipps sichtbar ab</span><input type="time" id="ng-reveal" value="22:00"></label>
       </div>
       <button class="btn-primary" id="ng-create">Spiel eröffne</button>
     </section>
@@ -440,5 +452,8 @@ window.showView=function(v){
 };
 </script>
 <script type="module" src="./app.js"></script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){})})}
+</script>
 </body>
 </html>
