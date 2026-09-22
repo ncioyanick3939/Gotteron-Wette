@@ -49,7 +49,7 @@ a{color:inherit;-webkit-tap-highlight-color:transparent}
 .nav-i.is-active{color:var(--text)}
 .nav-i.is-active .ic{color:var(--blue-hi)}
 .nav-i.is-active::before{content:'';position:absolute;top:-1px;left:26%;right:26%;height:2px;background:var(--blue)}
-main{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+main.shell{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
 .view:not([hidden]){animation:vin .18s ease-out}
 @keyframes vin{from{opacity:0}to{opacity:1}}
 
@@ -301,7 +301,7 @@ main{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
   .nav-i .ic{width:18px;height:18px}
   .nav-i:hover{color:var(--text)}
   .nav-i.is-active::before{top:auto;bottom:-1px;left:11px;right:11px}
-  main{padding-bottom:64px}
+  main.shell{padding-bottom:64px}
   .toast{bottom:32px}
 }
 @media(min-width:1024px){
@@ -403,12 +403,12 @@ main{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
         </section>
         <section class="block">
           <div class="h2-row"><h2 class="h2">Hockey-Links</h2></div>
-          <a class="linkrow" href="https://www.postfinance.ch/de/ueber-uns/engagements/sport/eishockey/topscorer.html" target="_blank" rel="noopener">
-            <div class="row-main"><div class="lk-t">PostFinance Top Scorer</div><div class="lk-s">Topscorer öffne</div></div>
+          <a class="linkrow" id="link-topscorers" href="https://topscorers.ch/de" target="_blank" rel="noopener">
+            <div class="row-main"><div class="lk-t">Topscorers</div><div class="lk-s">Hockey Manager App vo dr National League öffne</div></div>
             <svg class="ic" aria-hidden="true"><use href="#i-ext"/></svg>
           </a>
-          <a class="linkrow" href="https://www.nationalleague.ch/" target="_blank" rel="noopener">
-            <div class="row-main"><div class="lk-t">National League</div><div class="lk-s">Offizielli National League öffne</div></div>
+          <a class="linkrow" id="link-nl" href="https://www.nationalleague.ch/" target="_blank" rel="noopener">
+            <div class="row-main"><div class="lk-t">National League</div><div class="lk-s">Offizielli App vo dr National League öffne</div></div>
             <svg class="ic" aria-hidden="true"><use href="#i-ext"/></svg>
           </a>
         </section>
@@ -464,7 +464,7 @@ main{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
 
   <!-- Profil -->
   <section class="view" id="view-profil" hidden>
-    <div class="page-head"><h1 class="h1">Profil</h1></div>
+    <div class="page-head"><h1 class="h1">Profil</h1><button class="btn-secondary sm" id="logout-top"><svg class="ic" aria-hidden="true"><use href="#i-logout"/></svg>Usloge</button></div>
     <div id="profil"></div>
     <section class="block">
       <div class="h2-row"><h2 class="h2">Uszeichnige</h2></div>
