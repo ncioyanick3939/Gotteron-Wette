@@ -54,6 +54,7 @@ function chf(n) {
   const int = i.replace(/\B(?=(\d{3})+(?!\d))/g, '’');
   return (r < 0 ? '− ' : '') + 'CHF ' + int + (d === '00' ? '.–' : '.' + d);
 }
+const amt = n => chf(n).replace('CHF ', '');
 function parseScore(p) {
   const m = String(p || '').match(/^\s*(\d{1,2})\s*[:\-]\s*(\d{1,2})\s*$/);
   return m ? [Number(m[1]), Number(m[2])] : null;
@@ -139,10 +140,17 @@ function setStoreLinks() {
   const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const android = /Android/.test(ua);
   const links = {
-    'link-topscorers': { ios: 'https://apps.apple.com/ch/app/topscorers/id1545443064', android: 'https://play.google.com/store/apps/details?id=ch.topscorers.topscorers', web: 'https://topscorers.ch/de' },
-    'link-nl': { ios: 'https://apps.apple.com/ch/app/national-league-official-app/id1628840021', android: 'https://play.google.com/store/apps/details?id=ch.opten.nationalleague', web: 'https://www.nationalleague.ch/' }
+    'link-topscorers': { ios: 'https://apps.apple.com/ch/app/topscorers/id1545443064', android: 'https://play.google.com/store/apps/details?id=ch.topscorers.topscorers', web: 'https://topscorers.ch/de', host: 'topscorers.ch/', pkg: 'ch.topscorers.topscorers' },
+    'link-nl': { ios: 'https://apps.apple.com/ch/app/national-league-official-app/id1628840021', android: 'https://play.google.com/store/apps/details?id=ch.opten.nationalleague', web: 'https://www.nationalleague.ch/', host: 'www.nationalleague.ch/', pkg: 'ch.opten.nationalleague' }
   };
-  Object.entries(links).forEach(([id, l]) => { const a = $(id); if (a) a.href = ios ? l.ios : android ? l.android : l.web; });
+  Object.entries(links).forEach(([id, l]) => {
+    const a = $(id); if (!a) return;
+    if (android) {
+      // Chrome-Intent: öffnet d'App, wenn si installiert isch, süsch dr Play Store
+      a.href = `intent://${l.host}#Intent;scheme=https;package=${l.pkg};S.browser_fallback_url=${encodeURIComponent(l.android)};end`;
+      a.removeAttribute('target');
+    } else a.href = ios ? l.ios : l.web;
+  });
 }
 
 async function logout() {
@@ -606,10 +614,12 @@ function renderLast(done) {
 function renderMyTips() {
   const uid = state.user.uid, mine = state.bets.filter(b => b.userId === uid), s = userStats(uid);
   $('mt-count').textContent = mine.length ? plural(mine.length, 'Tipp', 'Tipps') : '';
-  $('mt-summary').innerHTML = `<div class="stats three">
+  const openCount = mine.filter(b => { const g = state.games.find(x => x.id === b.gameId); return g && g.status !== 'closed'; }).length;
+  $('mt-summary').innerHTML = `<div class="stats">
     <div><div class="stat-v num">${s.bets}</div><div class="stat-l">Tipps</div></div>
-    <div><div class="stat-v money num">${chf(s.staked).replace('CHF ', '')}</div><div class="stat-l">Iisatz CHF</div></div>
-    <div><div class="stat-v money num">${chf(s.earned).replace('CHF ', '')}</div><div class="stat-l">Gwunne CHF</div></div>
+    <div><div class="stat-v num">${openCount}</div><div class="stat-l">Offe</div></div>
+    <div><div class="stat-v money num">${amt(s.staked)}</div><div class="stat-l">Iisatz</div></div>
+    <div><div class="stat-v money num">${amt(s.earned)}</div><div class="stat-l">Gwinn</div></div>
   </div>`;
   const group = (g, rows) => {
     const t = times(g);
@@ -635,11 +645,11 @@ function renderRanking() {
   const lead = rows[0];
   const gap = lead && idx > 0 ? lead.wins - me.wins : 0;
   $('my-rank').innerHTML = `<div class="stats">
-      <div><div class="stat-v num">${idx >= 0 ? '#' + (idx + 1) : '–'}</div><div class="stat-l">Dini Position</div></div>
-      <div><div class="stat-v num">${idx >= 0 ? gap : '–'}</div><div class="stat-l">${idx === 0 ? 'Du füehrsch' : 'Siege Rückstand'}</div></div>
+      <div><div class="stat-v num">${idx >= 0 ? '#' + (idx + 1) : '–'}</div><div class="stat-l">Position</div></div>
+      <div><div class="stat-v num">${idx >= 0 ? gap : '–'}</div><div class="stat-l">Rückstand</div></div>
       <div><div class="stat-v num">${me.bets}</div><div class="stat-l">Tipps</div></div>
       <div><div class="stat-v num">${me.wins}</div><div class="stat-l">Siege</div></div>
-    </div><p class="stat-note">Sortiert nach Siege, denn Gwinn, denn Aazahl Tipps.</p>`;
+    </div><p class="stat-note">${idx === 0 ? 'Du füehrsch d\'Rangliste.' : 'Rückstand: Siege hinter Platz 1.'} Sortiert nach Siege, denn Gwinn, denn Aazahl Tipps.</p>`;
   if (!rows.length) { wrap.innerHTML = '<p class="empty-line" style="margin-top:20px">D\'Rangliste erschiint nach em erschte Tipp.</p>'; return; }
   const max = Math.max(lead.wins, 1);
   wrap.innerHTML = `<ol class="lb">${rows.map((r, i) => {
@@ -709,8 +719,8 @@ function renderProfil() {
     <div class="stats">
       <div><div class="stat-v num">${s.bets}</div><div class="stat-l">Tipps</div></div>
       <div><div class="stat-v num">${s.wins}</div><div class="stat-l">Siege</div></div>
-      <div><div class="stat-v money num">${chf(s.earned).replace('CHF ', '')}</div><div class="stat-l">Gwunne CHF</div></div>
-      <div><div class="stat-v money num">${chf(s.bier).replace('CHF ', '')}</div><div class="stat-l">Bierkässeli CHF</div></div>
+      <div><div class="stat-v money num">${amt(s.earned)}</div><div class="stat-l">Gwinn</div></div>
+      <div><div class="stat-v money num">${amt(s.bier)}</div><div class="stat-l">Bierkässeli</div></div>
     </div>`;
   $('badges').innerHTML = BADGES.map(b => {
     const ok = b.done(s);
@@ -733,14 +743,14 @@ function renderAdmin(up, done) {
       <div class="row-s" style="margin-bottom:12px">${esc(dateLong(t.kick))}, ${hm(t.kick)}, Tipp-Stopp ${hm(t.stop)}, sichtbar ${hm(t.reveal)}</div>
       <div class="stats">
         <div><div class="stat-v num">${n}</div><div class="stat-l">Tipps</div></div>
-        <div><div class="stat-v money num">${chf(n * BET_COST).replace('CHF ', '')}</div><div class="stat-l">Iinahme CHF</div></div>
-        <div><div class="stat-v money num">${chf(n * HALF).replace('CHF ', '')}</div><div class="stat-l">Jackpot CHF</div></div>
-        <div><div class="stat-v money num">${chf(n * HALF).replace('CHF ', '')}</div><div class="stat-l">Bierkässeli CHF</div></div>
+        <div><div class="stat-v money num">${amt(n * BET_COST)}</div><div class="stat-l">Iinahme</div></div>
+        <div><div class="stat-v money num">${amt(n * HALF)}</div><div class="stat-l">Jackpot</div></div>
+        <div><div class="stat-v money num">${amt(n * HALF)}</div><div class="stat-l">Bierkässeli</div></div>
       </div></section>`;
   } else dash += `<section class="block flush"><p class="empty-line">Kei plannts Spiel.</p></section>`;
   dash += pendingGames.map(x => `<div class="todo"><span>Resultat erfasse: <b>${esc(matchName(x))}</b></span><button class="btn-secondary sm" onclick="setAdminTab('resultat')">Erfasse</button></div>`).join('');
   dash += `<section class="block" style="margin-top:12px"><div class="h2-row"><h2 class="h2">Saison</h2></div><div class="stats three">
-      <div><div class="stat-v money num">${chf(konto).replace('CHF ', '')}</div><div class="stat-l">Bierkässeli CHF</div></div>
+      <div><div class="stat-v money num">${amt(konto)}</div><div class="stat-l">Bierkässeli</div></div>
       <div><div class="stat-v num">${done.length}</div><div class="stat-l">Abgrechnet</div></div>
       <div><div class="stat-v num">${new Set(state.bets.map(b => b.userId)).size}</div><div class="stat-l">Spieler</div></div>
     </div>
