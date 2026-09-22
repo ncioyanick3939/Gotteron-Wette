@@ -2,345 +2,443 @@
 <html lang="de-CH">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080B11">
 <title>Gottéron Spielwette</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0a0d13;--surface:#12161f;--card:#181d29;--card2:#1e2432;
-  --border:#252c3b;--text:#eef0f4;--muted:#6e7689;--accent:#1e5eff;
-  --accent2:#4a85ff;--green:#22c55e;--gold:#f5b731;--purple:#a78bfa;--blue:#3b82f6;
-  --input-bg:#0f131c;
+  --bg:#080B11;
+  --band:#0D121B;
+  --line:#1A2130;
+  --line-2:#283144;
+  --text:#EEF1F6;
+  --text-2:#A3ACBB;
+  --text-3:#697386;
+  --blue:#2F6BFF;
+  --blue-hi:#7AA3FF;
+  --blue-dim:rgba(47,107,255,.16);
+  --gold:#E9B949;
+  --win:#3FCB82;
+  --stop:#FF7A66;
+  --f:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 }
-html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow-x:hidden}
-.display{font-family:'Bebas Neue','Outfit',sans-serif;letter-spacing:1px}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+input{font:inherit}
+a{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.num{font-variant-numeric:tabular-nums}
+.wide{font-stretch:125%;font-weight:800}
+.money{color:var(--gold)}
+.shell{max-width:640px;margin:0 auto;padding:0 20px}
 
-/* ANIMATED BG */
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(30,94,255,.04),transparent);pointer-events:none;z-index:0}
+/* ---------- Top bar + navigation ---------- */
+.topbar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.topbar-in{display:flex;align-items:center;gap:16px;height:56px}
+.brand{font-stretch:125%;font-weight:800;font-size:14px;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;color:var(--text);text-decoration:none}
+.who{margin-left:auto;display:flex;align-items:center;gap:8px;min-width:0;font-size:13px;color:var(--text-2)}
+.who-name{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+@media(max-width:479px){.who-role{display:none}}
+.who-role{font-size:11px;font-weight:700;color:var(--text-2);border:1px solid var(--line-2);border-radius:4px;padding:0 5px;line-height:17px}
+.icon-btn{width:36px;height:36px;display:grid;place-items:center;border-radius:6px;color:var(--text-2)}
+.icon-btn:hover{color:var(--text);background:var(--line)}
 
-/* CONFETTI */
-.confetti-piece{position:fixed;width:10px;height:10px;top:-10px;z-index:9999;pointer-events:none;animation:confetti-fall linear forwards}
-@keyframes confetti-fall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.nav-i{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0 8px;font-size:11px;font-weight:600;color:var(--text-3);text-decoration:none;position:relative}
+.nav-i .ic{width:22px;height:22px}
+.nav-i.is-active{color:var(--text)}
+.nav-i.is-active .ic{color:var(--blue-hi)}
+.nav-i.is-active::before{content:'';position:absolute;top:-1px;left:28%;right:28%;height:2px;background:var(--blue)}
 
-/* HERO */
-.hero{position:relative;height:280px;overflow:hidden;border-bottom:3px solid var(--accent);background:#000}
-@media(max-width:600px){.hero{height:220px}}
-.hero-slides{display:flex;width:300%;height:100%;animation:slideshow 15s ease-in-out infinite}
-.hero-slide{flex:0 0 33.333%;height:100%;background-size:contain;background-position:center;background-repeat:no-repeat;background-color:#000}
-@keyframes slideshow{0%,28%{transform:translateX(0)}33%,61%{transform:translateX(-33.333%)}66%,94%{transform:translateX(-66.666%)}100%{transform:translateX(0)}}
-.hero-overlay{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,transparent 0%,rgba(10,13,19,.85) 60%,rgba(10,13,19,.98) 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:40px 20px 16px;text-align:center;pointer-events:none}
-.hero-overlay > *{pointer-events:auto}
-.hero-overlay .logo{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:3px;line-height:1}
-.hero-overlay .logo .red{color:var(--accent2)}
-.hero-overlay .tagline{color:#a8b0c0;font-size:.85rem;margin-top:6px;font-weight:500;letter-spacing:.5px}
-.hero-chant{position:absolute;top:12px;right:12px;background:rgba(30,94,255,.9);border:none;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:.72rem;cursor:pointer;font-family:inherit;backdrop-filter:blur(4px);transition:transform .15s;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-.hero-chant:active{transform:scale(.92)}
-.chant-bubble{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:var(--accent);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:2px;padding:20px 40px;border-radius:8px;z-index:200;pointer-events:none;transition:transform .3s cubic-bezier(.34,1.56,.64,1);text-align:center;box-shadow:0 20px 60px rgba(30,94,255,.6)}
-.chant-bubble.show{transform:translate(-50%,-50%) scale(1)}
+main{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
 
-/* NAV */
-.nav{display:flex;flex-direction:column;gap:8px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);position:relative;z-index:1}
-.nav-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.nav .my-stats{display:flex;gap:12px;font-size:.75rem;color:var(--muted);flex-wrap:wrap;align-items:center;flex:1;min-width:0}
-.nav .my-stats span{white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
-.nav .my-stats b{color:var(--text);font-weight:800}
-.nav .user-pill{display:flex;align-items:center;gap:6px;font-size:.78rem;flex-shrink:0}
-.nav .user-pill .uname{color:var(--text);font-weight:700;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nav .user-pill button{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;font-size:.72rem;cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap}
-.nav .user-pill button:hover{border-color:var(--accent);color:var(--accent)}
-@media(max-width:600px){
-  .nav .my-stats{font-size:.72rem;gap:8px;order:2;width:100%}
-  .nav-row.top{width:100%}
-  .nav .user-pill .uname{max-width:80px;font-size:.75rem}
+@media(min-width:760px){
+  .topbar .shell{max-width:1040px}
+  .nav{position:static;border:0;background:none;padding:0;margin-left:20px;height:56px}
+  .nav-i{flex:none;flex-direction:row;gap:8px;padding:0 12px;font-size:14px;height:56px}
+  .nav-i .ic{width:18px;height:18px}
+  .nav-i:hover{color:var(--text)}
+  .nav-i.is-active::before{top:auto;bottom:-1px;left:12px;right:12px}
+  main{padding-bottom:64px}
 }
-.game .cutoff{font-size:.72rem;color:var(--gold);margin-top:4px;font-weight:600}
-.game .cutoff.locked{color:var(--accent2)}
-.game.locked{opacity:.7}
-.game.locked .game-form button{background:var(--border);cursor:not-allowed}
-.game.collapsed .game-details{display:none}
-.game-top.clickable{cursor:pointer;user-select:none;transition:background .15s}
-.game-top.clickable:hover{background:rgba(255,255,255,.03)}
-.game.collapsed .status-closed{transform:rotate(0deg)}
-.status-closed{transition:transform .2s;display:inline-block}
-.nav-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.nav-btn{background:var(--accent);border:none;color:#fff;padding:6px 12px;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap}
-.nav-btn:hover{background:var(--accent2);transform:translateY(-1px)}
-.nav-btn.secondary{background:var(--surface);border:1px solid var(--border);color:var(--muted)}
 
-/* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:150;display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto}
-.modal-overlay.show{display:flex}
-.modal{width:100%;max-width:500px;background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;animation:modalIn .3s ease-out}
-@keyframes modalIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
-.modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface)}
-.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px}
-.modal-close{background:none;border:none;color:var(--muted);font-size:1.6rem;cursor:pointer;line-height:1;padding:4px}
-.modal-close:hover{color:var(--text)}
+/* ---------- Result notices ---------- */
+#notifs:not(:empty){padding-top:16px}
+.note{display:flex;gap:8px;align-items:flex-start;padding:12px 0 12px 14px;margin-bottom:10px;background:var(--band);border-left:3px solid var(--line-2)}
+.note-win{border-left-color:var(--win)}
+.note-pay{border-left-color:var(--gold)}
+.note-main{flex:1;min-width:0}
+.note-t{font-weight:700}
+.note p{margin:2px 0 0;color:var(--text-2)}
+.note p b{color:var(--text);font-weight:700}
+.note p b.money{color:var(--gold)}
+.note-s{font-size:13px;color:var(--text-3)!important}
+.note-x{width:40px;height:40px;display:grid;place-items:center;color:var(--text-3);margin-top:-8px}
 
-/* OVERVIEW */
-.overview{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:16px;background:var(--border);border-radius:8px;overflow:hidden;position:relative;z-index:1}
-.stat-card{background:var(--surface);padding:20px 14px;text-align:center;position:relative;overflow:hidden}
-@media(max-width:600px){.stat-card{padding:16px 10px}.stat-card .figure{font-size:2.4rem}}
-.stat-card::after{content:'';position:absolute;top:-50%;right:-20%;width:120px;height:120px;border-radius:50%;opacity:.06}
-.stat-card.jackpot::after{background:var(--accent)}
-.stat-card.bier::after{background:var(--gold)}
-.stat-card .figure{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:1px;position:relative}
-.stat-card .figure .unit{font-size:1.2rem;margin-left:4px;opacity:.6}
-.stat-card.jackpot .figure{color:var(--accent2)}
-.stat-card.bier .figure{color:var(--gold)}
-.stat-card .caption{margin-top:6px;font-size:.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px}
-.stat-card .sub{font-size:.72rem;color:var(--muted);margin-top:3px}
+/* ---------- Match (scoreboard) ---------- */
+.match{position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 22px;background:var(--band);border-bottom:1px solid var(--line)}
+.match::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--blue)}
+.rink{position:absolute;right:-96px;top:-84px;width:300px;height:300px;color:#141B28;pointer-events:none}
+.rink *{fill:none;stroke:currentColor;stroke-width:2}
+.match > :not(.rink){position:relative}
+@media(min-width:680px){.match{margin:24px 0 0;border:1px solid var(--line)}}
 
-/* SECTIONS */
-.section{margin:22px 16px 10px;display:flex;align-items:center;justify-content:space-between}
-.section-title{font-size:.75rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
-.section-count{font-size:.72rem;color:var(--muted);background:var(--card);padding:2px 8px;border-radius:10px;border:1px solid var(--border)}
+.m-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.m-date{font-size:13px;font-weight:500;color:var(--text-2)}
+.m-stop{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;margin-top:4px;font-size:13px;color:var(--text-2)}
+.m-stop .ic{width:16px;height:16px}
+.m-count{color:var(--blue-hi);font-weight:600}
+.m-stop.is-locked{color:var(--stop)}
+.m-pot{text-align:right;flex:none}
+.m-pot-l{font-size:12px;color:var(--text-3)}
+.m-pot-v{font-size:24px;line-height:1.15}
 
-/* NOTIFICATIONS */
-.notifs{margin:0 16px;position:relative;z-index:1}
-.notif{border-radius:8px;padding:16px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;position:relative;animation:slideIn .4s ease-out}
-@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-.notif.pay{background:linear-gradient(135deg,#1a1028,#221838);border:1px solid #7c3aed}
-.notif.win{background:linear-gradient(135deg,#0c2214,#0f2e1a);border:1px solid #22c55e;box-shadow:0 0 30px rgba(34,197,94,.15)}
-.notif.neutral{background:var(--surface);border:1px solid var(--border)}
-.notif-icon{font-size:1.8rem;flex-shrink:0;line-height:1}
-.notif-body{flex:1;font-size:.88rem;line-height:1.55}
-.notif-body .title{font-weight:800;margin-bottom:4px;font-size:.95rem}
-.notif-body .detail{color:var(--muted)}
-.notif-body .twint-amount{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px}
-.notif.pay .twint-amount{color:var(--purple)}
-.notif.win .twint-amount{color:var(--green)}
-.notif-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1}
+.sb{margin-top:18px;border-top:1px solid var(--line-2)}
+.sb-row{display:flex;align-items:center;gap:12px;min-height:74px;padding:8px 0 8px 16px;border-bottom:1px solid var(--line-2);position:relative}
+.sb-row::before{content:'';position:absolute;left:0;top:16px;bottom:16px;width:3px;background:var(--line-2)}
+.sb-row.home::before{background:var(--blue)}
+.team{flex:1;min-width:0;font-stretch:112%;font-weight:800;font-size:clamp(20px,6.4vw,30px);line-height:1.05;text-transform:uppercase;overflow-wrap:break-word;hyphens:auto}
+.stepper{display:flex;align-items:center;flex:none}
+.st-btn{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--line-2);border-radius:6px;color:var(--text-2)}
+.st-btn:hover{color:var(--text);border-color:var(--text-3)}
+.st-btn:active{background:var(--line)}
+.st-val{width:46px;text-align:center;font-stretch:125%;font-weight:800;font-size:34px;line-height:1}
+.st-val.is-empty{color:var(--text-3);font-size:22px;font-weight:500}
+.sb-dash{width:122px;text-align:center;font-stretch:125%;font-weight:800;font-size:34px;color:var(--text-3)}
 
-/* LEADERBOARD */
-.leaderboard{background:var(--card);overflow:hidden;position:relative;z-index:1}
-.lb-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);position:relative;transition:background .15s}
-.lb-row:last-child{border-bottom:none}
-.lb-row.me{background:rgba(30,94,255,.06)}
-.lb-row.me::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
-.lb-rank{width:26px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--muted)}
-.lb-rank.r1{color:var(--gold)}
-.lb-rank.r2{color:#c0c8d8}
-.lb-rank.r3{color:#d4915d}
-.lb-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-.lb-info{flex:1;min-width:0}
-.lb-name{font-weight:700;font-size:.92rem;display:flex;align-items:center;gap:6px}
-.lb-badges{font-size:.85rem;letter-spacing:1px}
-.lb-meta{font-size:.72rem;color:var(--muted);margin-top:2px;display:flex;gap:10px}
-.lb-meta .wins{color:var(--green)}
-.lb-bar{height:4px;border-radius:2px;background:var(--border);margin-top:5px;overflow:hidden}
-.lb-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .6s ease-out}
-.lb-count{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--text);min-width:40px;text-align:right}
-.lb-count small{font-size:.65rem;font-family:'Outfit';color:var(--muted);display:block;line-height:1;margin-top:-2px}
-.lb-trophy-progress{font-size:.7rem;color:var(--muted);text-align:right}
+.quick{display:flex;gap:8px;margin:16px -20px 0;padding:0 20px;overflow-x:auto;scrollbar-width:none}
+.quick::-webkit-scrollbar{display:none}
+.qt{flex:none;height:34px;padding:0 12px;border:1px solid var(--line-2);border-radius:6px;color:var(--text-2);font-weight:600;font-size:14px}
+.qt:hover{color:var(--text)}
+.qt.is-on{border-color:var(--blue);color:var(--text);background:var(--blue-dim)}
 
-/* GAME CARD */
-.game{background:var(--card);border:1px solid var(--border);border-radius:8px;margin:0 16px 12px;overflow:hidden;transition:border-color .15s,transform .15s;position:relative;z-index:1}
-.game.open{border-color:#2a3549}
-.game.open:hover{border-color:var(--accent);transform:translateY(-1px)}
-.game-top{padding:16px;display:flex;justify-content:space-between;align-items:center}
-.game-info .matchup{font-weight:800;font-size:1.1rem;display:flex;align-items:center;gap:6px}
-.game-info .matchup .vs{color:var(--accent);font-size:.75rem;font-weight:700;background:rgba(30,94,255,.15);padding:2px 6px;border-radius:4px}
-.game-info .date{color:var(--muted);font-size:.78rem;margin-top:3px}
-.game-info .countdown{color:var(--gold);font-size:.75rem;font-weight:600;margin-top:2px}
-.game-pot{text-align:right}
-.game-pot .amount{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent2);line-height:1;letter-spacing:1px}
-.game-pot .amount .unit{font-size:.9rem}
-.game-pot .label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-.game-pot .bettors{font-size:.7rem;color:var(--muted);margin-top:2px}
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:48px;margin-top:14px;padding:0 16px;background:var(--blue);color:#fff;border-radius:6px;font-weight:600;font-size:15px}
+.btn-primary.split{justify-content:space-between}
+.btn-primary:hover:not(:disabled){background:#2560f0}
+.btn-primary:disabled{background:var(--line);color:var(--text-3);cursor:not-allowed}
+.m-hint{margin:10px 0 0;font-size:13px;color:var(--text-3)}
+.m-mine{margin:12px 0 0;font-size:13px;color:var(--text-2)}
+.m-mine b{font-stretch:125%;font-weight:800;color:var(--text);margin-left:8px}
+.m-locked{margin:14px 0 0;color:var(--text-2);font-size:14px}
+.match-empty .team{color:var(--text-2);margin-top:8px}
+.match-empty p{color:var(--text-2);margin:8px 0 0;max-width:36ch}
 
-.game-bets{border-top:1px solid var(--border);padding:0 16px}
-.bet-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:.87rem}
-.bet-row:last-child{border-bottom:none}
-.bet-row .left{display:flex;align-items:center;gap:10px}
-.bet-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:#fff;flex-shrink:0}
-.bet-user{font-weight:600}
-.bet-user .me-tag{font-size:.65rem;background:var(--accent);color:#fff;padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:middle}
-.bet-right{text-align:right}
-.bet-pred{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1px;line-height:1}
-.bet-amount{color:var(--muted);font-size:.72rem}
-.bet-row.winner{background:linear-gradient(90deg,rgba(245,183,49,.12),transparent);margin:0 -16px;padding:10px 16px}
-.bet-row.winner .bet-pred{color:var(--gold)}
+/* ---------- Sections ---------- */
+.block{padding:22px 0 18px;border-top:1px solid var(--line)}
+#notifs + .block{border-top:0}
+.h2-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px}
+.h2{margin:0;font-stretch:112%;font-weight:700;font-size:17px}
+.h2-aside{font-size:13px;color:var(--text-3);text-align:right}
+.empty-line{color:var(--text-3);font-size:14px;margin:4px 0 12px}
 
-.quick-picks{border-top:1px solid var(--border);padding:12px 16px 4px;display:flex;gap:6px;flex-wrap:wrap}
-.quick-picks .label{width:100%;font-size:.7rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
-.qp{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Bebas Neue';letter-spacing:1px;transition:all .12s}
-.qp:hover{background:var(--accent);border-color:var(--accent)}
-.qp:active{transform:scale(.95)}
+.tiplist{list-style:none;margin:0;padding:0}
+.tiplist li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.tiplist li:last-child{border-bottom:0}
+.tl-name{display:flex;align-items:center;gap:8px;min-width:0}
+.tl-name > span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag-me{font-size:11px;font-weight:700;color:var(--blue-hi);border:1px solid rgba(122,163,255,.45);border-radius:4px;padding:0 5px;line-height:17px;flex:none}
+.tl-tip{display:flex;align-items:center;gap:6px;font-stretch:125%;font-weight:800;font-size:18px}
+.tl-tip .ic{width:16px;height:16px;color:var(--win);stroke-width:2.25}
+.tiplist li.won .tl-tip{color:var(--win)}
 
-.game-form{padding:10px 16px 14px;display:flex;gap:8px}
-.game-form input{flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:.95rem;font-family:inherit}
-.game-form input::placeholder{color:var(--muted)}
-.game-form input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(30,94,255,.15)}
-.game-form button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;padding:12px 20px;font-weight:800;font-size:.88rem;cursor:pointer;font-family:inherit;white-space:nowrap;transition:transform .12s,box-shadow .12s;box-shadow:0 4px 15px rgba(30,94,255,.3)}
-.game-form button:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(30,94,255,.4)}
-.game-form button:active{transform:scale(.97)}
+.glist{list-style:none;margin:0;padding:0}
+.grow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 0;border-bottom:1px solid var(--line)}
+.glist li:last-child .grow{border-bottom:0}
+.grow-main{flex:1;min-width:0}
+.grow-t{font-stretch:112%;font-weight:700;font-size:15px;text-transform:uppercase}
+.grow-s{font-size:13px;color:var(--text-3)}
+.grow-pot{font-stretch:125%;font-weight:800;text-align:right}
+.grow > .ic{color:var(--text-3)}
 
-.game-empty{color:var(--muted);font-size:.85rem;padding:14px 16px;border-top:1px solid var(--border);text-align:center}
-.status-closed{background:var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.closed-summary{padding:12px 16px;border-top:1px dashed var(--border);font-size:.8rem;color:var(--muted);line-height:1.6}
-.closed-summary b{color:var(--text);font-weight:700}
+.kasse{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);margin-top:4px}
+.k-cell{padding:14px 0}
+.k-cell + .k-cell{padding-left:16px;border-left:1px solid var(--line-2)}
+.k-l{font-size:13px;color:var(--text-2)}
+.k-v{font-size:28px;line-height:1.15;margin-top:2px}
+.k-s{font-size:13px;color:var(--text-3)}
+.split{margin-top:18px}
+.split-bar{display:flex;gap:3px;height:6px}
+.split-bar i{flex:1;background:var(--gold)}
+.split-bar i + i{opacity:.4}
+.split-legend{display:flex;justify-content:space-between;gap:16px;margin-top:8px;font-size:12px;color:var(--text-3)}
+.split-legend span + span{text-align:right}
+.k-note{margin:16px 0 8px;font-size:14px;color:var(--text-2);max-width:52ch}
+.k-note b{font-weight:700}
 
-/* ADMIN */
-.admin-section{margin:0 16px 16px;position:relative;z-index:1}
-.admin-card{background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:8px}
-.admin-card .admin-badge{font-size:.68rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-.admin-row{display:flex;gap:8px}
-.admin-card input{flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:.9rem;font-family:inherit}
-.admin-card input::placeholder{color:var(--muted)}
-.admin-card button{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px 16px;font-weight:800;font-size:.85rem;cursor:pointer;font-family:inherit}
+.res{border-bottom:1px solid var(--line)}
+.res:last-child{border-bottom:0}
+.res-head{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 0}
+.res-main{flex:1;min-width:0}
+.res-match{font-stretch:112%;font-weight:700;font-size:15px;text-transform:uppercase}
+.res-date{font-size:13px;color:var(--text-3)}
+.res-status{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--text-2);white-space:nowrap}
+.res-status.won{color:var(--win);font-weight:600}
+.res-status .ic{width:16px;height:16px;stroke-width:2.25}
+.res-chev{color:var(--text-3);transition:transform .2s}
+.res.is-open .res-chev{transform:rotate(180deg)}
+.res-body{display:none;padding:0 0 16px}
+.res.is-open .res-body{display:block}
+.res-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:10px 0 0;padding-top:12px;border-top:1px solid var(--line)}
+.res-sum dt{font-size:12px;color:var(--text-3)}
+.res-sum dd{margin:0;font-weight:600;font-size:14px}
 
-.close-picker{border-top:1px solid var(--border);padding:14px 16px;background:rgba(245,183,49,.03)}
-.close-picker .hint{color:var(--gold);font-size:.72rem;margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
-.close-picker label{display:flex;align-items:center;gap:10px;font-size:.87rem;padding:6px 0;cursor:pointer}
-.close-picker label input{accent-color:var(--gold);width:16px;height:16px}
-.close-actions{margin-top:12px}
-.close-actions button{background:var(--gold);color:#1a1200;border:none;border-radius:10px;padding:10px 16px;font-weight:800;font-size:.85rem;cursor:pointer;font-family:inherit;width:100%}
+/* ---------- Page heads ---------- */
+.page-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:26px 0 14px}
+.h1{margin:0;font-stretch:125%;font-weight:800;font-size:26px;line-height:1.1;text-transform:uppercase}
+.page-sub{font-size:13px;color:var(--text-3)}
 
-.empty{color:var(--muted);font-size:.88rem;text-align:center;padding:32px 16px}
-.empty .big{font-size:2.5rem;margin-bottom:8px}
+/* ---------- Leaderboard ---------- */
+.mine{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+.mine > div{padding:12px 0 12px 12px;border-left:1px solid var(--line)}
+.mine > div:first-child{padding-left:0;border-left:0}
+.mine-v{font-stretch:125%;font-weight:800;font-size:22px;line-height:1.2}
+.mine-l{font-size:12px;color:var(--text-3)}
+.mine-note{font-size:13px;color:var(--text-3);margin:10px 0 0}
 
-/* FOOTER */
-.footer{text-align:center;padding:30px 16px 40px;color:var(--muted);font-size:.75rem;position:relative;z-index:1}
-.footer .chant{font-family:'Bebas Neue';font-size:1.3rem;color:var(--accent2);letter-spacing:2px;margin-bottom:4px}
+.lb{list-style:none;margin:20px 0 0;padding:0}
+.lb-row{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:start;padding:14px 0;border-bottom:1px solid var(--line)}
+.lb-row.me{margin:0 -20px;padding-left:20px;padding-right:20px;background:var(--band)}
+.lb-rank{font-stretch:125%;font-weight:800;font-size:22px;line-height:1.1;color:var(--text-3)}
+.lb-row:nth-child(2) .lb-rank,.lb-row:nth-child(3) .lb-rank{color:var(--text)}
+.lb-row.lead .lb-rank{font-size:40px;line-height:1;color:var(--blue-hi)}
+.lb-row.lead .lb-name{font-size:19px}
+.lb-name{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-weight:700;font-size:16px;line-height:1.3}
+.lb-meta{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:3px;font-size:13px;color:var(--text-2)}
+.lb-gap{color:var(--text-3)}
+.lb-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{font-size:11px;font-weight:600;color:var(--text-2);border:1px solid var(--line-2);border-radius:4px;padding:1px 6px}
+.lb-track{height:2px;background:var(--line);margin-top:10px}
+.lb-track i{display:block;height:100%;background:var(--blue)}
+.lb-score{text-align:right}
+.lb-score .num{font-stretch:125%;font-weight:800;font-size:24px;line-height:1.1}
+.lb-score-l{font-size:12px;color:var(--text-3)}
 
-/* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--text);color:var(--bg);padding:12px 22px;border-radius:10px;font-size:.88rem;font-weight:700;opacity:0;transition:all .25s;pointer-events:none;z-index:60;white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.4)}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ---------- CEO ---------- */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px;margin-top:6px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500;color:var(--text-2)}
+.field.full{grid-column:1/-1}
+.field input{width:100%;height:46px;padding:0 12px;background:var(--bg);border:1px solid var(--line-2);border-radius:6px;color:var(--text);font-size:16px;-webkit-appearance:none;appearance:none;color-scheme:dark}
+.field input:focus{outline:none;border-color:var(--blue)}
+.field-hint{font-size:12px;color:var(--text-3);font-weight:400}
+.ceo-game{padding:14px 0 16px;border-bottom:1px solid var(--line)}
+.ceo-game:last-child{border-bottom:0}
+.pick{list-style:none;margin:8px 0 0;padding:0}
+.pick-row{display:flex;align-items:center;gap:12px;width:100%;padding:9px 0;text-align:left}
+.pick-box{width:22px;height:22px;display:grid;place-items:center;border:1px solid var(--line-2);border-radius:4px;color:transparent;flex:none}
+.pick-box .ic{width:15px;height:15px;stroke-width:2.5}
+.pick-row.on .pick-box{background:var(--blue);border-color:var(--blue);color:#fff}
+.pick-name{flex:1;min-width:0}
+.pick-tip{font-stretch:125%;font-weight:800;font-size:17px}
+.ceo-sum{margin:10px 0 0;font-size:13px;color:var(--text-2)}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;margin-top:14px;border:1px solid var(--line-2);border-radius:6px;font-weight:600;font-size:14px;color:var(--text)}
+.btn-secondary:hover{border-color:var(--text-3)}
+.btn-danger{color:var(--stop);border-color:rgba(255,122,102,.35)}
+.btn-danger .ic{width:18px;height:18px}
+.ceo-text{font-size:14px;color:var(--text-2);margin:4px 0 0;max-width:52ch}
 
-/* AUTH */
-.auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
-.auth-overlay::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(30,94,255,.2),transparent)}
-.auth-box{width:100%;max-width:380px;position:relative}
-.auth-header{text-align:center;margin-bottom:32px}
-.auth-header .brand{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:3px;line-height:1}
-.auth-header .brand .red{color:var(--accent2)}
-.auth-header p{color:var(--muted);font-size:.88rem;margin-top:8px}
-.auth-tabs{display:flex;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px;gap:4px}
-.auth-tab{flex:1;padding:11px;text-align:center;font-weight:700;font-size:.9rem;cursor:pointer;background:none;color:var(--muted);border:none;border-radius:9px;font-family:inherit;transition:all .15s}
-.auth-tab.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(30,94,255,.3)}
-.auth-form{display:flex;flex-direction:column;gap:12px}
-.auth-form input{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:15px 16px;color:var(--text);font-size:.95rem;font-family:inherit;-webkit-appearance:none;appearance:none}
-.auth-form input::placeholder{color:var(--muted)}
-.auth-form input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(30,94,255,.15)}
-.auth-error{color:var(--accent2);font-size:.82rem;text-align:center;min-height:1.2em;font-weight:600}
-.auth-form button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:8px;padding:15px;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:4px;box-shadow:0 6px 20px rgba(30,94,255,.35);transition:transform .12s}
-.auth-form button:hover{transform:translateY(-1px)}
-.auth-form button:disabled{opacity:.5;transform:none}
+/* ---------- Toast ---------- */
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;max-width:calc(100% - 40px);padding:10px 16px;background:var(--text);color:var(--bg);font-weight:600;font-size:14px;border-radius:6px;opacity:0;transform:translate(-50%,10px);pointer-events:none;transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(min-width:760px){.toast{bottom:32px}}
+
+/* ---------- Login ---------- */
+.auth{position:fixed;inset:0;z-index:100;display:flex;overflow-y:auto;background:var(--bg)}
+.auth .rink{right:-120px;top:-110px;width:380px;height:380px}
+.auth-in{position:relative;width:100%;max-width:420px;margin:auto;padding:56px 24px 40px}
+.auth-brand{font-stretch:125%;font-weight:800;font-size:clamp(30px,9.6vw,50px);line-height:.98;text-transform:uppercase}
+.auth-rule{width:56px;height:3px;background:var(--blue);margin:20px 0 16px}
+.auth-lead{margin:0 0 28px;color:var(--text-2);max-width:34ch}
+.seg{display:grid;grid-template-columns:1fr 1fr;padding:3px;margin-bottom:20px;border:1px solid var(--line-2);border-radius:6px}
+.seg-b{height:38px;border-radius:4px;font-weight:600;font-size:14px;color:var(--text-2)}
+.seg-b.is-active{background:var(--line-2);color:var(--text)}
+.auth-form{display:flex;flex-direction:column;gap:14px}
+.auth-form .btn-primary{margin-top:2px}
+.auth-error{font-size:13px;color:var(--stop)}
+.auth-error:empty{display:none}
+.auth-link{display:block;margin-top:8px;text-align:center;font-size:14px;font-weight:500;color:var(--blue-hi);text-decoration:none}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 
-<div class="chant-bubble" id="chant-bubble"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="rink" viewBox="0 0 300 300"><circle cx="150" cy="150" r="118"/><circle cx="150" cy="150" r="5"/><line x1="150" y1="0" x2="150" y2="300"/><line x1="54" y1="0" x2="54" y2="300"/></symbol>
+</svg>
 
-<div class="auth-overlay" id="auth-overlay">
-  <div class="auth-box">
-    <div class="auth-header">
-      <div class="brand">GOTTÉRON<br><span class="red">SPIELWETTE</span></div>
-      <p>5 Franke pro Wett · Jackpot pro Spiel · Hopp Gottéron!</p>
-    </div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-login" onclick="document.getElementById('login-name').style.display='none';document.getElementById('login-btn').textContent='Iilogge';document.getElementById('login-error').textContent='';this.classList.add('active');document.getElementById('tab-register').classList.remove('active');window._authMode='login'">Iilogge</button>
-      <button class="auth-tab" id="tab-register" onclick="document.getElementById('login-name').style.display='block';document.getElementById('login-btn').textContent='Los geits! 🚀';document.getElementById('login-error').textContent='';this.classList.add('active');document.getElementById('tab-login').classList.remove('active');window._authMode='register'">Registriere</button>
+<!-- ===== Login ===== -->
+<div class="auth" id="auth-overlay">
+  <svg class="rink" aria-hidden="true"><use href="#rink"/></svg>
+  <div class="auth-in">
+    <div class="auth-brand">Gottéron<br>Spielwette</div>
+    <div class="auth-rule"></div>
+    <p class="auth-lead">S'Tippspiel für jedes Gottéron-Spiel. Fr. 5.– pro Tipp: d'Hälfti gaht in Jackpot, d'Hälfti is Bierkässeli.</p>
+    <div class="seg" role="tablist">
+      <button class="seg-b is-active" id="tab-login" role="tab" onclick="setAuthMode('login')">Iilogge</button>
+      <button class="seg-b" id="tab-register" role="tab" onclick="setAuthMode('register')">Konto erstelle</button>
     </div>
     <div class="auth-form">
-      <input type="text" id="login-name" placeholder="Dis Name (so gsehsch alli)" maxlength="30" autocomplete="name" style="display:none">
-      <input type="email" id="login-email" placeholder="Email" maxlength="80" autocomplete="email">
-      <input type="password" id="login-pass" placeholder="Passwort (min. 6 Zeiche)" maxlength="60" autocomplete="current-password">
-      <div class="auth-error" id="login-error"></div>
-      <button id="login-btn">Iilogge</button>
-      <a href="aleitig.html" style="text-align:center;color:var(--muted);font-size:.82rem;text-decoration:none;margin-top:12px;display:block">📖 Aleitig läse – wie funktioniert's?</a>
+      <label class="field" id="name-field" hidden><span>Name</span><input type="text" id="login-name" maxlength="30" autocomplete="nickname" placeholder="So gseh di di andere"></label>
+      <label class="field"><span>E-Mail</span><input type="email" id="login-email" maxlength="80" autocomplete="email" inputmode="email"></label>
+      <label class="field"><span>Passwort</span><input type="password" id="login-pass" maxlength="60" autocomplete="current-password" placeholder="Mindestens 6 Zeiche"></label>
+      <div class="auth-error" id="login-error" role="alert"></div>
+      <button class="btn-primary" id="login-btn">Iilogge</button>
+      <a class="auth-link" href="aleitig.html">So funktioniert d'Spielwette</a>
     </div>
   </div>
 </div>
 
+<!-- ===== App ===== -->
 <div id="app-content" style="display:none">
 
-<div class="hero">
-  <div class="hero-slides">
-    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1515703407324-5f753afd8be8?w=1200&q=80')"></div>
-    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1519766304817-4f37bda74a26?w=1200&q=80')"></div>
-    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?w=1200&q=80')"></div>
-  </div>
-  <button class="hero-chant" id="chant-btn" style="display:none">📣 HOPP!</button>
-  <div class="hero-overlay">
-    <div class="logo">GOTTÉRON <span class="red">SPIELWETTE</span></div>
-    <div class="tagline">5 Fr. pro Wette · Jackpot pro Spiel · Saison 2026/27</div>
-  </div>
-</div>
-
-<nav class="nav">
-  <div class="nav-row top">
-    <div class="nav-right">
-      <button id="lb-open-btn" class="nav-btn" onclick="document.getElementById('lb-modal').classList.add('show')">Rangliste</button>
-      <a href="aleitig.html" class="nav-btn secondary" style="text-decoration:none;display:inline-block">Aleitig</a>
+<header class="topbar">
+  <div class="shell topbar-in">
+    <a class="brand" href="#spiel" onclick="showView('spiel');return false">Gottéron Spielwette</a>
+    <nav class="nav" aria-label="Navigation">
+      <button class="nav-i is-active" data-view="spiel" onclick="showView('spiel')">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="9" rx="8" ry="3.5"/><path d="M4 9v5c0 1.9 3.6 3.5 8 3.5s8-1.6 8-3.5V9"/></svg><span>Spiel</span>
+      </button>
+      <button class="nav-i" data-view="rangliste" onclick="showView('rangliste')">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H5.5A1.5 1.5 0 0 0 4 7.5v.5a3 3 0 0 0 3 3h1.2M16 6h2.5A1.5 1.5 0 0 1 20 7.5v.5a3 3 0 0 1-3 3h-1.2"/><path d="M12 13v4M8.5 20.5h7M10 17h4v3.5h-4z"/></svg><span>Rangliste</span>
+      </button>
+      <a class="nav-i" href="aleitig.html">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5c2.5-1 5.5-1 8.5.8v13.2c-3-1.8-6-1.8-8.5-.8z"/><path d="M20.5 5.5c-2.5-1-5.5-1-8.5.8v13.2c3-1.8 6-1.8 8.5-.8z"/></svg><span>Aleitig</span>
+      </a>
+      <button class="nav-i" data-view="ceo" id="nav-ceo" onclick="showView('ceo')" hidden>
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg><span>CEO</span>
+      </button>
+    </nav>
+    <div class="who">
+      <span class="who-name" id="whoami-name"></span>
+      <span class="who-role" id="whoami-role" hidden>CEO</span>
+      <button class="icon-btn" id="logout-btn" aria-label="Usloge" title="Usloge">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h11"/></svg>
+      </button>
     </div>
-    <div class="user-pill">
-      <span class="uname" id="whoami-name"></span>
-      <button id="logout-btn">Usloge</button>
-    </div>
   </div>
-  <div class="my-stats" id="my-stats"></div>
-</nav>
+</header>
 
-<div class="overview">
-  <div class="stat-card jackpot">
-    <div class="figure" id="jackpot-value">0<span class="unit">Fr.</span></div>
-    <div class="caption">Jackpot</div>
-    <div class="sub" id="jackpot-sub">offeni Spiel</div>
-  </div>
-  <div class="stat-card bier">
-    <div class="figure" id="konto-value">0<span class="unit">Fr.</span></div>
-    <div class="caption">Bierkässeli</div>
-    <div class="sub" id="konto-sub">🍻 fürs Saisonändi</div>
-  </div>
-</div>
+<main class="shell">
 
-<div class="notifs" id="notifs"></div>
+  <!-- Spiel -->
+  <section class="view" id="view-spiel">
+    <section class="match" id="match" aria-label="Nächschts Spiel">
+      <div class="m-date">Lade Spiel…</div>
+    </section>
 
-<div id="admin-new-game" style="display:none">
-  <div class="admin-section">
-    <div class="admin-card">
-      <div class="admin-badge">CEO · Neus Spiel</div>
-      <input type="text" id="ng-opponent" placeholder="Gägner, z.B. ZSC Lions">
-      <div class="admin-row">
-        <input type="date" id="ng-date">
-        <input type="time" id="ng-cutoff" value="19:30" style="max-width:120px" title="Wette-Stopp am Spieltag">
-        <button id="ng-create">Eröffne</button>
+    <div id="notifs"></div>
+
+    <section class="block" id="tips-block" hidden>
+      <div class="h2-row"><h2 class="h2">Tipps</h2><span class="h2-aside" id="tips-count"></span></div>
+      <ul class="tiplist" id="tips"></ul>
+    </section>
+
+    <section class="block" id="more-block" hidden>
+      <div class="h2-row"><h2 class="h2">Witeri offeni Spiel</h2></div>
+      <ul class="glist" id="more-games"></ul>
+    </section>
+
+    <section class="block">
+      <div class="h2-row"><h2 class="h2">Kasse</h2></div>
+      <div class="kasse">
+        <div class="k-cell">
+          <div class="k-l">Jackpot offe</div>
+          <div class="k-v wide money num" id="jackpot-value">Fr. 0.–</div>
+          <div class="k-s" id="jackpot-sub"></div>
+        </div>
+        <div class="k-cell">
+          <div class="k-l">Bierkässeli</div>
+          <div class="k-v wide money num" id="konto-value">Fr. 0.–</div>
+          <div class="k-s" id="konto-sub"></div>
+        </div>
       </div>
-      <div style="font-size:.72rem;color:var(--muted);margin-top:2px">Wette-Stopp: bis zu dere Uhrzit am Spieltag chöi Wette platziert wärde</div>
-      <button id="reset-konto" style="background:none;border:1px solid var(--border);color:var(--muted);padding:8px;border-radius:8px;font-size:.72rem;cursor:pointer;font-family:inherit;margin-top:6px">🗑️ Alli Test-Wette lösche (Neustart)</button>
-    </div>
-  </div>
-</div>
+      <div class="split" aria-hidden="true">
+        <div class="split-bar"><i></i><i></i></div>
+        <div class="split-legend"><span id="split-j">Fr. 2.50 pro Tipp in Jackpot</span><span id="split-b">Fr. 2.50 pro Tipp is Bierkässeli</span></div>
+      </div>
+      <p class="k-note">Dis Bierkässeli-Beitrag bis jetzt: <b class="money num" id="my-contrib">Fr. 0.–</b>. Dä zahlsch erscht am Saisonändi. Dr Jackpot wird nach jedem Spiel per Twint abgrechnet.</p>
+    </section>
 
-<div class="section"><div class="section-title">Offeni Spiel</div><div class="section-count" id="open-count"></div></div>
-<div id="open-games"><div class="empty">Lade…</div></div>
+    <section class="block" id="closed-section" hidden>
+      <div class="h2-row"><h2 class="h2">Resultat</h2><span class="h2-aside" id="closed-count"></span></div>
+      <div id="closed-games"></div>
+    </section>
+  </section>
 
-<div class="section" id="closed-section" style="display:none"><div class="section-title">Abgschlosse</div><div class="section-count" id="closed-count"></div></div>
-<div id="closed-games"></div>
-
-<div class="footer">
-  <div class="chant">HOPP GOTTÉRON! 🔵⚪</div>
-  Möge dr Glücklichschti gwünne – und dr Rescht vo üs wieder z'viel wette 😂
-</div>
-
-</div>
-
-<div class="modal-overlay" id="lb-modal" onclick="if(event.target===this)this.classList.remove('show')">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title">Rangliste <span id="lb-count" style="font-size:.7rem;color:var(--muted);font-family:'Outfit';margin-left:8px"></span></div>
-      <button class="modal-close" id="lb-close" onclick="document.getElementById('lb-modal').classList.remove('show')">&times;</button>
-    </div>
+  <!-- Rangliste -->
+  <section class="view" id="view-rangliste" hidden>
+    <div class="page-head"><h1 class="h1">Rangliste</h1><span class="page-sub" id="lb-count"></span></div>
+    <div id="my-stats"></div>
     <div id="leaderboard"></div>
-  </div>
+  </section>
+
+  <!-- CEO -->
+  <section class="view" id="view-ceo" hidden>
+    <div class="page-head"><h1 class="h1">CEO</h1><span class="page-sub">Nur für di sichtbar</span></div>
+
+    <section class="block" id="admin-new-game" style="border-top:0;padding-top:0">
+      <div class="h2-row"><h2 class="h2">Neus Spiel eröffne</h2></div>
+      <div class="form-grid">
+        <label class="field full"><span>Gägner</span><input type="text" id="ng-opponent" maxlength="40" placeholder="z.B. ZSC Lions"></label>
+        <label class="field"><span>Spieldatum</span><input type="date" id="ng-date"></label>
+        <label class="field"><span>Wette-Stopp</span><input type="time" id="ng-cutoff" value="19:30"></label>
+      </div>
+      <button class="btn-primary" id="ng-create">Spiel eröffne</button>
+    </section>
+
+    <section class="block">
+      <div class="h2-row"><h2 class="h2">Resultat erfasse</h2></div>
+      <p class="ceo-text">Wähl d'Tipps us, wo richtig gsi sy. Ohni Gwünner gaht dr Jackpot is Bierkässeli.</p>
+      <div id="ceo-results"></div>
+    </section>
+
+    <section class="block">
+      <div class="h2-row"><h2 class="h2">Test-Date</h2></div>
+      <p class="ceo-text">Löscht alli Spiel und Tipps. Nur vor em Saisonstart bruuche.</p>
+      <button class="btn-secondary btn-danger" id="reset-konto">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+        Alli Spiel und Tipps lösche
+      </button>
+    </section>
+  </section>
+
+</main>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+window._authMode='login';
+window.setAuthMode=function(m){
+  window._authMode=m;
+  var reg=m==='register';
+  document.getElementById('name-field').hidden=!reg;
+  document.getElementById('tab-login').classList.toggle('is-active',!reg);
+  document.getElementById('tab-register').classList.toggle('is-active',reg);
+  document.getElementById('login-btn').textContent=reg?'Konto erstelle':'Iilogge';
+  document.getElementById('login-pass').setAttribute('autocomplete',reg?'new-password':'current-password');
+  document.getElementById('login-error').textContent='';
+};
+window.showView=function(v){
+  var nav=document.getElementById('nav-ceo');
+  if(v==='ceo'&&nav&&nav.hidden)v='spiel';
+  if(!document.getElementById('view-'+v))v='spiel';
+  document.querySelectorAll('.view').forEach(function(s){s.hidden=(s.id!=='view-'+v)});
+  document.querySelectorAll('.nav-i[data-view]').forEach(function(b){
+    var on=b.dataset.view===v;b.classList.toggle('is-active',on);
+    if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
+  });
+  window.scrollTo(0,0);
+  try{history.replaceState(null,'','#'+v)}catch(e){}
+};
+</script>
 <script type="module" src="./app.js"></script>
 </body>
 </html>
