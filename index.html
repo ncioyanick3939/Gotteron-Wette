@@ -11,15 +11,15 @@
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#0a0d13;--surface:#12161f;--card:#181d29;--card2:#1e2432;
-  --border:#252c3b;--text:#eef0f4;--muted:#6e7689;--accent:#e52535;
-  --accent2:#ff3a4a;--green:#22c55e;--gold:#f5b731;--purple:#a78bfa;--blue:#3b82f6;
+  --border:#252c3b;--text:#eef0f4;--muted:#6e7689;--accent:#1e5eff;
+  --accent2:#4a85ff;--green:#22c55e;--gold:#f5b731;--purple:#a78bfa;--blue:#3b82f6;
   --input-bg:#0f131c;
 }
 html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow-x:hidden}
 .display{font-family:'Bebas Neue','Outfit',sans-serif;letter-spacing:1px}
 
 /* ANIMATED BG */
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(229,37,53,.12),transparent);pointer-events:none;z-index:0}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(30,94,255,.12),transparent);pointer-events:none;z-index:0}
 
 /* CONFETTI */
 .confetti-piece{position:fixed;width:10px;height:10px;top:-10px;z-index:9999;pointer-events:none;animation:confetti-fall linear forwards}
@@ -32,12 +32,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 @keyframes slideshow{0%,28%{transform:translateX(0)}33%,61%{transform:translateX(-33.333%)}66%,94%{transform:translateX(-66.666%)}100%{transform:translateX(0)}}
 .hero-overlay{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,transparent 0%,rgba(10,13,19,.85) 60%,rgba(10,13,19,.98) 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:40px 20px 16px;text-align:center;pointer-events:none}
 .hero-overlay > *{pointer-events:auto}
-.hero-overlay .logo{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:3px;line-height:1;text-shadow:0 4px 30px rgba(229,37,53,.5)}
+.hero-overlay .logo{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:3px;line-height:1;text-shadow:0 4px 30px rgba(30,94,255,.5)}
 .hero-overlay .logo .red{color:var(--accent2)}
 .hero-overlay .tagline{color:#a8b0c0;font-size:.85rem;margin-top:6px;font-weight:500;letter-spacing:.5px}
-.hero-chant{position:absolute;top:14px;right:14px;background:rgba(229,37,53,.9);border:none;color:#fff;padding:8px 14px;border-radius:20px;font-weight:700;font-size:.78rem;cursor:pointer;font-family:inherit;backdrop-filter:blur(4px);transition:transform .15s}
+.hero-chant{position:absolute;top:14px;right:14px;background:rgba(30,94,255,.9);border:none;color:#fff;padding:8px 14px;border-radius:20px;font-weight:700;font-size:.78rem;cursor:pointer;font-family:inherit;backdrop-filter:blur(4px);transition:transform .15s}
 .hero-chant:active{transform:scale(.92)}
-.chant-bubble{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:var(--accent);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:2px;padding:20px 40px;border-radius:20px;z-index:200;pointer-events:none;transition:transform .3s cubic-bezier(.34,1.56,.64,1);text-align:center;box-shadow:0 20px 60px rgba(229,37,53,.6)}
+.chant-bubble{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:var(--accent);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:2px;padding:20px 40px;border-radius:20px;z-index:200;pointer-events:none;transition:transform .3s cubic-bezier(.34,1.56,.64,1);text-align:center;box-shadow:0 20px 60px rgba(30,94,255,.6)}
 .chant-bubble.show{transform:translate(-50%,-50%) scale(1)}
 
 /* NAV */
@@ -79,7 +79,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .stat-card.bier::after{background:var(--gold)}
 .stat-card .figure{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:1px;position:relative}
 .stat-card .figure .unit{font-size:1.2rem;margin-left:4px;opacity:.6}
-.stat-card.jackpot .figure{color:var(--accent2);text-shadow:0 0 30px rgba(255,58,74,.4)}
+.stat-card.jackpot .figure{color:var(--accent2);text-shadow:0 0 30px rgba(74,133,255,.4)}
 .stat-card.bier .figure{color:var(--gold);text-shadow:0 0 30px rgba(245,183,49,.3)}
 .stat-card .caption{margin-top:6px;font-size:.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px}
 .stat-card .sub{font-size:.72rem;color:var(--muted);margin-top:3px}
@@ -109,7 +109,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .leaderboard{background:var(--card);overflow:hidden;position:relative;z-index:1}
 .lb-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);position:relative;transition:background .15s}
 .lb-row:last-child{border-bottom:none}
-.lb-row.me{background:rgba(229,37,53,.06)}
+.lb-row.me{background:rgba(30,94,255,.06)}
 .lb-row.me::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
 .lb-rank{width:26px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--muted)}
 .lb-rank.r1{color:var(--gold)}
@@ -133,7 +133,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .game.open:hover{border-color:var(--accent);transform:translateY(-1px)}
 .game-top{padding:16px;display:flex;justify-content:space-between;align-items:center}
 .game-info .matchup{font-weight:800;font-size:1.1rem;display:flex;align-items:center;gap:6px}
-.game-info .matchup .vs{color:var(--accent);font-size:.75rem;font-weight:700;background:rgba(229,37,53,.15);padding:2px 6px;border-radius:4px}
+.game-info .matchup .vs{color:var(--accent);font-size:.75rem;font-weight:700;background:rgba(30,94,255,.15);padding:2px 6px;border-radius:4px}
 .game-info .date{color:var(--muted);font-size:.78rem;margin-top:3px}
 .game-info .countdown{color:var(--gold);font-size:.75rem;font-weight:600;margin-top:2px}
 .game-pot{text-align:right}
@@ -164,9 +164,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .game-form{padding:10px 16px 14px;display:flex;gap:8px}
 .game-form input{flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:.95rem;font-family:inherit}
 .game-form input::placeholder{color:var(--muted)}
-.game-form input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(229,37,53,.15)}
-.game-form button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;padding:12px 20px;font-weight:800;font-size:.88rem;cursor:pointer;font-family:inherit;white-space:nowrap;transition:transform .12s,box-shadow .12s;box-shadow:0 4px 15px rgba(229,37,53,.3)}
-.game-form button:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(229,37,53,.4)}
+.game-form input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(30,94,255,.15)}
+.game-form button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;padding:12px 20px;font-weight:800;font-size:.88rem;cursor:pointer;font-family:inherit;white-space:nowrap;transition:transform .12s,box-shadow .12s;box-shadow:0 4px 15px rgba(30,94,255,.3)}
+.game-form button:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(30,94,255,.4)}
 .game-form button:active{transform:scale(.97)}
 
 .game-empty{color:var(--muted);font-size:.85rem;padding:14px 16px;border-top:1px solid var(--border);text-align:center}
@@ -203,21 +203,21 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 /* AUTH */
 .auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
-.auth-overlay::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(229,37,53,.2),transparent)}
+.auth-overlay::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(30,94,255,.2),transparent)}
 .auth-box{width:100%;max-width:380px;position:relative}
 .auth-header{text-align:center;margin-bottom:32px}
-.auth-header .brand{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:3px;line-height:1;text-shadow:0 4px 30px rgba(229,37,53,.4)}
+.auth-header .brand{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:3px;line-height:1;text-shadow:0 4px 30px rgba(30,94,255,.4)}
 .auth-header .brand .red{color:var(--accent2)}
 .auth-header p{color:var(--muted);font-size:.88rem;margin-top:8px}
 .auth-tabs{display:flex;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;gap:4px}
 .auth-tab{flex:1;padding:11px;text-align:center;font-weight:700;font-size:.9rem;cursor:pointer;background:none;color:var(--muted);border:none;border-radius:9px;font-family:inherit;transition:all .15s}
-.auth-tab.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(229,37,53,.3)}
+.auth-tab.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(30,94,255,.3)}
 .auth-form{display:flex;flex-direction:column;gap:12px}
 .auth-form input{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 16px;color:var(--text);font-size:.95rem;font-family:inherit;-webkit-appearance:none;appearance:none}
 .auth-form input::placeholder{color:var(--muted)}
-.auth-form input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(229,37,53,.15)}
+.auth-form input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(30,94,255,.15)}
 .auth-error{color:var(--accent2);font-size:.82rem;text-align:center;min-height:1.2em;font-weight:600}
-.auth-form button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:15px;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:4px;box-shadow:0 6px 20px rgba(229,37,53,.35);transition:transform .12s}
+.auth-form button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:15px;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:4px;box-shadow:0 6px 20px rgba(30,94,255,.35);transition:transform .12s}
 .auth-form button:hover{transform:translateY(-1px)}
 .auth-form button:disabled{opacity:.5;transform:none}
 </style>
@@ -312,7 +312,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <div id="closed-games"></div>
 
 <div class="footer">
-  <div class="chant">HOPP GOTTÉRON! 🔴⚪</div>
+  <div class="chant">HOPP GOTTÉRON! 🔵⚪</div>
   Möge dr Glücklichschti gwünne – und dr Rescht vo üs wieder z'viel wette 😂
 </div>
 
