@@ -3,90 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#080B11">
+<meta name="theme-color" content="#F2F2F7">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Aleitig · Gottéron Spielwette</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400..800&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#080B11;--band:#0D121B;--line:#1A2130;--line-2:#283144;
-  --text:#EEF1F6;--text-2:#A3ACBB;--text-3:#697386;
-  --blue:#2F6BFF;--blue-hi:#7AA3FF;--gold:#E9B949;--win:#3FCB82;
-  --f:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-}
+:root{--bg:#F2F2F7;--card:#fff;--fill:#EEF0F4;--sep:#E5E6EB;--text:#111318;--text-2:#646B76;--text-3:#9AA0A8;--blue:#1747C9;--blue-soft:#E8EEFB;--green:#15803D;
+  --f:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter Tight","Segoe UI",Roboto,sans-serif}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
-:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
-.shell{max-width:640px;margin:0 auto;padding:0 20px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.shell{max-width:600px;margin:0 auto;padding:0 16px}
 .num{font-variant-numeric:tabular-nums}
-.wide{font-stretch:125%;font-weight:800}
-.money{color:var(--gold)}
-
-.topbar{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
-.topbar-in{display:flex;align-items:center;justify-content:space-between;height:56px}
-.brand{font-stretch:125%;font-weight:800;font-size:14px;letter-spacing:.03em;text-transform:uppercase;color:var(--text);text-decoration:none}
-.top-link{font-size:14px;font-weight:600;color:var(--blue-hi);text-decoration:none}
-
-.hero{position:relative;overflow:hidden;padding:40px 0 30px;border-bottom:1px solid var(--line)}
-.hero::before{content:'';position:absolute;left:0;top:0;width:56px;height:3px;background:var(--blue)}
-.rink{position:absolute;right:-110px;top:-60px;width:320px;height:320px;color:#141B28;pointer-events:none}
-.rink *{fill:none;stroke:currentColor;stroke-width:2}
-.hero > :not(.rink){position:relative}
-h1{margin:0;font-stretch:125%;font-weight:800;font-size:clamp(28px,8.4vw,42px);line-height:1.02;text-transform:uppercase}
-.lead{margin:16px 0 0;color:var(--text-2);max-width:40ch}
-
-section{padding:30px 0 24px;border-bottom:1px solid var(--line)}
-h2{margin:0 0 12px;font-stretch:112%;font-weight:700;font-size:20px;line-height:1.25}
-p{margin:0 0 12px;color:var(--text-2);max-width:56ch}
-p b,li b{color:var(--text);font-weight:700}
-
-.steps{list-style:none;margin:8px 0 0;padding:0;counter-reset:s}
-.steps li{counter-increment:s;display:grid;grid-template-columns:40px 1fr;gap:4px 12px;padding:14px 0;border-top:1px solid var(--line);color:var(--text-2)}
-.steps li::before{content:counter(s);grid-row:span 2;font-stretch:125%;font-weight:800;font-size:24px;line-height:1.1;color:var(--blue-hi)}
-.steps li strong{color:var(--text);font-weight:700}
-
-.facts{margin:8px 0 0;border-top:1px solid var(--line-2)}
-.fact{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--line)}
+.money{color:var(--text)}
+.topbar{position:sticky;top:0;z-index:10;background:rgba(242,242,247,.9);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--sep);padding-top:env(safe-area-inset-top)}
+.topbar-in{display:flex;align-items:center;justify-content:space-between;height:48px}
+.brand{font-weight:700;font-size:16px;color:var(--text);text-decoration:none}
+.top-link{font-size:16px;font-weight:600;color:var(--blue);text-decoration:none}
+.hero{padding:28px 4px 8px}
+.rink{display:none}
+h1{margin:0;font-size:32px;line-height:1.12;font-weight:800;letter-spacing:-.025em}
+.lead{margin:10px 0 0;color:var(--text-2);font-size:17px}
+section{margin-top:18px;background:var(--card);border-radius:16px;padding:18px 16px}
+h2{margin:0 0 10px;font-size:20px;font-weight:700;letter-spacing:-.015em}
+p{margin:0 0 10px;color:var(--text-2)}
+p b,li b,strong{color:var(--text);font-weight:600}
+.steps{list-style:none;margin:6px 0 0;padding:0;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:30px 1fr;gap:2px 10px;padding:12px 0;border-top:1px solid var(--sep);color:var(--text-2)}
+.steps li::before{content:counter(s);grid-row:span 2;width:24px;height:24px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;font-size:13px;font-weight:700;margin-top:1px}
+.facts{margin:6px 0 0}
+.fact{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:11px 0;border-top:1px solid var(--sep)}
 .fact dt{color:var(--text-2)}
-.fact dd{margin:0;font-stretch:125%;font-weight:800;font-size:18px;text-align:right}
-
-.split{margin:18px 0 6px}
-.split-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
-.split-top span{color:var(--text-2);font-size:14px}
+.fact dd{margin:0;font-weight:700;text-align:right}
+.split{margin:14px 0 6px}
+.split-top{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px;color:var(--text-2)}
 .split-bar{display:flex;gap:3px;height:8px}
-.split-bar i{flex:1;background:var(--gold)}
-.split-bar i + i{opacity:.4}
-.split-legend{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px}
+.split-bar i{flex:1;background:var(--blue);border-radius:4px}
+.split-bar i + i{background:#9DB2EA}
+.split-legend{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
 .split-legend div + div{text-align:right}
-.split-v{font-stretch:125%;font-weight:800;font-size:22px;line-height:1.2}
+.split-v{font-size:22px;font-weight:800;letter-spacing:-.02em}
 .split-l{font-size:13px;color:var(--text-3)}
-
-.cases{list-style:none;margin:6px 0 0;padding:0}
-.cases li{padding:12px 0 12px 16px;border-top:1px solid var(--line);position:relative;color:var(--text-2)}
-.cases li::before{content:'';position:absolute;left:0;top:18px;width:3px;height:14px;background:var(--line-2)}
-.cases li.c-win::before{background:var(--win)}
-.cases li.c-bier::before{background:var(--gold)}
-
-.pay{display:grid;grid-template-columns:1fr;gap:0;margin-top:8px;border-top:1px solid var(--line-2)}
-.pay > div{padding:16px 0;border-bottom:1px solid var(--line)}
-.pay > div:last-child{border-bottom:0}
-.pay h3{margin:0 0 4px;font-size:16px;font-weight:700}
+.cases{list-style:none;margin:4px 0 0;padding:0}
+.cases li{padding:11px 0 11px 14px;border-top:1px solid var(--sep);position:relative;color:var(--text-2)}
+.cases li::before{content:'';position:absolute;left:0;top:17px;width:6px;height:6px;border-radius:50%;background:var(--green)}
+.cases li.c-bier::before{background:var(--blue)}
+.pay{display:grid;grid-template-columns:1fr;margin-top:6px}
+.pay > div{padding:12px 0;border-top:1px solid var(--sep)}
+.pay h3{margin:0 0 3px;font-size:17px;font-weight:700}
 .pay p{margin:0}
-.when{display:inline-block;margin-bottom:6px;font-size:12px;font-weight:600;color:var(--text-2);border:1px solid var(--line-2);border-radius:4px;padding:1px 6px}
-@media(min-width:560px){.pay{grid-template-columns:1fr 1fr}.pay > div + div{padding-left:20px;border-left:1px solid var(--line)}}
-
-.tags{list-style:none;margin:8px 0 0;padding:0}
-.tags li{display:grid;grid-template-columns:118px 1fr;gap:12px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line);color:var(--text-2)}
-.tag{justify-self:start;font-size:12px;font-weight:600;color:var(--text-2);border:1px solid var(--line-2);border-radius:4px;padding:1px 7px}
-
-.cta{padding:32px 0 56px;border:0}
-.btn{display:flex;align-items:center;justify-content:center;height:48px;border-radius:6px;background:var(--blue);color:#fff;font-weight:600;text-decoration:none}
-.btn:hover{background:#2560f0}
-.foot{margin:18px 0 0;font-size:13px;color:var(--text-3);text-align:center;max-width:none}
+.when{display:inline-block;margin-bottom:6px;font-size:12px;font-weight:700;color:var(--blue);background:var(--blue-soft);border-radius:999px;padding:2px 9px}
+@media(min-width:560px){.pay{grid-template-columns:1fr 1fr;gap:0 18px}}
+.tags{list-style:none;margin:6px 0 0;padding:0}
+.tags li{display:grid;grid-template-columns:112px 1fr;gap:10px;align-items:baseline;padding:10px 0;border-top:1px solid var(--sep);color:var(--text-2)}
+.tag{justify-self:start;font-size:13px;font-weight:600;color:var(--text);background:var(--fill);border-radius:6px;padding:1px 8px}
+.cta{background:none;padding:10px 0 48px}
+.btn{display:flex;align-items:center;justify-content:center;height:52px;border-radius:14px;background:var(--blue);color:#fff;font-weight:600;font-size:17px;text-decoration:none}
+.foot{margin:14px 0 0;font-size:14px;color:var(--text-3);text-align:center}
 </style>
 </head>
 <body>
@@ -121,7 +97,7 @@ p b,li b{color:var(--text);font-weight:700}
 
   <section>
     <h2>Tipp abgäh</h2>
-    <p>Uf em <b>Home</b> gsehsch ds nächschte Spiel wie uf dr Aazeigtafle. Mit <b>− und +</b> stellsch d'Tor vo Gottéron und vom Gägner ii, oder du wählsch e Schnälltipp wie 3:1. Mit <b>«Weitere Tipp»</b> chasch mehreri Resultat uf eimal tippe. Denn <b>«Tipp abgäh»</b>.</p>
+    <p>Im Tab <b>Spiel</b> gsehsch ds nächschte Spiel. Mit <b>− und +</b> stellsch d'Tor vo Gottéron und vom Gägner ii, oder du wählsch e Schnälltipp wie 3:1. Mit <b>«Weitere Tipp»</b> chasch mehreri Resultat uf eimal tippe. Denn <b>«Tipp abgäh»</b>.</p>
     <dl class="facts">
       <div class="fact"><dt>Iisatz pro Tipp</dt><dd class="money num">CHF 5.–</dd></div>
       <div class="fact"><dt>Tipps pro Spiel</dt><dd>So vil du wotsch</dd></div>
@@ -183,7 +159,7 @@ p b,li b{color:var(--text);font-weight:700}
   <section>
     <h2>Was findsch wo</h2>
     <dl class="facts">
-      <div class="fact"><dt>Home</dt><dd style="font-stretch:100%;font-weight:500;font-size:15px">Nächschts Spiel, tippe, letschts Resultat</dd></div>
+      <div class="fact"><dt>Spiel</dt><dd style="font-stretch:100%;font-weight:500;font-size:15px">Nächschts Spiel, tippe, letschts Resultat</dd></div>
       <div class="fact"><dt>Tipps</dt><dd style="font-stretch:100%;font-weight:500;font-size:15px">Alli diini Tipps, offe und uswärtet</dd></div>
       <div class="fact"><dt>Rangliste</dt><dd style="font-stretch:100%;font-weight:500;font-size:15px">Diini Position und dr Rückstand</dd></div>
       <div class="fact"><dt>Kasse</dt><dd style="font-stretch:100%;font-weight:500;font-size:15px">Bierkässeli und Twint</dd></div>
