@@ -117,7 +117,9 @@ function setupEvents() {
   const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
   on('login-btn', 'click', submitAuth);
   on('login-pass', 'keydown', e => { if (e.key === 'Enter') submitAuth(); });
-  on('logout-btn', 'click', () => signOut(auth));
+  on('logout-btn', 'click', logout);
+  on('logout-top', 'click', logout);
+  setStoreLinks();
   on('gf-date', 'change', recomputeForm);
   on('gf-kick', 'change', recomputeForm);
   on('gf-home', 'click', () => setVenue(true));
@@ -130,6 +132,23 @@ function setupEvents() {
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupEvents);
 else setupEvents();
+
+// ===== HOCKEY-LINKS: uf em Handy diräkt i d'App (bzw. App Store / Play Store) =====
+function setStoreLinks() {
+  const ua = navigator.userAgent || '';
+  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const android = /Android/.test(ua);
+  const links = {
+    'link-topscorers': { ios: 'https://apps.apple.com/ch/app/topscorers/id1545443064', android: 'https://play.google.com/store/apps/details?id=ch.topscorers.topscorers', web: 'https://topscorers.ch/de' },
+    'link-nl': { ios: 'https://apps.apple.com/ch/app/national-league-official-app/id1628840021', android: 'https://play.google.com/store/apps/details?id=ch.opten.nationalleague', web: 'https://www.nationalleague.ch/' }
+  };
+  Object.entries(links).forEach(([id, l]) => { const a = $(id); if (a) a.href = ios ? l.ios : android ? l.android : l.web; });
+}
+
+async function logout() {
+  try { await signOut(auth); window.showView && window.showView('home'); }
+  catch (e) { toast('Usloge nid möglich: ' + e.message); }
+}
 
 // ===== AUTH =====
 async function submitAuth() {
