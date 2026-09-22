@@ -83,7 +83,7 @@ function showChant(){
   setTimeout(()=>b.classList.remove('show'),1500);
 }
 
-const BET_TOASTS=['Wett platziert! 🎯','Mutig! 💪','Das gaht uf! 🚀','Gueti Wahl! 🔥','Jetz wird\'s ernst! 😤','Dr Jackpot wachst! 💰','Hopp Gottéron! 🏒','Vertrau dim Bauch! 🎲'];
+const BET_TOASTS=['Wette platziert','Wette gspeichert','Wette registriert','Tipp abgäh','Wette bstätigt'];
 
 // ===== SETUP AFTER DOM READY =====
 function setupEvents(){
@@ -132,7 +132,7 @@ async function submitAuth(){
       if(!name){err.textContent='Bitte Name iigäh';btn.disabled=false;return}
       const cred=await createUserWithEmailAndPassword(auth,email,pass);
       await updateProfile(cred.user,{displayName:name});
-      confetti(80);toast('Willkomme im Team, '+name+'! 🎉');
+      confetti(60);toast('Willkomme, '+name);
     } else await signInWithEmailAndPassword(auth,email,pass);
     $('login-pass').value='';
   }catch(e){
@@ -152,7 +152,7 @@ async function createGame(){
   btn.disabled=true;
   try{
     await addDoc(collection(db,'games'),{opponent:o,date:d,cutoffTime:c||'19:30',status:'open',createdAt:Date.now()});
-    oEl.value='';toast('Spiel eröffnet! Los gahts 🏒');
+    oEl.value='';toast('Spiel eröffnet');
   }catch(e){toast('Fehler: '+e.message)}
   btn.disabled=false;
 }
@@ -217,7 +217,7 @@ function startSubs(){
 
 async function placeBet(gid,inp){
   const p=inp.value.trim();
-  if(!p){toast('Bitte Tipp iigäh 👆');inp.focus();return}
+  if(!p){toast('Bitte Tipp iigäh');inp.focus();return}
   if(!state.user)return;
   const g=state.games.find(x=>x.id===gid);
   if(g&&isCutoffPassed(g)){toast('🔒 Wette-Stopp verbi – zu spät!');return}
@@ -226,8 +226,8 @@ async function placeBet(gid,inp){
     inp.value='';
     toast(BET_TOASTS[Math.floor(Math.random()*BET_TOASTS.length)]+' – '+BET_COST+' Fr.');
     const myCount=state.bets.filter(b=>b.userId===state.user.uid).length+1;
-    if(myCount===TROPHY_MIN){setTimeout(()=>{confetti(150);toast('🏆 POKAL VERDIENT! '+TROPHY_MIN+' Wette!')},600)}
-    else if(myCount===1){setTimeout(()=>toast('🎯 Dini erschti Wett – willkomme!'),500)}
+    if(myCount===TROPHY_MIN){setTimeout(()=>{toast('Pokal verdient: '+TROPHY_MIN+' Wette')},600)}
+    else if(myCount===1){setTimeout(()=>toast('Erschti Wette registriert'),500)}
   }catch(e){toast('Fehler: '+e.message)}
 }
 
@@ -256,7 +256,7 @@ async function closeGame(gid,selIds){
   const extraToKonto=hasW?0:jackpot; // wenn kei Gwünner: Jackpot au is Kässeli
   try{
     await updateDoc(doc(db,'games',gid),{status:'closed',closedAt:Date.now(),pot,winnerBetIds:selIds,winnerUserIds:wu,jackpotHalf:jackpot,kontoHalf:kontoFromBets+extraToKonto,perWinner:pw});
-    confetti(100);toast(hasW?'🏆 Spiel abgschlosse!':'🍻 Alles is Bierkässeli!');
+    confetti(100);toast(hasW?'Spiel abgschlosse':'Alles is Bierkässeli');
   }catch(e){toast('Fehler: '+e.message)}
 }
 
@@ -299,7 +299,7 @@ function render(){
     if($('konto-sub')) $('konto-sub').textContent=kontoTotal>0?`total gspart · ca. ${Math.floor(kontoTotal/6)} Bier 🍻`:'no nüt gspart';
 
     const ms=userStats(state.user.uid);
-    if($('my-stats')) $('my-stats').innerHTML=`<span><b>${ms.bets}</b> Wette</span><span><b>${ms.wins}</b> Sieg${ms.wins===1?'':'e'}</span><span style="color:var(--gold)">🍻 <b>${fmtFr(ms.bierBeitrag)}</b> Fr. · ${Math.floor(ms.bierBeitrag/6)} Bier</span>`;
+    if($('my-stats')) $('my-stats').innerHTML=`<span><b>${ms.bets}</b> Wette</span><span><b>${ms.wins}</b> Sieg${ms.wins===1?'':'e'}</span><span style="color:var(--gold)"><b>🍻 ${fmtFr(ms.bierBeitrag)}</b> Fr. · ${Math.floor(ms.bierBeitrag/6)} Bier</span>`;
 
     renderNotifs(cg);
     renderLeaderboard();
