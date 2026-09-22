@@ -424,10 +424,24 @@ function mkOpen(g){
 
 function mkClosed(g){
   const bets=betsFor(g.id),wids=g.winnerBetIds||[],uid=state.user.uid;
-  const c=document.createElement('div');c.className='game';
-  c.innerHTML=`<div class="game-top"><div class="game-info"><div class="matchup">Gottéron <span class="vs">VS</span> ${esc(g.opponent||'?')}</div><div class="date">${fmtDate(g.date)}</div></div><span class="status-closed">Abgschlosse</span></div>`;
-  if(bets.length){const bl=document.createElement('div');bl.className='game-bets';bets.forEach(b=>{const isW=wids.includes(b.id),n=b.userName||'?';const r=document.createElement('div');r.className='bet-row'+(isW?' winner':'');r.innerHTML=`<div class="left"><div class="bet-avatar" style="background:${avatarColor(n)}">${initials(n)}</div><span class="bet-user">${esc(n)}${isW?' 🏆':''}${b.userId===uid?'<span class="me-tag">DU</span>':''}</span></div><div class="bet-right"><div class="bet-pred">${esc(b.prediction)}</div><div class="bet-amount">${BET_COST} Fr.</div></div>`;bl.appendChild(r)});c.appendChild(bl)}
-  const sm=document.createElement('div');sm.className='closed-summary';const pot=g.pot||bets.length,pw=g.perWinner||0,wc=(g.winnerUserIds||[]).length;
+  const c=document.createElement('div');c.className='game collapsed';
+  const wc=(g.winnerUserIds||[]).length;
+  const pot=g.pot||bets.length*BET_COST;
+  const iWon=(g.winnerUserIds||[]).includes(uid);
+  const shortInfo=`${bets.length} Wette · ${wc>0?wc+' Gwünner':'kei Gwünner'}${iWon?' · 🏆 DU':''}`;
+  const top=document.createElement('div');top.className='game-top clickable';
+  top.innerHTML=`<div class="game-info"><div class="matchup">Gottéron <span class="vs">VS</span> ${esc(g.opponent||'?')}</div><div class="date">${fmtDate(g.date)} · ${shortInfo}</div></div><span class="status-closed">▼</span>`;
+  top.addEventListener('click',()=>{
+    c.classList.toggle('collapsed');
+    const arrow=top.querySelector('.status-closed');
+    if(arrow) arrow.textContent=c.classList.contains('collapsed')?'▼':'▲';
+  });
+  c.appendChild(top);
+  const details=document.createElement('div');details.className='game-details';
+  if(bets.length){const bl=document.createElement('div');bl.className='game-bets';bets.forEach(b=>{const isW=wids.includes(b.id),n=b.userName||'?';const r=document.createElement('div');r.className='bet-row'+(isW?' winner':'');r.innerHTML=`<div class="left"><div class="bet-avatar" style="background:${avatarColor(n)}">${initials(n)}</div><span class="bet-user">${esc(n)}${isW?' 🏆':''}${b.userId===uid?'<span class="me-tag">DU</span>':''}</span></div><div class="bet-right"><div class="bet-pred">${esc(b.prediction)}</div><div class="bet-amount">${BET_COST} Fr.</div></div>`;bl.appendChild(r)});details.appendChild(bl)}
+  const sm=document.createElement('div');sm.className='closed-summary';const pw=g.perWinner||0;
   sm.innerHTML=wc>0?`Topf <b>${pot} Fr.</b> · Jackpot <b>${fmtFr(g.jackpotHalf||pot/2)} Fr.</b> für ${wc} Gwünner (je <b>${fmtFr(pw)} Fr.</b>) · Bierkässeli <b>+${fmtFr(g.kontoHalf||pot/2)} Fr.</b>`:`Topf <b>${pot} Fr.</b> · Kein Gwünner – alles <b>${fmtFr(pot)} Fr.</b> is Bierkässeli`;
-  c.appendChild(sm);return c;
+  details.appendChild(sm);
+  c.appendChild(details);
+  return c;
 }
