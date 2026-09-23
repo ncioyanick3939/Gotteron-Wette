@@ -195,7 +195,7 @@ onAuthStateChanged(auth, user => {
     if (user) {
       $('auth-overlay').style.display = 'none';
       $('app-content').style.display = 'block';
-      $('nav-admin').hidden = !state.isAdmin;
+      $('admin-entry').hidden = !state.isAdmin;
       const want = (location.hash || '').replace('#', '');
       window.showView && window.showView(['tipps', 'rangliste', 'kasse', 'profil', 'admin'].includes(want) ? want : 'home');
       startSubs();
@@ -441,8 +441,9 @@ function pickCurrent(up) {
   return up.find(g => g.id === state.selectedId) || up.find(g => phase(g) !== 'pending') || up[0] || null;
 }
 
-const statsGrp = cells => `<div class="grp stats${cells.length === 3 ? ' three' : ''}">${cells.map(([v, l]) =>
-  `<div><div class="stat-v num">${v}</div><div class="stat-l">${l}</div></div>`).join('')}</div>`;
+const statsGrp = cells => `<div class="grp stats${cells.length === 3 ? ' three' : ''}">${cells.map(([v, l, c]) =>
+  `<div><div class="stat-v num ${c || ''}">${v}</div><div class="stat-l">${l}</div></div>`).join('')}</div>`;
+const secTile = (cls, ico, title, aside = '') => `<div class="sec-h"><h2><span class="tile ${cls}">${icon(ico)}</span>${title}</h2>${aside ? `<span>${aside}</span>` : ''}</div>`;
 const tagMe = uid => uid === state.user.uid ? '<span class="tag-me">Du</span>' : '';
 
 // ---- Spiel ----
@@ -458,7 +459,7 @@ function renderHome(up, done) {
   $('next-games').innerHTML = rest.map(x => {
     const t = times(x), n = betsFor(x.id).length;
     return `<li><button class="row tap" data-id="${x.id}">
-      <div class="row-main"><div class="row-t">${esc(matchName(x))}</div><div class="row-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}${x.home === false ? ', uswärts' : ''}${n ? `, Jackpot ${chf(n * HALF)}` : ''}</div></div>
+      <span class="tile t-blue">${icon('home')}</span><div class="row-main"><div class="row-t">${esc(matchName(x))}</div><div class="row-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}${x.home === false ? ', uswärts' : ''}${n ? `, Jackpot ${chf(n * HALF)}` : ''}</div></div>
       ${statusHtml(x)}${icon('chev', 'chev')}</button></li>`;
   }).join('');
   $('next-games').querySelectorAll('[data-id]').forEach(b => b.addEventListener('click', () => {
@@ -468,9 +469,9 @@ function renderHome(up, done) {
 
 function renderMatch(g, done) {
   const box = $('match'), konto = computedKonto();
-  const money = (pot, n) => `<div class="grp two">
-    <div><div class="k">Jackpot</div><div class="v" id="pot-value">${chf(pot)}</div><div class="s">${plural(n, 'Tipp', 'Tipps')}</div></div>
-    <div><div class="k">Bierkässeli</div><div class="v">${chf(konto)}</div><div class="s">${konto >= BEER_PRICE ? 'ca. ' + Math.floor(konto / BEER_PRICE) + ' Bier' : 'Saison 26/27'}</div></div></div>`;
+  const money = (pot, n) => `<div class="grp two money-cards">
+    <div class="jack"><div class="k">Jackpot</div><div class="v" id="pot-value">${chf(pot)}</div><div class="s">${plural(n, 'Tipp', 'Tipps')}</div></div>
+    <div class="beer"><div class="k">Bierkässeli</div><div class="v">${chf(konto)}</div><div class="s">${konto >= BEER_PRICE ? 'ca. ' + Math.floor(konto / BEER_PRICE) + ' Bier' : 'Saison 26/27'}</div></div></div>`;
   if (!g) {
     box.innerHTML = `<div class="grp empty"><div class="empty-t">Kei offes Spiel</div>
       <p class="empty-s">Sobald dr CEO s'nächschte Spiel erfasst, chasch hie tippe.</p>
@@ -598,8 +599,8 @@ function renderLast(done) {
         const tips = bets.filter(b => b.userId === w && wids.includes(b.id)).map(b => b.prediction);
         return `<li><div class="row won"><span class="name"><span>${esc(nameOf(w))}</span>${tagMe(w)}</span><span class="tip">${icon('check')}${esc(tips.join(' '))}</span><span class="row-end pos num" style="font-weight:700;min-width:84px">${chf(pay[w])}</span></div></li>`;
       }).join('')}
-      ${owe > 0 ? `<li><button class="row tap" onclick="showView('kasse')"><div class="row-main">Du schuldisch <b class="num">${chf(owe)}</b></div>${icon('chev', 'chev')}</button></li>` : ''}
-      ${get > 0 ? `<li><button class="row tap" onclick="showView('kasse')"><div class="row-main">Du bechunnsch <b class="num pos">${chf(get)}</b></div>${icon('chev', 'chev')}</button></li>` : ''}
+      ${owe > 0 ? `<li><button class="row tap" onclick="showView('kasse')"><span class="tile t-red">${icon('wallet')}</span><div class="row-main">Du schuldisch <b class="num">${chf(owe)}</b></div>${icon('chev', 'chev')}</button></li>` : ''}
+      ${get > 0 ? `<li><button class="row tap" onclick="showView('kasse')"><span class="tile t-green">${icon('wallet')}</span><div class="row-main">Du bechunnsch <b class="num pos">${chf(get)}</b></div>${icon('chev', 'chev')}</button></li>` : ''}
     </ul></div>`;
 }
 
@@ -608,12 +609,12 @@ function renderMyTips() {
   const uid = state.user.uid, mine = state.bets.filter(b => b.userId === uid), s = userStats(uid);
   $('mt-count').textContent = mine.length ? plural(mine.length, 'Tipp', 'Tipps') : '';
   const openCount = mine.filter(b => { const g = state.games.find(x => x.id === b.gameId); return g && g.status !== 'closed'; }).length;
-  $('mt-summary').innerHTML = statsGrp([[s.bets, 'Tipps'], [openCount, 'Offe'], [amt(s.staked), 'Iisatz'], [amt(s.earned), 'Gwinn']]);
+  $('mt-summary').innerHTML = statsGrp([[s.bets, 'Tipps', 'c-blue'], [openCount, 'Offe'], [amt(s.staked), 'Iisatz'], [amt(s.earned), 'Gwinn', 'c-green']]);
   const head = g => { const t = times(g); return `<li><div class="row"><div class="row-main"><div class="row-t">${esc(matchName(g))}</div><div class="row-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}${g.result ? `, Resultat ${g.result.h}:${g.result.a}` : ''}</div></div>${statusHtml(g)}</div></li>`; };
   const openGames = upcoming().filter(g => mine.some(b => b.gameId === g.id));
   $('mt-open').innerHTML = openGames.length
     ? openGames.map(g => `<ul class="grp list" style="margin-bottom:14px">${head(g)}${mine.filter(b => b.gameId === g.id).map(b =>
-        `<li><div class="row"><span class="tip" style="flex:1">${esc(b.prediction)}</span><span class="amt">${chf(BET_COST)}</span><span class="tl-res no">Offe</span></div></li>`).join('')}</ul>`).join('')
+        `<li><div class="row"><span class="tip" style="flex:1">${esc(b.prediction)}</span><span class="amt">${chf(BET_COST)}</span><span class="tl-res open">Offe</span></div></li>`).join('')}</ul>`).join('')
     : `<div class="grp empty"><div class="empty-s">Kei offeni Tipps.</div>${upcoming().some(g => phase(g) === 'open') ? `<button class="btn-secondary" onclick="showView('home')">Jetzt tippe</button>` : ''}</div>`;
   const doneGames = settled().filter(g => mine.some(b => b.gameId === g.id));
   $('mt-done-block').hidden = !doneGames.length;
@@ -626,23 +627,23 @@ function renderMyTips() {
 // ---- Rangliste ----
 function renderRanking() {
   const rows = ranking(), uid = state.user.uid, wrap = $('leaderboard');
-  $('lb-count').textContent = rows.length ? plural(rows.length, 'Spieler', 'Spieler') : '';
+  $('lb-count').textContent = rows.length ? plural(rows.length, 'Spieler', 'Spieler') + ', nach Siege' : 'nach Siege';
   const idx = rows.findIndex(r => r.uid === uid), me = idx >= 0 ? rows[idx] : { bets: 0, wins: 0 };
   const lead = rows[0], gap = lead && idx > 0 ? lead.wins - me.wins : 0;
-  $('my-rank').innerHTML = statsGrp([[idx >= 0 ? '#' + (idx + 1) : '0', 'Position'], [idx >= 0 ? gap : '0', 'Rückstand'], [me.bets, 'Tipps'], [me.wins, 'Siege']])
+  $('my-rank').innerHTML = statsGrp([[idx >= 0 ? '#' + (idx + 1) : '0', 'Position', 'c-blue'], [idx >= 0 ? gap : '0', 'Rückstand'], [me.bets, 'Tipps'], [me.wins, 'Siege', 'c-green']])
     + (idx >= 0
       ? `<p class="fine">${idx === 0 ? 'Du füehrsch d\'Rangliste.' : 'Rückstand: Siege hinter Platz 1.'} Bi Gliichstand zellt dr Gwinn, denn d'Aazahl Tipps.</p>`
       : `<p class="fine">Du hesch no kei Tipp abgäh.</p><button class="btn-secondary" style="margin-top:10px" onclick="showView('home')">Jetzt tippe</button>`);
   if (!rows.length) { wrap.innerHTML = '<div class="grp empty"><div class="empty-s">D\'Rangliste erschiint nach em erschte Tipp.</div></div>'; return; }
   const max = Math.max(lead.wins, 1);
   wrap.innerHTML = `<ul class="grp list">${rows.map((r, i) => {
-    const tags = BADGES.filter(b => b.done(r)).map(b => b.name), d = lead.wins - r.wins;
-    return `<li><div class="row ${i === 0 ? 'lead' : ''} ${r.uid === uid ? 'me-row' : ''}" style="align-items:flex-start">
-      <span class="rank">${i + 1}</span>
+    const tags = BADGES.map((b, bi) => b.done(r) ? { name: b.name, c: bi } : null).filter(Boolean), d = lead.wins - r.wins;
+    return `<li><div class="row ${i < 3 ? 't' + (i + 1) : ''} ${r.uid === uid ? 'me-row' : ''}" style="align-items:flex-start">
+      <span class="rank${i < 3 ? ' m' + (i + 1) : ''}">${i + 1}</span>
       <div class="row-main">
         <div class="name"><span class="row-t">${esc(r.name)}</span>${tagMe(r.uid)}</div>
         <div class="row-s">${plural(r.bets, 'Tipp', 'Tipps')}, Gwinn ${chf(r.earned)}${i > 0 && d > 0 ? `, ${plural(d, 'Sieg', 'Siege')} Rückstand` : ''}</div>
-        ${tags.length ? `<div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
+        ${tags.length ? `<div class="tags">${tags.map(t => `<span class="tag c${t.c}">${t.name}</span>`).join('')}</div>` : ''}
         <div class="track"><i style="width:${Math.max(3, Math.round(r.wins / max * 100))}%"></i></div>
       </div>
       <div class="lb-score"><b class="num">${r.wins}</b><span>${r.wins === 1 ? 'Sieg' : 'Siege'}</span></div>
@@ -653,7 +654,7 @@ function renderRanking() {
 // ---- Kasse ----
 function renderKasse(up) {
   const uid = state.user.uid, konto = computedKonto(), s = userStats(uid);
-  $('kasse-bier').innerHTML = `<div class="grp">
+  $('kasse-bier').innerHTML = `<div class="grp beer">
       <div class="big"><div class="k">Bierkässeli</div><div class="v num">${chf(konto)}</div><div class="s">${konto >= BEER_PRICE ? 'Reicht für ca. ' + Math.floor(konto / BEER_PRICE) + ' Bier' : 'No leer'}</div></div>
     </div>
     <div class="grp two">
@@ -670,8 +671,8 @@ function renderKasse(up) {
   const gameName = id => { const g = state.games.find(x => x.id === id); return g ? matchName(g) : ''; };
   const group = (title, list, key, btn) => {
     const people = byPerson(list, key), total = list.reduce((a, t) => a + t.amount, 0);
-    return `<ul class="grp list" style="margin-bottom:14px">
-      <li><div class="row"><div class="row-main"><div class="k">${title}</div><div class="v num">${chf(total)}</div></div></div></li>
+    return `<div class="grp ${key === 'to' ? 'owe-card' : 'get-card'}" style="margin-bottom:12px"><div class="big"><div class="k">${title}</div><div class="v num">${chf(total)}</div></div></div>
+      <ul class="grp list" style="margin-bottom:14px">
       ${people.map(p => `<li><div class="row"><div class="row-main"><div class="row-t">${esc(nameOf(p.uid))}</div><div class="row-s">${[...p.games].map(gameName).map(esc).join(', ')}</div></div>
         <span class="num" style="font-weight:700">${chf(p.amount)}</span><button class="btn-secondary btn-small" data-key="${key}" data-uid="${p.uid}">${btn}</button></div></li>`).join('')}</ul>`;
   };
@@ -702,10 +703,11 @@ function renderProfil() {
   const u = state.user, s = userStats(u.uid), name = u.displayName || u.email;
   $('profil').innerHTML = `<div class="grp"><div class="row" style="padding:14px 16px"><div class="avatar">${esc(initials(name))}</div>
       <div class="row-main"><div class="prof-n"><span>${esc(name)}</span>${state.isAdmin ? '<span class="tag-me">CEO</span>' : ''}</div><div class="row-s">${esc(u.email || '')}</div></div></div></div>`
-    + statsGrp([[s.bets, 'Tipps'], [s.wins, 'Siege'], [amt(s.earned), 'Gwinn'], [amt(s.bier), 'Bierkässeli']]);
-  $('badges').innerHTML = BADGES.map(b => {
+    + statsGrp([[s.bets, 'Tipps', 'c-blue'], [s.wins, 'Siege', 'c-green'], [amt(s.earned), 'Gwinn', 'c-green'], [amt(s.bier), 'Bierkässeli', 'c-amber']]);
+  const tint = ['t-amber', 't-blue', 't-green', 't-purple'], bico = ['trophy', 'ticket', 'check', 'check'];
+  $('badges').innerHTML = BADGES.map((b, i) => {
     const ok = b.done(s);
-    return `<li><div class="row ${ok ? 'on' : ''}"><div class="row-main"><div class="row-t">${b.name}</div><div class="row-s">${b.text}</div></div><span class="badge-p num">${ok ? icon('check') + 'Erreicht' : b.prog(s)}</span></div></li>`;
+    return `<li><div class="row ${ok ? 'on' : ''}"><span class="tile ${ok ? tint[i] : 't-grey'}">${icon(bico[i])}</span><div class="row-main"><div class="row-t">${b.name}</div><div class="row-s">${b.text}</div></div><span class="badge-p num">${ok ? icon('check') + 'Erreicht' : b.prog(s)}</span></div></li>`;
   }).join('');
   const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   $('install-block').hidden = !!standalone;
@@ -718,14 +720,14 @@ function renderAdmin(up, done) {
   let dash = '<section class="sec" style="margin-top:22px">';
   if (g) {
     const n = betsFor(g.id).length, t = times(g);
-    dash += `<div class="sec-h"><h2>Nächschts Spiel</h2></div>
+    dash += secTile('t-blue', 'i-home', 'Nächschts Spiel') + `
       <div class="grp"><div class="row"><div class="row-main"><div class="row-t">${esc(matchName(g))}</div><div class="row-s">${esc(dateLong(t.kick))}, ${hm(t.kick)}</div><div class="row-s">Tipp-Stopp ${hm(t.stop)}, sichtbar ab ${hm(t.reveal)}</div></div>${statusHtml(g)}</div></div>
-      ${statsGrp([[n, 'Tipps'], [amt(n * BET_COST), 'Iinahme'], [amt(n * HALF), 'Jackpot'], [amt(n * HALF), 'Bierkässeli']])}`;
+      ${statsGrp([[n, 'Tipps', 'c-blue'], [amt(n * BET_COST), 'Iinahme'], [amt(n * HALF), 'Jackpot', 'c-blue'], [amt(n * HALF), 'Bierkässeli', 'c-amber']])}`;
   } else dash += `<div class="grp empty"><div class="empty-t">Kei plannts Spiel</div><button class="btn-secondary" onclick="setAdminTab('spiel')">${icon('plus')}Spiel erstelle</button></div>`;
   dash += '</section>';
-  if (pendingGames.length) dash += `<section class="sec"><div class="sec-h"><h2>Z'erledige</h2></div><ul class="grp list">${pendingGames.map(x =>
-    `<li><button class="row tap" onclick="setAdminTab('resultat')"><div class="row-main"><div class="row-t">Resultat erfasse</div><div class="row-s">${esc(matchName(x))}</div></div>${statusHtml(x)}${icon('chev', 'chev')}</button></li>`).join('')}</ul></section>`;
-  dash += `<section class="sec"><div class="sec-h"><h2>Saison</h2></div>${statsGrp([[amt(konto), 'Bierkässeli'], [done.length, 'Abgrechnet'], [new Set(state.bets.map(b => b.userId)).size, 'Spieler']])}
+  if (pendingGames.length) dash += `<section class="sec">` + secTile('t-amber', 'i-check', 'Z\'erledige') + `<ul class="grp list">${pendingGames.map(x =>
+    `<li><button class="row tap" onclick="setAdminTab('resultat')"><span class="tile t-amber">${icon('check')}</span><div class="row-main"><div class="row-t">Resultat erfasse</div><div class="row-s">${esc(matchName(x))}</div></div>${statusHtml(x)}${icon('chev', 'chev')}</button></li>`).join('')}</ul></section>`;
+  dash += `<section class="sec">` + secTile('t-purple', 'i-trophy', 'Saison') + `${statsGrp([[amt(konto), 'Bierkässeli', 'c-amber'], [done.length, 'Abgrechnet'], [new Set(state.bets.map(b => b.userId)).size, 'Spieler', 'c-blue']])}
     <div class="actions"><button class="btn-secondary" onclick="setAdminTab('spiel')">${icon('plus')}Spiel</button><button class="btn-secondary" onclick="setAdminTab('abrechnig')">Abrächnig</button></div></section>`;
   $('adm-dash').innerHTML = dash;
 
@@ -773,7 +775,7 @@ function renderAdmin(up, done) {
   });
 
   const rows = ranking(), sumBier = rows.reduce((a, r) => a + r.bier, 0);
-  $('adm-billing').innerHTML = `<section class="sec" style="margin-top:22px"><div class="sec-h"><h2>Bierkässeli pro Person</h2><span>am Saisonändi</span></div>
+  $('adm-billing').innerHTML = `<section class="sec" style="margin-top:22px">` + secTile('t-amber', 'i-wallet', 'Bierkässeli pro Person', 'am Saisonändi') + `
     <ul class="grp list">
       <li><div class="row billing"><span class="h">Name</span><span class="h r">Tipps</span><span class="h r">Bierkässeli</span></div></li>
       ${rows.map(r => `<li><div class="row billing"><div style="min-width:0"><div class="row-t">${esc(r.name)}</div><div class="row-s">Jackpot-Saldo ${r.jackpotNet > 0 ? '+ ' : ''}${chf(r.jackpotNet)}</div></div><span class="r num">${r.bets}</span><span class="r num" style="font-weight:700">${chf(r.bier)}</span></div></li>`).join('')}
