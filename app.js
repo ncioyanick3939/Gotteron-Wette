@@ -661,7 +661,7 @@ function renderKasse(up) {
       <div><div class="k">Du zahlsch am Saisonändi</div><div class="v num">${chf(s.bier)}</div></div>
       <div><div class="k">Total vo allne</div><div class="v num">${chf(konto)}</div></div>
     </div>
-    <p class="fine">CHF 2.50 vo jedem Tipp, plus dr Jackpot vo Spiel ohni richtige Tipp.</p>`;
+    <p class="fine">${chf(HALF)} vo jedem Tipp, plus dr Jackpot vo Spiel ohni richtige Tipp.</p>`;
 
   const open = openTransfers(), owe = open.filter(t => t.from === uid), get = open.filter(t => t.to === uid);
   const byPerson = (list, key) => Object.values(list.reduce((m, t) => {
