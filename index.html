@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F2F2F7">
+<meta name="theme-color" content="#12377F">
 <title>Gottéron Spielwette</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Spielwette">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -303,6 +303,31 @@ main.shell{padding-bottom:calc(104px + var(--safe-b))}
 .auth-info .gold .v{color:var(--amber)}
 .frow .tile{margin-right:2px}
 
+/* ---------- Blaue Hintergrund (nume i dr App, nid im Login) ---------- */
+body.blue{background:#12377F}
+body.blue #app-content .lt h1,body.blue #app-content .sec-h h2,body.blue .navbar-in{color:#fff}
+body.blue #app-content .lt-a,body.blue #app-content .sec-h span,body.blue #app-content .fine,body.blue #app-content .msg,body.blue #app-content .sec-note,body.blue #app-content .field-note{color:rgba(255,255,255,.82)}
+body.blue #app-content .msg b{color:#fff}
+body.blue .navbar{background:#12377F;border-bottom-color:rgba(255,255,255,.2)}
+body.blue #app-content .seg{background:rgba(255,255,255,.2)}
+body.blue #app-content .seg-b{color:rgba(255,255,255,.85)}
+body.blue #app-content .seg-b.is-active{background:#fff;color:var(--text)}
+body.blue #app-content .btn-secondary{background:rgba(255,255,255,.16);color:#fff}
+body.blue #app-content .grp .btn-secondary{background:var(--fill);color:var(--blue)}
+body.blue #app-content .qt{background:rgba(255,255,255,.16);color:#fff}
+body.blue #app-content .qt.is-on{background:#fff;color:var(--blue)}
+body.blue #app-content .add-btn{background:rgba(255,255,255,.16);color:#fff}
+body.blue #app-content .chip{background:rgba(255,255,255,.22);color:#fff}
+body.blue #app-content .back-link{color:#fff}
+body.blue #app-content .m-meta{background:#0E2B66}
+body.blue #app-content .grp .fine,body.blue #app-content .grp .msg{color:var(--text-2)}
+
+/* ---------- Variante: blaui Menü-Leischte ---------- */
+body.bluebar .tabbar{background:var(--blue);border-top:1px solid rgba(255,255,255,.26)}
+body.bluebar .tab{color:rgba(255,255,255,.78)}
+body.bluebar .tab.is-active{color:#fff}
+body.bluebar .tab.is-active .ic{fill:#fff;fill-opacity:.22}
+
 @media(max-width:350px){
   .lt h1{font-size:30px}
   .m-team{font-size:18px}
@@ -317,7 +342,7 @@ main.shell{padding-bottom:calc(104px + var(--safe-b))}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
-<body>
+<body class="blue bluebar">
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-home" viewBox="0 0 24 24"><ellipse cx="12" cy="9" rx="8" ry="3.5"/><path d="M4 9v5c0 1.9 3.6 3.5 8 3.5s8-1.6 8-3.5V9"/></symbol>
@@ -357,11 +382,6 @@ main.shell{padding-bottom:calc(104px + var(--safe-b))}
     </div>
     <div class="auth-error" id="login-error" role="alert"></div>
     <button class="btn-primary" id="login-btn">Iilogge</button>
-    <div class="auth-info">
-      <div class="blue"><span class="k">Jackpot</span><div class="v num">CHF 2.50</div></div>
-      <div class="gold"><span class="k">Bierkässeli</span><div class="v num">CHF 2.50</div></div>
-    </div>
-    <p class="fine" style="text-align:center">So wird jede Tipp vo CHF 5.– ufteilt.</p>
     <a class="auth-link" href="aleitig.html">So funktioniert d'Spielwette</a>
   </div>
 </div>
