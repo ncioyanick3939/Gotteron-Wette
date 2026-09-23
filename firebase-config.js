@@ -13,4 +13,4 @@ export const firebaseConfig = {
 export const ADMIN_EMAIL = "nicoruettimann@gmx.ch";
 
 // Wieviel Franke choschtet eini Wett
-export const BET_COST = 5;
+export const BET_COST = 2;
