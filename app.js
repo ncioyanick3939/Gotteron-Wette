@@ -21,15 +21,22 @@ const LIVE_MIN = 150;               // so lang gilt es Spiel nach em Aaspiel als
 const DEF = { kickoff: '19:45', stopMin: 15, revealMin: 10, openHours: 48 };
 const TWINT_URL = '';               // Später e Twint-Link iifüege. Leer = Betrag wird kopiert.
 const QUICK = ['2:1', '3:1', '3:2', '4:2', '4:1', '1:2', '2:3', '1:3'];
+// Punkt: jede Tipp zellt, früeh tippe git meh, richtig tippe git am meischte
+const PTS = { tip: 1, win: 25 };
+// Speed-Bonus: ab em Öffne vom Spiel. Di erschte 10 Minute git's 100 Punkt,
+// denn jedi Stund 7% weniger. Nach 2 Täg isch me no bi ca. 3 Punkt.
+const SPEED = { start: 100, flatMin: 10, stepMin: 60, drop: .07 };
+const SEASON_BONUS = [.10, .06, .04];  // Aateil vom Bierkässeli für Platz 1, 2, 3
 const BADGES = [
   { name: 'Pokal', text: '10 Tipps abgäh', done: s => s.bets >= 10, prog: s => `${Math.min(s.bets, 10)} / 10` },
   { name: 'Stammgast', text: '25 Tipps abgäh', done: s => s.bets >= 25, prog: s => `${Math.min(s.bets, 25)} / 25` },
   { name: 'Glückspilz', text: '3 Spiel gwunne', done: s => s.wins >= 3, prog: s => `${Math.min(s.wins, 3)} / 3` },
-  { name: 'Treffsicher', text: 'Jedes gspilte Spiel gwunne, mindestens 2', done: s => s.played >= 2 && s.wins === s.played, prog: s => `${s.wins} / ${s.played}` }
+  { name: 'Treffsicher', text: 'Jedes gspilte Spiel gwunne, mindestens 2', done: s => s.played >= 2 && s.wins === s.played, prog: s => `${s.wins} / ${s.played}` },
+  { name: 'Früehstarter', text: '5 Tipps i de erschte 10 Minute abgäh', done: s => s.fast >= 5, prog: s => `${Math.min(s.fast, 5)} / 5` }
 ];
 
 const state = { user: null, isAdmin: false, games: [], bets: [], loaded: false, selectedId: null };
-const ui = { drafts: {}, slips: {}, results: {}, lastPot: {}, nextBoundary: Infinity, editId: null, home: true };
+const ui = { drafts: {}, slips: {}, results: {}, lastPot: {}, openTips: new Set(), nextBoundary: Infinity, editId: null, home: true };
 window._authMode = window._authMode || 'login';
 
 // ===== HELPERS =====
@@ -256,6 +263,25 @@ function settlement(g) {
   }));
   return out;
 }
+// Speed-Bonus: wie schnäll nach em Öffne vom Spiel isch tippt worde?
+function openMs(g) {
+  const t = times(g);
+  return t.open > 0 ? t.open : (g.createdAt || t.stop - 48 * 3600000);
+}
+function speedInfo(g, at = Date.now()) {
+  const open = openMs(g), flat = SPEED.flatMin * 60000, stepMs = SPEED.stepMin * 60000;
+  const el = Math.max(0, at - open);
+  const step = el < flat ? 0 : Math.floor((el - flat) / stepMs) + 1;
+  const pts = Math.max(0, Math.round(SPEED.start * Math.pow(1 - SPEED.drop, step)));
+  return { pts, step, dropAt: pts > 0 ? open + flat + step * stepMs : null };
+}
+const speedPoints = (g, bet) => speedInfo(g, bet.createdAt || 0).pts;
+// Punkt vo eim Tipp: Grundpunkt + Speed-Bonus + Sieg
+function betPoints(g, bet) {
+  return PTS.tip + speedPoints(g, bet)
+    + ((g.winnerBetIds || []).includes(bet.id) ? PTS.win : 0);
+}
+
 function computedKonto() {
   let total = state.bets.length * HALF;
   settled().forEach(g => { if (!Object.keys(payoutsOf(g)).length) total += betsFor(g.id).length * HALF; });
@@ -264,6 +290,13 @@ function computedKonto() {
 function userStats(uid) {
   const my = state.bets.filter(b => b.userId === uid);
   let wins = 0, earned = 0, played = 0, bier = my.length * HALF, jackpotStake = 0;
+  let points = 0, fast = 0;
+  my.forEach(b => {
+    const g = state.games.find(x => x.id === b.gameId);
+    if (!g) return;
+    points += betPoints(g, b);
+    if (speedPoints(g, b) === SPEED.start) fast++;
+  });
   settled().forEach(g => {
     const mine = betsFor(g.id).filter(b => b.userId === uid);
     if (mine.length) played++;
@@ -272,13 +305,24 @@ function userStats(uid) {
     if (!Object.keys(pay).length) bier += mine.length * HALF;
     else jackpotStake += mine.length * HALF;
   });
-  return { bets: my.length, wins, earned, played, bier, staked: my.length * BET_COST, jackpotNet: earned - jackpotStake };
+  return { bets: my.length, wins, earned, played, bier, points, fast, staked: my.length * BET_COST, jackpotNet: earned - jackpotStake };
 }
 function ranking() {
   const users = {};
   state.bets.forEach(b => { if (!users[b.userId]) users[b.userId] = b.userName || '?'; });
   return Object.entries(users).map(([uid, name]) => ({ uid, name, ...userStats(uid) }))
-    .sort((a, b) => b.wins - a.wins || b.earned - a.earned || b.bets - a.bets);
+    .sort((a, b) => b.points - a.points || b.wins - a.wins || b.bets - a.bets);
+}
+
+// Saison-Bonus: Platz 1 bis 3 chöi am Fescht für dä Betrag uf Koschte vom Bierkässeli trinke
+function seasonBonus() {
+  const konto = computedKonto(), rows = ranking();
+  return SEASON_BONUS.map((share, i) => ({
+    rank: i + 1, share,
+    amount: rows[i] && rows[i].points > 0 ? konto * share : 0,
+    uid: rows[i] ? rows[i].uid : null,
+    name: rows[i] && rows[i].points > 0 ? rows[i].name : null
+  }));
 }
 
 // Erledigti Twint-Zahlige (pro Grät gspeicheret)
@@ -563,18 +607,38 @@ function renderTipsList(g) {
   if (!g || phase(g) === 'planned') { tb.hidden = true; return; }
   tb.hidden = false;
   const bets = betsFor(g.id), uid = state.user.uid, t = times(g), see = canSeeAll(g), hint = $('tips-hint');
-  $('tips-count').textContent = bets.length ? plural(bets.length, 'Tipp', 'Tipps') : '';
+  // Pro Spieler ei Zile. Wär meh als ein Tipp het, cha me ufchlappe.
+  const groups = [];
+  bets.forEach(b => {
+    let gr = groups.find(x => x.uid === b.userId);
+    if (!gr) groups.push(gr = { uid: b.userId, name: b.userName || '?', tips: [] });
+    gr.tips.push(b.prediction);
+  });
+  $('tips-count').textContent = bets.length
+    ? plural(bets.length, 'Tipp', 'Tipps') + ' vo ' + plural(groups.length, 'Spieler', 'Spieler') : '';
   hint.hidden = isRevealed(g);
   hint.textContent = isRevealed(g) ? '' : state.isAdmin
     ? `Nume du gsehsch alli Tipps. Für di andere sichtbar ab ${hm(t.reveal)}.`
     : `Tipps sy bis ${hm(t.reveal)} verdeckt. Dini eigete gsehsch immer.`;
-  $('tips').innerHTML = bets.length
-    ? bets.map(b => {
-        const show = see || b.userId === uid;
-        return `<li><div class="row"><span class="name"><span>${esc(b.userName || '?')}</span>${tagMe(b.userId)}</span>${show
-          ? `<span class="tip">${esc(b.prediction)}</span>` : `<span class="hidden-tip">${icon('lock')}verdeckt</span>`}</div></li>`;
+  $('tips').innerHTML = groups.length
+    ? groups.map(gr => {
+        const show = see || gr.uid === uid, many = gr.tips.length > 1;
+        const key = g.id + '|' + gr.uid, isOpen = ui.openTips.has(key), canOpen = many && show;
+        const right = !show
+          ? `<span class="hidden-tip">${icon('lock')}${many ? plural(gr.tips.length, 'Tipp', 'Tipps') : 'verdeckt'}</span>`
+          : many
+            ? `<span class="tl-res open">${plural(gr.tips.length, 'Tipp', 'Tipps')}</span>${icon('chev', 'chev' + (isOpen ? ' turn' : ''))}`
+            : `<span class="tip">${esc(gr.tips[0])}</span>`;
+        const name = `<span class="name"><span>${esc(gr.name)}</span>${tagMe(gr.uid)}</span>${right}`;
+        return `<li>${canOpen ? `<button class="row tap" data-tu="${esc(key)}" aria-expanded="${isOpen}">${name}</button>` : `<div class="row">${name}</div>`}
+          ${canOpen && isOpen ? `<div class="subtips">${gr.tips.map(x => `<span class="chip-t">${esc(x)}</span>`).join('')}</div>` : ''}</li>`;
       }).join('')
     : `<li><div class="row"><span class="row-s">No kei Tipps. Du chasch dr Erscht sy.</span></div></li>`;
+  $('tips').querySelectorAll('[data-tu]').forEach(el => el.addEventListener('click', () => {
+    const k = el.dataset.tu;
+    ui.openTips.has(k) ? ui.openTips.delete(k) : ui.openTips.add(k);
+    renderTipsList(g);
+  }));
 }
 
 function renderLast(done) {
@@ -627,26 +691,28 @@ function renderMyTips() {
 // ---- Rangliste ----
 function renderRanking() {
   const rows = ranking(), uid = state.user.uid, wrap = $('leaderboard');
-  $('lb-count').textContent = rows.length ? plural(rows.length, 'Spieler', 'Spieler') + ', nach Siege' : 'nach Siege';
-  const idx = rows.findIndex(r => r.uid === uid), me = idx >= 0 ? rows[idx] : { bets: 0, wins: 0 };
-  const lead = rows[0], gap = lead && idx > 0 ? lead.wins - me.wins : 0;
-  $('my-rank').innerHTML = statsGrp([[idx >= 0 ? '#' + (idx + 1) : '0', 'Position', 'c-blue'], [idx >= 0 ? gap : '0', 'Rückstand'], [me.bets, 'Tipps'], [me.wins, 'Siege', 'c-green']])
+  $('lb-count').textContent = rows.length ? plural(rows.length, 'Spieler', 'Spieler') + ', nach Punkt' : 'nach Punkt';
+  const idx = rows.findIndex(r => r.uid === uid), me = idx >= 0 ? rows[idx] : { bets: 0, wins: 0, points: 0 };
+  const lead = rows[0];
+  const bonus = seasonBonus().find(b => b.uid === uid && b.amount > 0);
+  $('my-rank').innerHTML = statsGrp([[idx >= 0 ? '#' + (idx + 1) : '0', 'Position', 'c-blue'], [me.points, 'Punkt', 'c-blue'], [me.bets, 'Tipps'], [me.wins, 'Siege', 'c-green']])
     + (idx >= 0
-      ? `<p class="fine">${idx === 0 ? 'Du füehrsch d\'Rangliste.' : 'Rückstand: Siege hinter Platz 1.'} Bi Gliichstand zellt dr Gwinn, denn d'Aazahl Tipps.</p>`
+      ? `<p class="fine">${idx === 0 ? 'Du füehrsch d\'Rangliste.' : 'Bi Gliichstand zelle d\'Siege, denn d\'Aazahl Tipps.'}</p>`
+        + (bonus ? `<div class="grp bonus-card" style="margin-top:12px"><div class="row"><span class="tile t-amber">${icon('trophy')}</span><div class="row-main"><div class="row-t">Din Saison-Bonus</div><div class="row-s">Platz ${bonus.rank} · ${Math.round(bonus.share * 100)}% vom Bierkässeli</div></div><b class="num" style="font-size:19px">${chf(bonus.amount)}</b></div></div>` : '')
       : `<p class="fine">Du hesch no kei Tipp abgäh.</p><button class="btn-secondary" style="margin-top:10px" onclick="showView('home')">Jetzt tippe</button>`);
   if (!rows.length) { wrap.innerHTML = '<div class="grp empty"><div class="empty-s">D\'Rangliste erschiint nach em erschte Tipp.</div></div>'; return; }
-  const max = Math.max(lead.wins, 1);
+  const max = Math.max(lead.points, 1);
   wrap.innerHTML = `<ul class="grp list">${rows.map((r, i) => {
-    const tags = BADGES.map((b, bi) => b.done(r) ? { name: b.name, c: bi } : null).filter(Boolean), d = lead.wins - r.wins;
+    const tags = BADGES.map((b, bi) => b.done(r) ? { name: b.name, c: bi % 5 } : null).filter(Boolean);
     return `<li><div class="row ${i < 3 ? 't' + (i + 1) : ''} ${r.uid === uid ? 'me-row' : ''}" style="align-items:flex-start">
       <span class="rank${i < 3 ? ' m' + (i + 1) : ''}">${i + 1}</span>
       <div class="row-main">
         <div class="name"><span class="row-t">${esc(r.name)}</span>${tagMe(r.uid)}</div>
-        <div class="row-s">${plural(r.bets, 'Tipp', 'Tipps')}, Gwinn ${chf(r.earned)}${i > 0 && d > 0 ? `, ${plural(d, 'Sieg', 'Siege')} Rückstand` : ''}</div>
+        <div class="row-s">${plural(r.bets, 'Tipp', 'Tipps')}, ${plural(r.wins, 'Sieg', 'Siege')}, Gwinn ${chf(r.earned)}</div>
         ${tags.length ? `<div class="tags">${tags.map(t => `<span class="tag c${t.c}">${t.name}</span>`).join('')}</div>` : ''}
-        <div class="track"><i style="width:${Math.max(3, Math.round(r.wins / max * 100))}%"></i></div>
+        <div class="track"><i style="width:${Math.max(3, Math.round(r.points / max * 100))}%"></i></div>
       </div>
-      <div class="lb-score"><b class="num">${r.wins}</b><span>${r.wins === 1 ? 'Sieg' : 'Siege'}</span></div>
+      <div class="lb-score"><b class="num">${r.points}</b><span>${r.points === 1 ? 'Punkt' : 'Punkt'}</span></div>
     </div></li>`;
   }).join('')}</ul>`;
 }
@@ -692,6 +758,13 @@ function renderKasse(up) {
     try { await navigator.clipboard.writeText(total); toast('Betrag ' + total + ' kopiert. Öffne jetzt d\'Twint-App.'); }
     catch (e) { toast('Öffne d\'Twint-App und überwiis ' + chf(Number(total))); }
   });
+  const bon = seasonBonus(), medal = ['m1', 'm2', 'm3'];
+  $('bonus').innerHTML = `<ul class="grp list">${bon.map((b, i) => `<li><div class="row">
+      <span class="rank ${medal[i]}">${b.rank}</span>
+      <div class="row-main"><div class="row-t">${b.name ? esc(b.name) + (b.uid === uid ? ' (Du)' : '') : 'No offe'}</div><div class="row-s">${Math.round(b.share * 100)}% vom Bierkässeli${b.amount >= BEER_PRICE ? ', ca. ' + Math.floor(b.amount / BEER_PRICE) + ' Bier' : ''}</div></div>
+      <b class="num" style="font-size:18px">${chf(b.amount)}</b></div></li>`).join('')}</ul>
+    <p class="fine">Am Saisonfescht trinke di erschte drei us dr Rangliste für dä Betrag uf Koschte vom Bierkässeli. Dr Rescht (${chf(konto * (1 - SEASON_BONUS.reduce((a, x) => a + x, 0)))}) isch für alli zäme.</p>`;
+
   const withBets = up.filter(g => betsFor(g.id).length);
   $('jackpots').innerHTML = withBets.length
     ? `<ul class="grp list">${withBets.map(g => { const n = betsFor(g.id).length, t = times(g); return `<li><div class="row"><div class="row-main"><div class="row-t">${esc(matchName(g))}</div><div class="row-s">${esc(dateShort(t.kick))}, ${hm(t.kick)}, ${plural(n, 'Tipp', 'Tipps')}</div></div><span class="num" style="font-weight:800;font-size:18px">${chf(n * HALF)}</span></div></li>`; }).join('')}</ul>`
@@ -703,8 +776,8 @@ function renderProfil() {
   const u = state.user, s = userStats(u.uid), name = u.displayName || u.email;
   $('profil').innerHTML = `<div class="grp"><div class="row" style="padding:14px 16px"><div class="avatar">${esc(initials(name))}</div>
       <div class="row-main"><div class="prof-n"><span>${esc(name)}</span>${state.isAdmin ? '<span class="tag-me">CEO</span>' : ''}</div><div class="row-s">${esc(u.email || '')}</div></div></div></div>`
-    + statsGrp([[s.bets, 'Tipps', 'c-blue'], [s.wins, 'Siege', 'c-green'], [amt(s.earned), 'Gwinn', 'c-green'], [amt(s.bier), 'Bierkässeli', 'c-amber']]);
-  const tint = ['t-amber', 't-blue', 't-green', 't-purple'], bico = ['trophy', 'ticket', 'check', 'check'];
+    + statsGrp([[s.points, 'Punkt', 'c-blue'], [s.bets, 'Tipps'], [s.wins, 'Siege', 'c-green'], [amt(s.bier), 'Bierkässeli', 'c-amber']]);
+  const tint = ['t-amber', 't-blue', 't-green', 't-purple', 't-red'], bico = ['trophy', 'ticket', 'check', 'check', 'clock'];
   $('badges').innerHTML = BADGES.map((b, i) => {
     const ok = b.done(s);
     return `<li><div class="row ${ok ? 'on' : ''}"><span class="tile ${ok ? tint[i] : 't-grey'}">${icon(bico[i])}</span><div class="row-main"><div class="row-t">${b.name}</div><div class="row-s">${b.text}</div></div><span class="badge-p num">${ok ? icon('check') + 'Erreicht' : b.prog(s)}</span></div></li>`;
