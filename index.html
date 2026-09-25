@@ -88,6 +88,9 @@ main.shell{padding-bottom:calc(104px + var(--safe-b))}
 .won .tip{color:var(--green)}
 .hidden-tip{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--text-3);white-space:nowrap}
 .hidden-tip .ic{width:15px;height:15px}
+.chev.turn{transform:rotate(90deg)}
+.subtips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px}
+.chip-t{font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;background:var(--fill);border-radius:8px;padding:3px 11px}
 .empty{padding:22px 16px}
 .empty-t{font-size:19px;font-weight:700}
 .empty-s{margin:4px 0 0;color:var(--text-2);font-size:15px}
@@ -229,6 +232,10 @@ main.shell{padding-bottom:calc(104px + var(--safe-b))}
 .tag.c1{background:var(--blue-soft);color:var(--blue)}
 .tag.c2{background:var(--green-soft);color:var(--green)}
 .tag.c3{background:var(--purple-soft);color:var(--purple)}
+.tag.c4{background:var(--red-soft);color:var(--red)}
+.grp.bonus-card{background:#F8F2E6}
+.grp.bonus-card .row-t{color:var(--amber)}
+.grp.bonus-card b.num{color:var(--amber)}
 .track{height:3px;border-radius:2px;background:var(--fill);margin-top:8px;overflow:hidden}
 .track i{display:block;height:100%;background:var(--blue);border-radius:2px}
 .t1 .track i{background:#D9A93C}.t2 .track i{background:#A8AEB6}.t3 .track i{background:#C38B5F}
@@ -351,6 +358,7 @@ body.bluebar .tab.is-active .ic{fill:#fff;fill-opacity:.22}
   <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H17v3"/><path d="M4 7.5V17a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H6.5A2.5 2.5 0 0 1 4 7.5z"/><path d="M16 13.5h1"/></symbol>
   <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.2 3.8-5 7-5s5.8 1.8 7 5"/></symbol>
   <symbol id="i-admin" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9.5" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
@@ -438,6 +446,7 @@ body.bluebar .tab.is-active .ic{fill:#fff;fill-opacity:.22}
   <section class="view" id="view-kasse" data-title="Kasse" hidden>
     <header class="lt"><h1>Kasse</h1><span class="lt-a">Saison 26/27</span></header>
     <div id="kasse-bier"></div>
+    <section class="sec"><div class="sec-h"><h2><span class="tile t-amber"><svg class="ic" aria-hidden="true"><use href="#i-trophy"/></svg></span>Saison-Bonus</h2><span>am Saisonfescht</span></div><div id="bonus"></div></section>
     <section class="sec"><div class="sec-h"><h2><span class="tile t-red"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg></span>Twint</h2><span>nach jedem Spiel</span></div><div id="twint"></div></section>
     <section class="sec"><div class="sec-h"><h2><span class="tile t-blue"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg></span>Offeni Jackpots</h2></div><div id="jackpots"></div></section>
   </section>
