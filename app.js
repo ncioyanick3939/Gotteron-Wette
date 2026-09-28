@@ -173,6 +173,11 @@ function applyBranding() {
   document.title = GROUP.name;
   const t = $('auth-title'); if (t) t.textContent = GROUP.name;
   [$('auth-guide'), $('guide-link')].forEach(a => { if (a) a.href = GROUP.guide; });
+  // Eigets App-Manifest pro Gruppe, damit d'installierti App i dr richtige Gruppe startet
+  const mf = document.querySelector('link[rel="manifest"]');
+  if (mf && GROUP.manifest) mf.setAttribute('href', GROUP.manifest);
+  const at = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+  if (at && GROUP.appName) at.setAttribute('content', GROUP.appName);
   translateDom(document.body);
 }
 
