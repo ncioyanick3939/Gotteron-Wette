@@ -14,3 +14,31 @@ export const ADMIN_EMAIL = "nicoruettimann@gmx.ch";
 
 // Wieviel Franke choschtet eini Wett
 export const BET_COST = 2;
+
+// ===== GRUPPE =====
+// Jedi Gruppe het ihri eigene Spiel, Tipps, Jackpot, Rangliste und Bierkässeli.
+// Si gseh enand nie. Zuegang über dr Link:
+//   Gruppe 1: .../Gotteron-Wette/
+//   Gruppe 2: .../Gotteron-Wette/?g=flotten4
+// lang: 'ch' = Mundart, 'de' = Hochdütsch
+export const GROUPS = {
+  gotteron: {
+    id: 'gotteron',
+    name: 'Gottéron Spielwette',
+    lang: 'ch',
+    stake: 2,
+    ceo: 'nicoruettimann@gmx.ch',
+    guide: 'aleitig.html'
+  },
+  flotten4: {
+    id: 'flotten4',
+    name: 'Die flotten 4',
+    lang: 'de',
+    stake: 2,
+    ceo: 'nicoruettimann@gmx.ch',
+    guide: 'anleitung.html'
+  }
+};
+
+// Wenn im Link kei Gruppe staht, gilt die do. Alti Date ohni Gruppe ghöre au dere.
+export const DEFAULT_GROUP = 'gotteron';
