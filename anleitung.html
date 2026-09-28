@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F2F2F7">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Anleitung · Die flotten 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400..800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F2F2F7;--card:#fff;--fill:#EEF0F4;--sep:#E5E6EB;--text:#111318;--text-2:#646B76;--text-3:#9AA0A8;--blue:#1747C9;--blue-soft:#E8EEFB;--green:#15803D;
+  --f:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter Tight","Segoe UI",Roboto,sans-serif}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.shell{max-width:600px;margin:0 auto;padding:0 16px}
+.num{font-variant-numeric:tabular-nums}
+.money{color:var(--text)}
+.topbar{position:sticky;top:0;z-index:10;background:rgba(242,242,247,.9);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--sep);padding-top:env(safe-area-inset-top)}
+.topbar-in{display:flex;align-items:center;justify-content:space-between;height:48px}
+.brand{font-weight:700;font-size:16px;color:var(--text);text-decoration:none}
+.top-link{font-size:16px;font-weight:600;color:var(--blue);text-decoration:none}
+.hero{padding:28px 4px 8px}
+.rink{display:none}
+h1{margin:0;font-size:32px;line-height:1.12;font-weight:800;letter-spacing:-.025em}
+.lead{margin:10px 0 0;color:var(--text-2);font-size:17px}
+section{margin-top:18px;background:var(--card);border-radius:16px;padding:18px 16px}
+h2{margin:0 0 10px;font-size:20px;font-weight:700;letter-spacing:-.015em}
+p{margin:0 0 10px;color:var(--text-2)}
+p b,li b,strong{color:var(--text);font-weight:600}
+.steps{list-style:none;margin:6px 0 0;padding:0;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:30px 1fr;gap:2px 10px;padding:12px 0;border-top:1px solid var(--sep);color:var(--text-2)}
+.steps li::before{content:counter(s);grid-row:span 2;width:24px;height:24px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;font-size:13px;font-weight:700;margin-top:1px}
+.facts{margin:6px 0 0}
+.fact{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:11px 0;border-top:1px solid var(--sep)}
+.fact dt{color:var(--text-2)}
+.fact dd{margin:0;font-weight:700;text-align:right}
+.split{margin:14px 0 6px}
+.split-top{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px;color:var(--text-2)}
+.split-bar{display:flex;gap:3px;height:8px}
+.split-bar i{flex:1;background:var(--blue);border-radius:4px}
+.split-bar i + i{background:#9DB2EA}
+.split-legend{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.split-legend div + div{text-align:right}
+.split-v{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.split-l{font-size:13px;color:var(--text-3)}
+.cases{list-style:none;margin:4px 0 0;padding:0}
+.cases li{padding:11px 0 11px 14px;border-top:1px solid var(--sep);position:relative;color:var(--text-2)}
+.cases li::before{content:'';position:absolute;left:0;top:17px;width:6px;height:6px;border-radius:50%;background:var(--green)}
+.cases li.c-bier::before{background:var(--blue)}
+.pay{display:grid;grid-template-columns:1fr;margin-top:6px}
+.pay > div{padding:12px 0;border-top:1px solid var(--sep)}
+.pay h3{margin:0 0 3px;font-size:17px;font-weight:700}
+.pay p{margin:0}
+.when{display:inline-block;margin-bottom:6px;font-size:12px;font-weight:700;color:var(--blue);background:var(--blue-soft);border-radius:999px;padding:2px 9px}
+@media(min-width:560px){.pay{grid-template-columns:1fr 1fr;gap:0 18px}}
+.tags{list-style:none;margin:6px 0 0;padding:0}
+.tags li{display:grid;grid-template-columns:112px 1fr;gap:10px;align-items:baseline;padding:10px 0;border-top:1px solid var(--sep);color:var(--text-2)}
+.tag{justify-self:start;font-size:13px;font-weight:600;color:var(--text);background:var(--fill);border-radius:6px;padding:1px 8px}
+.cta{background:none;padding:10px 0 48px}
+.btn{display:flex;align-items:center;justify-content:center;height:52px;border-radius:14px;background:var(--blue);color:#fff;font-weight:600;font-size:17px;text-decoration:none}
+.foot{margin:14px 0 0;font-size:14px;color:var(--text-3);text-align:center}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="rink" viewBox="0 0 300 300"><circle cx="150" cy="150" r="118"/><circle cx="150" cy="150" r="5"/><line x1="150" y1="0" x2="150" y2="300"/><line x1="54" y1="0" x2="54" y2="300"/></symbol>
+</svg>
+
+<header class="topbar">
+  <div class="shell topbar-in">
+    <a class="brand" href="./?g=flotten4">Die flotten 4</a>
+    <a class="top-link" href="./?g=flotten4">Zur App</a>
+  </div>
+</header>
+
+<main class="shell">
+
+  <div class="hero">
+    <svg class="rink" aria-hidden="true"><use href="#rink"/></svg>
+    <h1>So funktioniert die Spielwette</h1>
+    <p class="lead">Du tippst das exakte Resultat von jedem Gottéron-Spiel. Wer richtig liegt, gewinnt den Jackpot. Die Hälfte aller Einsätze landet im Bierkässeli fürs Saisonende.</p>
+  </div>
+
+  <section>
+    <h2>Konto erstellen</h2>
+    <ol class="steps">
+      <li><strong>App öffnen</strong><span>Link auf dem Handy öffnen und als App installieren (wie, steht weiter unten).</span></li>
+      <li><strong>«Konto erstellen» wählen</strong><span>Name, E-Mail und ein Passwort mit mindestens 6 Zeichen eingeben. Den Namen sehen die anderen in der Rangliste.</span></li>
+      <li><strong>Ab jetzt einloggen</strong><span>Mit E-Mail und Passwort, auf jedem Gerät. Deine Tipps sind überall gleich.</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Tipp abgeben</h2>
+    <p>Im Tab <b>Spiel</b> siehst du das nächste Spiel. Mit <b>− und +</b> stellst du die Tore von Gottéron und vom Gegner ein, oder du wählst einen Schnelltipp wie 3:1. Mit <b>«Weiterer Tipp»</b> kannst du mehrere Resultate auf einmal tippen. Dann <b>«Tipp abgeben»</b>.</p>
+    <dl class="facts">
+      <div class="fact"><dt>Einsatz pro Tipp</dt><dd class="money num">CHF 2.–</dd></div>
+      <div class="fact"><dt>Tipps pro Spiel</dt><dd>So viele du willst</dd></div>
+      <div class="fact"><dt>Wetten öffnen</dt><dd>2 Tage vor dem Anspiel</dd></div>
+      <div class="fact"><dt>Tipp-Stopp</dt><dd class="num">19:30</dd></div>
+      <div class="fact"><dt>Tipps für alle sichtbar</dt><dd class="num">19:35</dd></div>
+    </dl>
+    <p style="margin-top:14px">Diese Zeiten gelten für ein Spiel um 19:45: Tipp-Stopp 15 Minuten, Tipps sichtbar 10 Minuten vor dem Anspiel. Bei anderen Anspielzeiten verschieben sie sich entsprechend. Der CEO kann sie pro Spiel anpassen. Ein Countdown zeigt immer, wie viel Zeit noch bleibt.</p>
+    <p>Bis die Tipps sichtbar sind, siehst du nur, <b>wer</b> getippt hat, aber nicht <b>was</b>. Deine eigenen Tipps siehst du immer. Nach dem Tipp-Stopp können Tipps nicht mehr abgegeben oder geändert werden.</p>
+    <p>In der Tipp-Liste steht jeder Spieler <b>einmal</b>. Wer mehrere Tipps hat, bei dem steht «2 Tipps» – einfach darauf tippen, dann klappen die einzelnen Resultate auf.</p>
+  </section>
+
+  <section>
+    <h2>Wohin das Geld geht</h2>
+    <p>Jeder Tipp wird in zwei gleiche Teile aufgeteilt:</p>
+    <div class="split" aria-label="CHF 1.– in den Jackpot, CHF 1.– ins Bierkässeli">
+      <div class="split-top"><span>Ein Tipp</span><span class="money num">CHF 2.–</span></div>
+      <div class="split-bar"><i></i><i></i></div>
+      <div class="split-legend">
+        <div><div class="split-v money num">CHF 1.–</div><div class="split-l">in den Jackpot von diesem Spiel</div></div>
+        <div><div class="split-v money num">CHF 1.–</div><div class="split-l">ins Bierkässeli</div></div>
+      </div>
+    </div>
+    <p style="margin-top:18px">Beispiel: 10 Tipps bei einem Spiel ergeben <b>CHF 10.–</b> Jackpot und <b>CHF 10.–</b> fürs Bierkässeli.</p>
+    <p>Nach dem Spiel trägt der CEO das Schlussresultat ein. Richtig ist, wer das exakte Resultat getippt hat. Die App rechnet alles automatisch.</p>
+    <ul class="cases">
+      <li class="c-win"><b>Ein richtiger Tipp:</b> bekommt den ganzen Jackpot.</li>
+      <li class="c-win"><b>Mehrere richtige Tipps:</b> der Jackpot wird gleichmässig pro richtigen Tipp aufgeteilt.</li>
+      <li class="c-bier"><b>Kein richtiger Tipp:</b> der Jackpot geht zusätzlich ins Bierkässeli.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Mindesteinsatz</h2>
+    <p>Damit das Bierkässeli für alle aufgeht, macht jeder über die Saison mindestens <b>CHF 50.–</b> Einsatz. Das sind <b>25 Tipps</b> – verteilt übers ganze Jahr, also ca. ein Tipp pro Spielwoche.</p>
+    <dl class="facts">
+      <div class="fact"><dt>Mindesteinsatz pro Saison</dt><dd class="money num">CHF 50.–</dd></div>
+      <div class="fact"><dt>Das entspricht</dt><dd>25 Tipps</dd></div>
+      <div class="fact"><dt>Davon ins Bierkässeli</dt><dd class="money num">CHF 25.–</dd></div>
+      <div class="fact"><dt>Davon in die Jackpots</dt><dd class="money num">CHF 25.–</dd></div>
+    </dl>
+    <p style="margin-top:14px">Wichtig: die zweite Hälfte ist <b>nicht weg</b>. Jeder Tipp ist ein Los auf den Jackpot von diesem Spiel – triffst du das Resultat, kommt das Geld direkt zurück. Der Mindesteinsatz ist deshalb keine Gebühr, sondern einfach die Zusage, dass du mitmachst.</p>
+    <p>Wer am Saisonende darunter ist, zahlt die Differenz ins Bierkässeli ein. Dein aktuelles Total siehst du jederzeit in der <b>Kasse</b>.</p>
+  </section>
+
+  <section>
+    <h2>Wann gezahlt wird</h2>
+    <div class="pay">
+      <div>
+        <span class="when">Nach jedem Spiel</span>
+        <h3>Jackpot</h3>
+        <p>In der <b>Kasse</b> siehst du, wem du wie viel per Twint schuldest oder wer dir etwas schuldet. Nach dem Überweisen auf «Erledigt» tippen.</p>
+      </div>
+      <div>
+        <span class="when">Am Saisonende</span>
+        <h3>Bierkässeli</h3>
+        <p>Dein Beitrag sammelt sich über die Saison und ist in der Kasse jederzeit sichtbar. Am Schluss wird eingezahlt und zusammen gefeiert. Wer unter dem Mindesteinsatz von CHF 50.– bleibt, zahlt die Differenz dann noch ein.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Punkte und Rangliste</h2>
+    <p>Die Rangliste läuft über <b>Punkte</b>. Es gibt Punkte fürs Tippen und für einen richtigen Tipp. Der grösste Teil kommt aber vom <b>Speed-Bonus</b>.</p>
+
+    <h3 style="margin:22px 0 4px;font-size:17px;font-weight:700">Speed-Bonus</h3>
+    <p>Sobald der CEO ein Spiel öffnet, läuft die Uhr. In den ersten Minuten gibt es am meisten, und danach sinkt der Bonus jede Stunde ein Stück. Meistens werden die Spiele etwa 2 Tage im Voraus aufgeschaltet: wer gleich tippt, wenn ein Spiel erscheint, sammelt über die Saison klar am meisten.</p>
+    <p>Der Bonus läuft im Hintergrund, du musst nichts rechnen. Deine Punkte siehst du in der <b>Rangliste</b> und im <b>Profil</b>. Bei Gleichstand entscheiden die Siege, dann die Anzahl Tipps.</p>
+    <ul class="tags">
+      <li><span class="tag">Pokal</span><span>10 Tipps abgeben</span></li>
+      <li><span class="tag">Stammgast</span><span>25 Tipps abgeben</span></li>
+      <li><span class="tag">Glückspilz</span><span>3 Spiele gewonnen</span></li>
+      <li><span class="tag">Treffsicher</span><span>Jedes gespielte Spiel gewonnen, mindestens 2</span></li>
+      <li><span class="tag">Frühstarter</span><span>5 Tipps in den ersten 10 Minuten abgeben</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Saison-Bonus</h2>
+    <p>Am Saisonfest zahlt das Bierkässeli die Getränke. Wer in der Rangliste vorne ist, trinkt zuerst auf Kosten des Kässelis:</p>
+    <dl class="facts">
+      <div class="fact"><dt>Platz 1</dt><dd>10% vom Bierkässeli</dd></div>
+      <div class="fact"><dt>Platz 2</dt><dd>6%</dd></div>
+      <div class="fact"><dt>Platz 3</dt><dd>4%</dd></div>
+    </dl>
+    <p style="margin-top:14px">Die übrigen 80% sind für alle zusammen. Den aktuellen Betrag siehst du jederzeit in der <b>Kasse</b>. Es kommt also kein zusätzliches Geld rein: der Bonus ist ein Vortritt am Fest, keine Auszahlung.</p>
+  </section>
+
+  <section>
+    <h2>Was findest du wo</h2>
+    <dl class="facts">
+      <div class="fact"><dt>Spiel</dt><dd style="font-stretch:100%;font-weight:500;font-size:15px">Nächstes Spiel, tippen, letztes Resultat</dd></div>
+      <div class="fact"><dt>Tipps</dt><dd style="font-stretch:100%;font-weight:500;font-size:15px">Alle deine Tipps, offen und ausgewertet</dd></div>
+      <div class="fact"><dt>Rangliste</dt><dd style="font-stretch:100%;font-weight:500;font-size:15px">Deine Punkte und deine Position</dd></div>
+      <div class="fact"><dt>Kasse</dt><dd style="font-stretch:100%;font-weight:500;font-size:15px">Bierkässeli, Saison-Bonus und Twint</dd></div>
+      <div class="fact"><dt>Profil</dt><dd style="font-stretch:100%;font-weight:500;font-size:15px">Statistik, Auszeichnungen, Ausloggen</dd></div>
+    </dl>
+  </section>
+
+  <section>
+    <h2>Als App auf dem Handy</h2>
+    <p>Die Spielwette läuft wie eine normale App mit eigenem Icon auf dem Homebildschirm, ganz ohne App Store. Wichtig: den Link zuerst im richtigen Browser öffnen, nicht im WhatsApp-Fenster.</p>
+    <div class="pay">
+      <div>
+        <span class="when">iPhone</span>
+        <h3>Mit Safari</h3>
+        <p>Link in Safari öffnen, unten auf das Teilen-Symbol tippen und <b>«Zum Home-Bildschirm»</b> wählen.</p>
+      </div>
+      <div>
+        <span class="when">Android</span>
+        <h3>Mit Chrome</h3>
+        <p>Link in Chrome öffnen, oben rechts auf die drei Punkte tippen und <b>«App installieren»</b> wählen.</p>
+      </div>
+    </div>
+    <p style="margin-top:14px">In der installierten App musst du dich einmal neu einloggen.</p>
+  </section>
+
+  <section class="cta">
+    <a class="btn" href="./?g=flotten4">Zur Spielwette</a>
+    <p class="foot">Hopp Gottéron.</p>
+  </section>
+
+</main>
+</body>
+</html>
