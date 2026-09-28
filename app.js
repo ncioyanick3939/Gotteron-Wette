@@ -1,4 +1,5 @@
-import { firebaseConfig, ADMIN_EMAIL, BET_COST } from './firebase-config.js';
+import { firebaseConfig, ADMIN_EMAIL, BET_COST as BET_COST_DEF, GROUPS, DEFAULT_GROUP } from './firebase-config.js';
+import { T, setLang, translateDom } from './i18n.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, getDocs, deleteDoc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -14,8 +15,33 @@ try {
   throw e;
 }
 
+// ===== GRUPPE =====
+// Weli Gruppe? Us em Link (?g=...), süsch di letschti uf däm Grät, süsch d'Standard-Gruppe.
+const GROUP = (() => {
+  let id = null;
+  try { id = new URLSearchParams(location.search).get('g'); } catch (e) {}
+  if (!id) { try { id = localStorage.getItem('gott_group'); } catch (e) {} }
+  const g = GROUPS[id] || GROUPS[DEFAULT_GROUP];
+  try {
+    localStorage.setItem('gott_group', g.id);
+    // Merke, i welne Gruppe die Person scho gsi isch (für dr Umschalter im Profil)
+    const seen = JSON.parse(localStorage.getItem('gott_groups') || '[]');
+    if (!seen.includes(g.id)) { seen.push(g.id); localStorage.setItem('gott_groups', JSON.stringify(seen)); }
+  } catch (e) {}
+  return g;
+})();
+const myGroups = () => {
+  let s = [];
+  try { s = JSON.parse(localStorage.getItem('gott_groups') || '[]'); } catch (e) {}
+  return s.filter(id => GROUPS[id]);
+};
+setLang(GROUP.lang);
+// Alti Date ohni groupId ghöre dr Standard-Gruppe
+const inGroup = d => (d.groupId || DEFAULT_GROUP) === GROUP.id;
+
 // ===== IISTELLIGE =====
-const HALF = BET_COST / 2;          // CHF 2.50 in Jackpot, CHF 2.50 is Bierkässeli
+const BET_COST = GROUP.stake || BET_COST_DEF;
+const HALF = BET_COST / 2;          // d'Hälfti in Jackpot, d'Hälfti is Bierkässeli
 const BEER_PRICE = 6;               // für «reicht für ca. X Bier»
 const LIVE_MIN = 150;               // so lang gilt es Spiel nach em Aaspiel als «lauft»
 const DEF = { kickoff: '19:45', stopMin: 15, revealMin: 10, openHours: 48 };
@@ -51,7 +77,7 @@ const round05 = x => Math.round(x * 20) / 20;
 
 function toast(m) {
   const t = $('toast'); if (!t) return;
-  t.textContent = m; t.classList.add('show');
+  t.textContent = T(m); t.classList.add('show');
   clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2800);
 }
 // Schwiizer Schriibwiis: CHF 1'250.– / CHF 7.50
@@ -136,7 +162,39 @@ function setupEvents() {
   on('gf-cancel', 'click', resetForm);
   on('gf-delete', 'click', deleteGame);
   on('reset-all', 'click', resetAll);
+  applyBranding();
   resetForm();
+}
+
+// ===== GRUPPE: Name, Aleitig, Sprach =====
+function applyBranding() {
+  window.__T = T;                      // s'Inline-Script bruucht das au
+  document.documentElement.lang = GROUP.lang === 'de' ? 'de' : 'de-CH';
+  document.title = GROUP.name;
+  const t = $('auth-title'); if (t) t.textContent = GROUP.name;
+  [$('auth-guide'), $('guide-link')].forEach(a => { if (a) a.href = GROUP.guide; });
+  translateDom(document.body);
+}
+
+// Umschalter im Profil – nume für Lüt, wo scho i beide Gruppe gsi sy
+function renderGroupSwitch() {
+  const sec = $('group-sec'), list = $('group-list');
+  if (!sec || !list) return;
+  // Sichtbar für Lüt, wo scho i beide Gruppe gsi sy – und immer für dr CEO vo dere Gruppe
+  const mail = state.user && state.user.email;
+  const ids = [...new Set([
+    ...myGroups(),
+    ...Object.keys(GROUPS).filter(id => mail && GROUPS[id].ceo === mail)
+  ])];
+  if (ids.length < 2) { sec.hidden = true; list.innerHTML = ''; return; }
+  sec.hidden = false;
+  list.innerHTML = ids.map(id => {
+    const g = GROUPS[id], on = id === GROUP.id;
+    return `<li><a class="row tap" href="?g=${encodeURIComponent(id)}">
+      <span class="tile ${on ? 't-blue' : 't-grey'}">${icon(on ? 'check' : 'home')}</span>
+      <div class="row-main"><div class="row-t">${esc(g.name)}</div>${on ? `<div class="row-s">Aktuell</div>` : ''}</div>
+      ${on ? '' : icon('chev', 'chev')}</a></li>`;
+  }).join('');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupEvents);
 else setupEvents();
@@ -198,7 +256,7 @@ async function submitAuth() {
 onAuthStateChanged(auth, user => {
   try {
     state.user = user;
-    state.isAdmin = !!user && user.email === ADMIN_EMAIL;
+    state.isAdmin = !!user && user.email === (GROUP.ceo || ADMIN_EMAIL);
     if (user) {
       $('auth-overlay').style.display = 'none';
       $('app-content').style.display = 'block';
@@ -223,10 +281,10 @@ let subbed = false;
 function startSubs() {
   if (subbed) return; subbed = true;
   onSnapshot(query(collection(db, 'games'), orderBy('createdAt', 'desc')),
-    s => { state.games = s.docs.map(d => ({ id: d.id, ...d.data() })); state.loaded = true; render(); },
+    s => { state.games = s.docs.map(d => ({ id: d.id, ...d.data() })).filter(inGroup); state.loaded = true; render(); },
     e => console.error('games sub error:', e));
   onSnapshot(collection(db, 'bets'),
-    s => { state.bets = s.docs.map(d => ({ id: d.id, ...d.data() })); render(); },
+    s => { state.bets = s.docs.map(d => ({ id: d.id, ...d.data() })).filter(inGroup); render(); },
     e => console.error('bets sub error:', e));
 }
 
@@ -345,7 +403,7 @@ async function placeTips(g, list) {
   try {
     const batch = writeBatch(db), now = Date.now();
     list.forEach((pred, i) => batch.set(doc(collection(db, 'bets')), {
-      gameId: g.id, userId: state.user.uid, userName: state.user.displayName || state.user.email, prediction: pred, createdAt: now + i
+      gameId: g.id, groupId: GROUP.id, userId: state.user.uid, userName: state.user.displayName || state.user.email, prediction: pred, createdAt: now + i
     }));
     await batch.commit();
     ui.drafts[g.id] = { h: null, a: null }; ui.slips[g.id] = [];
@@ -378,15 +436,15 @@ async function settleGame(g, h, a) {
 }
 
 async function resetAll() {
-  if (!confirm('Alli Spiel und Tipps lösche? Das cha me nid rückgängig mache.')) return;
+  if (!confirm(T('Alli Spiel und Tipps lösche? Das cha me nid rückgängig mache.') + '\n\n' + GROUP.name)) return;
   try {
+    // Nume d'Date vo dere Gruppe, di anderi Gruppe blibt unberüehrt
     const bs = await getDocs(collection(db, 'bets'));
-    for (const b of bs.docs) await deleteDoc(doc(db, 'bets', b.id));
+    for (const b of bs.docs) if (inGroup(b.data())) await deleteDoc(doc(db, 'bets', b.id));
     const gs = await getDocs(collection(db, 'games'));
-    for (const g of gs.docs) await deleteDoc(doc(db, 'games', g.id));
-    try { await setDoc(doc(db, 'meta', 'konto'), { total: 0 }); } catch (e) {}
+    for (const g of gs.docs) if (inGroup(g.data())) await deleteDoc(doc(db, 'games', g.id));
     toast('Alli Date glöscht');
-  } catch (e) { toast('Fehler: ' + e.message); }
+  } catch (e) { toast(T('Fehler: ') + e.message); }
 }
 
 // ----- Spiel-Formular (CEO) -----
@@ -448,7 +506,7 @@ async function saveGame() {
   const btn = $('gf-save'); btn.disabled = true;
   try {
     if (ui.editId) { await updateDoc(doc(db, 'games', ui.editId), data); toast('Spiel gspeicheret'); }
-    else { await addDoc(collection(db, 'games'), { ...data, status: 'open', createdAt: Date.now() }); toast('Spiel erstellt'); }
+    else { await addDoc(collection(db, 'games'), { ...data, groupId: GROUP.id, status: 'open', createdAt: Date.now() }); toast('Spiel erstellt'); }
     resetForm();
   } catch (e) { toast('Fehler: ' + e.message); }
   btn.disabled = false;
@@ -478,6 +536,8 @@ function render() {
     renderKasse(up);
     renderProfil();
     if (state.isAdmin) renderAdmin(up, done);
+    renderGroupSwitch();
+    translateDom($('app-content'));
   } catch (e) { console.error('Render error:', e); }
 }
 
