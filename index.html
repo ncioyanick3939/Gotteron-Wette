@@ -375,7 +375,7 @@ body.bluebar .tab.is-active .ic{fill:#fff;fill-opacity:.22}
 <div class="auth" id="auth-overlay">
   <div class="auth-top">
     <img class="app-icon" src="icon-192.png" alt="">
-    <h1 class="auth-t">Gottéron Spielwette</h1>
+    <h1 class="auth-t" id="auth-title">Gottéron Spielwette</h1>
     <p class="auth-s">S'Tippspiel für jedes Gottéron-Spiel</p>
   </div>
   <div class="auth-in">
@@ -390,7 +390,7 @@ body.bluebar .tab.is-active .ic{fill:#fff;fill-opacity:.22}
     </div>
     <div class="auth-error" id="login-error" role="alert"></div>
     <button class="btn-primary" id="login-btn">Iilogge</button>
-    <a class="auth-link" href="aleitig.html">So funktioniert d'Spielwette</a>
+    <a class="auth-link" id="auth-guide" href="aleitig.html">So funktioniert d'Spielwette</a>
   </div>
 </div>
 
@@ -463,10 +463,14 @@ body.bluebar .tab.is-active .ic{fill:#fff;fill-opacity:.22}
         <li><b>Android:</b> Link i Chrome öffne, drei Pünktli, «App installieren».</li>
       </ol></div>
     </section>
+    <section class="sec" id="group-sec" hidden>
+      <div class="sec-h"><h2><span class="tile t-blue"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></span>Gruppe</h2></div>
+      <ul class="grp list" id="group-list"></ul>
+    </section>
     <section class="sec">
       <ul class="grp list">
         <li id="admin-entry" hidden><button class="row tap" onclick="showView('admin')"><span class="tile t-purple"><svg class="ic" aria-hidden="true"><use href="#i-admin"/></svg></span><div class="row-main"><div class="row-t">CEO-Bereich</div><div class="row-s">Spiel, Resultat und Abrächnig</div></div><svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg></button></li>
-        <li><a class="row tap" href="aleitig.html"><span class="tile t-blue"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span><div class="row-main"><div class="row-t">Aleitig</div></div><svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+        <li><a class="row tap" id="guide-link" href="aleitig.html"><span class="tile t-blue"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span><div class="row-main"><div class="row-t">Aleitig</div></div><svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
         <li><button class="row tap" id="logout-btn"><span class="tile t-red"><svg class="ic" aria-hidden="true"><use href="#i-logout"/></svg></span><div class="row-main danger-row">Usloge</div></button></li>
       </ul>
     </section>
@@ -545,7 +549,8 @@ window.setAuthMode=function(m){
   document.getElementById('name-field').hidden=!reg;
   document.getElementById('tab-login').classList.toggle('is-active',!reg);
   document.getElementById('tab-register').classList.toggle('is-active',reg);
-  document.getElementById('login-btn').textContent=reg?'Konto erstelle':'Iilogge';
+  var TT=window.__T||function(s){return s};
+  document.getElementById('login-btn').textContent=TT(reg?'Konto erstelle':'Iilogge');
   document.getElementById('login-pass').setAttribute('autocomplete',reg?'new-password':'current-password');
   document.getElementById('login-error').textContent='';
 };
@@ -560,7 +565,8 @@ window.showView=function(v){
     var on=b.dataset.view===tabFor;b.classList.toggle('is-active',on);
     if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
   });
-  document.getElementById('navbar-t').textContent=cur?cur.dataset.title:'';
+  var TT=window.__T||function(s){return s};
+  document.getElementById('navbar-t').textContent=cur?TT(cur.dataset.title):'';
   window.scrollTo(0,0);
   try{history.replaceState(null,'','#'+v)}catch(e){}
 };
