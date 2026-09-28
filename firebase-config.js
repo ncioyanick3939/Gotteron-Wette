@@ -28,7 +28,9 @@ export const GROUPS = {
     lang: 'ch',
     stake: 2,
     ceo: 'nicoruettimann@gmx.ch',
-    guide: 'aleitig.html'
+    guide: 'aleitig.html',
+    manifest: 'manifest.json',
+    appName: 'Spielwette'
   },
   flotten4: {
     id: 'flotten4',
@@ -36,7 +38,9 @@ export const GROUPS = {
     lang: 'de',
     stake: 2,
     ceo: 'nicoruettimann@gmx.ch',
-    guide: 'anleitung.html'
+    guide: 'anleitung.html',
+    manifest: 'manifest-flotten4.json',
+    appName: 'Flotten 4'
   }
 };
 
