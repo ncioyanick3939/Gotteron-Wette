@@ -168,6 +168,26 @@ export const DICT = {
   'Usloge nid möglich: ': 'Ausloggen nicht möglich: ',
   'Gruppe': 'Gruppe',
   'Gruppe wächsle': 'Gruppe wechseln',
+  'Aktuell': 'Aktuell',
+
+  // --- Mitteilige ---
+  'Mitteilige': 'Mitteilungen',
+  'Erinnerig bi jedem Spiel': 'Erinnerung bei jedem Spiel',
+  'Bi neue Spiel und vor em Tipp-Stopp': 'Bei neuen Spielen und vor dem Tipp-Stopp',
+  'Iischalte': 'Einschalten',
+  'Uusschalte': 'Ausschalten',
+  'Isch iigschaltet': 'Ist eingeschaltet',
+  'Dä Browser cha kei Mitteilige': 'Dieser Browser kann keine Mitteilungen',
+  "Leg d'App zerscht uf dr Homebildschirm": 'Leg die App zuerst auf den Home-Bildschirm',
+  'Blockiert – i de Handy-Iistellige erlaube': 'Blockiert – in den Handy-Einstellungen erlauben',
+  'Mitteilige iigschaltet': 'Mitteilungen eingeschaltet',
+  'Mitteilige uusgschaltet': 'Mitteilungen ausgeschaltet',
+  'Het nid klappt. Nomal probiere.': 'Hat nicht geklappt. Nochmal probieren.',
+  'Kei Spiel meh verpasse': 'Kein Spiel mehr verpassen',
+  'Bi neue Spiel und vor em Tipp-Stopp.': 'Bei neuen Spielen und vor dem Tipp-Stopp.',
+  "Leg d'App uf dr Homebildschirm, denn chasch d'Erinnerig iischalte.": 'Leg die App auf den Home-Bildschirm, dann kannst du die Erinnerung einschalten.',
+  "So gaht's": "So geht's",
+  'Uusblände': 'Ausblenden',
 
   // --- CEO ---
   'Übersicht': 'Übersicht',
