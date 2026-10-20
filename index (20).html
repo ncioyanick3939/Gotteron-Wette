@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0C2551">
+<title>Gottéron Spielwette</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Spielwette">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Inter+Tight:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F2F7;--card:#FFFFFF;--fill:#EEF0F4;--fill-2:#E4E7ED;--sep:#E5E6EB;
+  --text:#111318;--text-2:#646B76;--text-3:#9AA0A8;
+  --blue:#1B4AC4;--blue-press:#153B9E;--blue-soft:#EAEFFA;
+  --green:#15703A;--green-soft:#E7F2EA;
+  --orange:#B45309;--orange-soft:#FCEFDD;
+  --red:#C22A1F;--red-soft:#FAEAE8;--amber:#96640C;--amber-soft:#F8F1E2;--purple:#5B2AA8;--purple-soft:#EDE8F7;
+  --f:"Inter Tight",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --fd:"Archivo","Inter Tight",-apple-system,"Segoe UI",sans-serif;
+  --navy:#0C2551;--navy-2:#0A1E42;--ice:rgba(255,255,255,.14);--ice-2:rgba(255,255,255,.26);
+  --safe-b:env(safe-area-inset-bottom);--safe-t:env(safe-area-inset-top);
+}
+/* Display-Schrift: schmaler, für Titel, Team und Zahle */
+.d{font-family:var(--fd);font-stretch:84%;font-weight:700;letter-spacing:.005em}
+.ovl{font-family:var(--fd);font-stretch:88%;font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f);font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;-webkit-tap-highlight-color:transparent;text-align:inherit}
+input{font:inherit}
+a{color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.num{font-variant-numeric:tabular-nums}
+.pos{color:var(--green)}
+.shell{max-width:600px;margin:0 auto;padding:0 16px}
+main.shell{padding-bottom:calc(104px + var(--safe-b))}
+
+/* ---------- Titel ---------- */
+.lt{display:flex;justify-content:space-between;align-items:baseline;gap:12px;height:78px;padding:0 4px;margin-top:var(--safe-t)}
+.lt h1{margin:0;font-family:var(--fd);font-stretch:80%;font-size:34px;line-height:1;font-weight:800;letter-spacing:.012em;text-transform:uppercase;align-self:flex-end;padding-bottom:13px}
+.lt-a{font-family:var(--fd);font-stretch:88%;font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text-3);white-space:nowrap;align-self:flex-end;padding-bottom:19px}
+.back-link{font-size:15px;font-weight:600;color:var(--blue);align-self:flex-end;padding-bottom:17px;white-space:nowrap}
+.navbar{position:fixed;left:0;right:0;top:0;z-index:40;padding-top:var(--safe-t);background:var(--card);border-bottom:1px solid var(--sep);opacity:0;pointer-events:none;transition:opacity .18s}
+.navbar.show{opacity:1}
+.navbar-in{height:44px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600}
+
+/* ---------- Symbol i de Zile: nume s'Zeiche, kei farbigi Flächi ---------- */
+.tile{width:26px;height:26px;display:grid;place-items:center;flex:none;background:none}
+.tile .ic{width:21px;height:21px;stroke-width:1.75;color:var(--text-2)}
+.t-grey .ic{color:var(--text-3)}
+.t-red .ic{color:var(--red)}
+/* Uszeichnige: erreicht = gfüllts Quadrat, süsch nume Umriss */
+#badges .tile{width:32px;height:32px;border-radius:9px;border:1.5px solid var(--sep)}
+#badges .tile .ic{width:17px;height:17px;color:var(--text-3);stroke-width:2}
+#badges .row.on .tile{background:var(--navy);border-color:var(--navy)}
+#badges .row.on .tile .ic{color:#fff}
+
+/* ---------- Startbild ---------- */
+.hero-img{position:relative;border-radius:14px;overflow:hidden;background:#111318;line-height:0}
+.hero-img img{width:100%;height:150px;object-fit:cover;object-position:50% 32%;display:block}
+@media(min-width:560px){.hero-img img{height:200px}}
+
+/* ---------- Gruppe ---------- */
+.grp{background:var(--card);border-radius:14px;overflow:hidden}
+.grp + .grp,.grp + .btn-primary,.btn-primary + .grp,.fine + .grp,.msg + .grp,.btn-secondary + .grp{margin-top:14px}
+.sec{margin-top:28px}
+/* Sektionstitel: chlini Versalie mit Haarlinie statt farbigi Kachle */
+.sec-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 4px 7px;margin-bottom:9px;border-bottom:1px solid var(--sep)}
+.sec-h h2{margin:0;font-family:var(--fd);font-stretch:88%;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:9px}
+.sec-h span{font-family:var(--fd);font-stretch:88%;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);white-space:nowrap}
+.sec-note{margin:-2px 4px 10px;font-size:14px;color:var(--text-2)}
+.list{list-style:none;margin:0;padding:0}
+.list > li{position:relative}
+.list > li + li::before,.grp > .row + .row::before,.grp > .row + .list > li:first-child::before{content:'';position:absolute;top:0;left:16px;right:0;height:1px;background:var(--sep)}
+.row{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:11px 16px}
+.row.tap:active{background:var(--fill)}
+.row-main{flex:1;min-width:0}
+.row-t{font-size:17px;font-weight:600;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis}
+.row-s{font-size:15px;color:var(--text-2);margin-top:1px;line-height:1.35}
+.row-end{text-align:right;white-space:nowrap}
+.chev{color:#C4C8CF;width:18px;height:18px}
+.name{display:flex;align-items:center;gap:8px;min-width:0;flex:1;font-size:17px;font-weight:500}
+.name > span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag-me{font-family:var(--fd);font-stretch:86%;font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--blue);background:none;border:1px solid rgba(27,74,196,.4);border-radius:4px;padding:2px 6px;flex:none}
+.tip{font-family:var(--fd);font-stretch:80%;font-weight:800;font-size:21px;letter-spacing:.01em;font-variant-numeric:tabular-nums;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tip .ic{width:17px;height:17px;color:var(--green);stroke-width:2.4}
+.won .tip{color:var(--green)}
+.hidden-tip{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--text-3);white-space:nowrap}
+.hidden-tip .ic{width:15px;height:15px}
+.chev.turn{transform:rotate(90deg)}
+.subtips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px}
+.chip-t{font-family:var(--fd);font-stretch:80%;font-weight:800;font-size:17px;letter-spacing:.01em;font-variant-numeric:tabular-nums;background:var(--fill);border-radius:6px;padding:3px 11px}
+.empty{padding:22px 16px}
+.empty-t{font-size:19px;font-weight:700}
+.empty-s{margin:4px 0 0;color:var(--text-2);font-size:15px}
+.empty .btn-secondary{margin-top:14px}
+
+/* ---------- Status ---------- */
+.status{display:inline-flex;align-items:center;gap:5px;font-family:var(--fd);font-stretch:86%;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:4px 8px;border-radius:4px;white-space:nowrap;background:none;border:1px solid var(--sep);color:var(--text-2)}
+.status::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.st-open{border-color:rgba(21,112,58,.4);color:var(--green)}
+.st-locked{border-color:rgba(180,83,9,.4);color:var(--orange)}
+.st-visible{border-color:rgba(27,74,196,.4);color:var(--blue)}
+.st-live{border-color:rgba(194,42,31,.45);color:var(--red)}
+.st-live::before{animation:pulse 1.4s ease-in-out infinite}
+.st-pending{border-color:rgba(180,83,9,.4);color:var(--orange)}
+@keyframes pulse{50%{opacity:.25}}
+
+/* ---------- Spiel ---------- */
+/* Aazeigetafele */
+.m-meta{position:relative;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px 13px;background:var(--navy-2);color:#fff;
+  background-image:repeating-linear-gradient(115deg,rgba(255,255,255,.045) 0 1px,transparent 1px 9px)}
+.m-meta .status{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.26)}
+.m-when{text-align:right;font-size:12px;color:rgba(255,255,255,.72);line-height:1.35;font-family:var(--fd);font-stretch:88%;letter-spacing:.07em;text-transform:uppercase}
+.m-when b{display:block;color:#fff;font-weight:700;font-size:19px;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.m-venue{display:block;font-size:10.5px;color:rgba(255,255,255,.58);letter-spacing:.12em}
+.m-row:first-of-type{border-top:0}
+.m-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:62px;padding:8px 16px;border-top:1px solid var(--sep)}
+.m-team{display:flex;align-items:center;gap:13px;min-width:0;font-family:var(--fd);font-stretch:80%;font-size:23px;font-weight:800;letter-spacing:.01em;text-transform:uppercase}
+.m-team span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:4px;height:26px;border-radius:2px;background:#D3D7DD;flex:none}
+.dot.gott{background:var(--blue)}
+.stp{display:flex;align-items:center;background:var(--fill);border-radius:9px;flex:none}
+.stp-b{width:42px;height:40px;display:grid;place-items:center;color:var(--blue);border-radius:9px}
+.stp-b .ic{width:18px;height:18px;stroke-width:2.2}
+.stp-b:active{background:var(--fill-2)}
+.stp-b:disabled{color:#BFC4CC;cursor:default}
+.stp-v{width:34px;text-align:center;font-family:var(--fd);font-stretch:80%;font-size:25px;font-weight:800;font-variant-numeric:tabular-nums}
+.stp-v.is-empty{color:var(--text-3);font-weight:600}
+.m-score{font-family:var(--fd);font-stretch:80%;font-size:25px;font-weight:800;color:var(--text-3);min-width:40px;text-align:right}
+.m-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid var(--sep);font-family:var(--fd);font-stretch:88%;font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)}
+.m-foot b{color:var(--text);font-family:var(--fd);font-stretch:84%;font-size:18px;font-weight:800;letter-spacing:.01em;text-transform:none;font-variant-numeric:tabular-nums}
+.m-mine{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.m-mine b{font-size:15px}
+.pills{display:flex;gap:8px;margin:14px -16px 0;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.pills::-webkit-scrollbar{display:none}
+.qt{flex:none;height:36px;padding:0 14px;border-radius:999px;background:var(--card);font-weight:600;font-size:15px;font-variant-numeric:tabular-nums;color:var(--text)}
+.qt.is-on{background:var(--blue);color:#fff}
+.slip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+#slip{display:contents}
+.slip-l{font-size:14px;color:var(--text-2);margin-right:2px}
+.chip{display:inline-flex;align-items:center;gap:4px;height:34px;padding:0 6px 0 12px;border-radius:999px;background:var(--blue-soft);color:var(--blue);font-weight:700;font-variant-numeric:tabular-nums}
+.chip button{width:24px;height:24px;display:grid;place-items:center;border-radius:50%}
+.chip .ic{width:14px;height:14px;stroke-width:2.4}
+.add-btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:999px;background:var(--card);color:var(--blue);font-weight:600;font-size:15px}
+.add-btn .ic{width:15px;height:15px;stroke-width:2.4}
+.add-btn:disabled{color:var(--text-3)}
+.fine{margin:10px 4px 0;font-size:13px;color:var(--text-3)}
+.msg{margin:12px 4px 0;font-size:15px;color:var(--text-2)}
+.msg b{color:var(--text)}
+.bump{animation:bump .5s ease-out}
+@keyframes bump{from{opacity:.3}to{opacity:1}}
+
+/* ---------- Buttons ---------- */
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:52px;padding:0 18px;margin-top:14px;border-radius:10px;background:var(--blue);color:#fff;font-family:var(--fd);font-stretch:86%;font-size:16px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;transition:transform .1s,background .15s}
+.btn-primary.split{justify-content:space-between}
+.btn-primary.split span:last-child{opacity:.85;font-weight:500}
+.btn-primary span{white-space:nowrap}
+.btn-primary:active:not(:disabled){background:var(--blue-press);transform:scale(.985)}
+.btn-primary:disabled{background:#C9D2E6;color:#fff;cursor:default}
+.btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:44px;padding:0 16px;border-radius:12px;background:var(--card);color:var(--blue);font-size:16px;font-weight:600;white-space:nowrap}
+.btn-secondary:active{background:var(--fill-2)}
+.grp .btn-secondary{background:var(--fill)}
+.btn-secondary .ic{width:18px;height:18px}
+.btn-small{height:32px;padding:0 12px;border-radius:999px;font-size:14px}
+.btn-danger{color:var(--red)}
+.actions{display:flex;gap:10px;margin-top:14px}
+.actions > *{flex:1}
+
+/* ---------- Zahle ---------- */
+.two{display:grid;grid-template-columns:1fr 1fr}
+.two > div{padding:14px 16px;min-width:0}
+.two > div + div{border-left:1px solid var(--sep)}
+/* Jackpot / Bierkässeli: ei Charte, duregschnitte – kei Pastellflächene */
+.money-cards{gap:0}
+.money-cards > div{padding:15px 16px 16px;display:flex;flex-direction:column}
+.money-cards > div + div{border-left:1px solid var(--sep)}
+.money-cards .jack .v{color:var(--navy)}
+.money-cards .beer .v{color:var(--amber)}
+.money-cards .v{margin-top:auto;padding-top:7px}
+.k{font-family:var(--fd);font-stretch:88%;font-size:11px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text-3)}
+.v{font-family:var(--fd);font-stretch:78%;font-size:27px;font-weight:800;letter-spacing:.005em;margin-top:3px;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.05}
+.s{font-size:12.5px;color:var(--text-3);margin-top:3px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr)}
+.stats.three{grid-template-columns:repeat(3,1fr)}
+.stats > div{padding:13px 8px 13px 12px;min-width:0}
+.stats > div + div{border-left:1px solid var(--sep)}
+.stat-v{font-family:var(--fd);font-stretch:78%;font-size:23px;font-weight:800;letter-spacing:.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
+.stat-v.c-blue{color:var(--navy)}.stat-v.c-green{color:var(--green)}.stat-v.c-amber{color:var(--amber)}.stat-v.c-red{color:var(--red)}
+.stat-l{font-family:var(--fd);font-stretch:86%;font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.big{padding:20px 16px}
+.big .v{font-size:44px}
+/* Statt Pastellflächene: wissi Charte mit farbigem Kantestreife */
+.grp.beer{background:var(--card);box-shadow:inset 3px 0 0 var(--amber)}
+.grp.beer .v{color:var(--amber)}
+.grp.owe-card{background:var(--card);box-shadow:inset 3px 0 0 var(--red)}
+.grp.owe-card .v{color:var(--red)}
+.grp.get-card{background:var(--card);box-shadow:inset 3px 0 0 var(--green)}
+.grp.get-card .v{color:var(--green)}
+
+/* ---------- Letschts Resultat ---------- */
+.lr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:18px 16px}
+.lr-t{font-family:var(--fd);font-stretch:82%;font-weight:700;font-size:17px;letter-spacing:.02em;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;color:var(--text-2)}
+.lr-t.r{text-align:right}
+.lr-n{font-family:var(--fd);font-stretch:76%;font-size:38px;font-weight:800;letter-spacing:.01em;font-variant-numeric:tabular-nums;line-height:1}
+
+/* ---------- Mini Tipps ---------- */
+.tl-res{font-family:var(--fd);font-stretch:86%;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;padding:4px 8px;border-radius:4px;background:none;border:1px solid var(--sep);color:var(--text-2)}
+.tl-res.ok{border-color:rgba(21,112,58,.4);color:var(--green)}
+.tl-res.no{border-color:rgba(194,42,31,.45);color:var(--red)}
+.tl-res.open{border-color:rgba(27,74,196,.4);color:var(--blue)}
+.amt{font-size:15px;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- Rangliste ---------- */
+/* Rang als Trikot-Nummere, nid als farbigs Chügeli */
+.rank{width:30px;font-family:var(--fd);font-stretch:76%;font-size:25px;font-weight:800;color:var(--text-3);display:grid;place-items:center;flex:none;font-variant-numeric:tabular-nums;background:none;border-radius:0;line-height:1}
+.rank.m1{color:#A8821F}
+.rank.m2{color:#78818C}
+.rank.m3{color:#9A6238}
+.lb-score{text-align:right}
+.lb-score b{display:block;font-family:var(--fd);font-stretch:78%;font-size:25px;font-weight:800;line-height:1.05;letter-spacing:.005em}
+.lb-score span{font-family:var(--fd);font-stretch:88%;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)}
+.me-row{background:#F7F9FE}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.tag{font-family:var(--fd);font-stretch:88%;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);background:none;border:1px solid var(--sep);border-radius:4px;padding:2px 7px}
+.tag.c0,.tag.c1,.tag.c2,.tag.c3,.tag.c4{color:var(--text-2)}
+.grp.bonus-card{background:var(--card);box-shadow:inset 3px 0 0 var(--amber)}
+.grp.bonus-card .row-t{color:var(--amber)}
+.grp.bonus-card b.num{color:var(--amber)}
+.track{height:2px;border-radius:0;background:var(--sep);margin-top:9px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--text-3);border-radius:0}
+.t1 .track i{background:#A8821F}.t2 .track i{background:#78818C}.t3 .track i{background:#9A6238}
+
+/* ---------- Profil ---------- */
+.avatar{width:52px;height:52px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-family:var(--fd);font-stretch:82%;font-size:21px;font-weight:800;letter-spacing:.02em;flex:none}
+.prof-n{font-family:var(--fd);font-stretch:82%;font-size:22px;font-weight:800;letter-spacing:.01em;display:flex;align-items:center;gap:8px}
+.badge-p{font-size:14px;color:var(--text-3);display:flex;align-items:center;gap:4px;white-space:nowrap}
+.badge-p .ic{width:16px;height:16px;stroke-width:2.4}
+.on .badge-p{color:var(--green)}
+.steps{margin:0;padding:12px 16px 14px 34px;font-size:15px;color:var(--text-2)}
+.steps li + li{margin-top:6px}
+.danger-row{color:var(--red);font-weight:600}
+.lb-score b{color:var(--blue)}
+
+/* ---------- Segmentiert ---------- */
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;padding:2px;border-radius:10px;background:var(--fill-2)}
+.seg-b{height:34px;border-radius:8px;font-size:14px;font-weight:600;color:var(--text-2);text-align:center;white-space:nowrap;padding:0 4px;letter-spacing:-.01em}
+.seg-b.is-active{background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(17,19,24,.1)}
+.adm-seg{margin-bottom:0}
+#view-admin .pane > .sec:first-child,#view-admin .pane > div:first-child > .sec:first-child{margin-top:22px}
+#view-admin .pane > .sec-note:first-child{margin-top:20px}
+
+/* ---------- Formular ---------- */
+.frow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:50px;padding:6px 16px;position:relative}
+.frow + .frow::before{content:'';position:absolute;top:0;left:16px;right:0;height:1px;background:var(--sep)}
+.frow > span{font-size:16px;flex:none}
+.frow input{flex:1;min-width:0;border:0;background:none;text-align:right;font-size:16px;color:var(--text);padding:8px 0;outline:none;-webkit-appearance:none;appearance:none}
+.frow input::placeholder{color:var(--text-3)}
+.frow .seg{flex:none;width:210px}
+.field-note{margin:10px 4px 0;font-size:13px;color:var(--text-3)}
+
+/* ---------- Admin ---------- */
+.todo{color:var(--orange)}
+.billing{display:grid;grid-template-columns:1fr 54px 92px;gap:8px;align-items:center}
+.billing .r{text-align:right}
+.billing .h{font-size:13px;color:var(--text-3)}
+
+/* ---------- Tab-Leiste ---------- */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--card);border-top:1px solid var(--sep);padding-bottom:var(--safe-b)}
+.tabbar-in{max-width:600px;margin:0 auto;display:flex;height:56px}
+.tab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:var(--fd);font-stretch:88%;font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8A9099;line-height:1}
+.tab .ic{width:23px;height:23px;stroke-width:1.8}
+.tab.is-active{color:var(--blue)}
+.tab.is-active .ic{fill:currentColor;fill-opacity:.14}
+.tab:active{opacity:.55}
+
+/* ---------- Hiiwis für d'Mitteilige uf dr Startsiite ---------- */
+.cta-push{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:3px 11px;margin-top:14px;padding:12px 12px 13px 14px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2)}
+.cta-push > .ic{width:19px;height:19px;color:#fff;stroke-width:1.9}
+.cta-push-t{font-family:var(--fd);font-stretch:86%;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;min-width:0}
+.cta-push-s{grid-column:2/4;font-size:13.5px;color:rgba(255,255,255,.78);line-height:1.32}
+.cta-push-b{grid-column:2/4;justify-self:start;margin-top:9px;height:34px;padding:0 15px;border-radius:8px;background:#fff;color:var(--navy);font-family:var(--fd);font-stretch:86%;font-size:12.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.cta-push-x{width:28px;height:28px;display:grid;place-items:center;color:rgba(255,255,255,.55);border-radius:8px;margin:-2px -4px 0 0}
+.cta-push-x .ic{width:15px;height:15px;color:inherit}
+
+/* ---------- Toast ---------- */
+.toast{position:fixed;left:50%;bottom:calc(92px + var(--safe-b));z-index:60;max-width:calc(100% - 32px);padding:11px 18px;border-radius:14px;background:rgba(17,19,24,.92);color:#fff;font-size:15px;font-weight:600;opacity:0;transform:translate(-50%,8px);pointer-events:none;transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- Login ---------- */
+.auth{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;justify-content:flex-end;overflow-y:auto;background:#0B1424}
+.auth::before{content:'';position:fixed;inset:0;background:url(gotteron-login.jpg) center/cover no-repeat;z-index:0}
+.auth::after{content:'';position:fixed;inset:0;background:linear-gradient(180deg,rgba(9,16,30,.35) 0%,rgba(9,16,30,.55) 45%,rgba(9,16,30,.92) 100%);z-index:0}
+.auth-top{position:relative;z-index:1;flex:1;min-height:200px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:10px;padding:calc(var(--safe-t) + 36px) 24px 26px;text-align:center}
+.app-icon{width:62px;height:62px;border-radius:15px;box-shadow:0 4px 18px rgba(0,0,0,.45)}
+.auth-t{margin:0;font-family:var(--fd);font-stretch:80%;font-size:34px;font-weight:800;letter-spacing:.015em;text-transform:uppercase;color:#fff;line-height:1.08}
+.auth-s{margin:0;font-size:14.5px;color:rgba(255,255,255,.8)}
+.auth-in{position:relative;z-index:1;flex:none;width:100%;max-width:440px;margin:0 auto;padding:20px 16px calc(var(--safe-b) + 26px);background:var(--bg);border-radius:22px 22px 0 0}
+.auth .seg{margin-bottom:14px}
+.auth-error{margin:10px 4px 0;font-size:14px;color:var(--red)}
+.auth-error:empty{display:none}
+.auth-link{display:block;margin-top:16px;text-align:center;color:var(--blue);font-weight:600}
+.auth-info{display:flex;gap:10px;margin-top:16px}
+.auth-info > div{flex:1;background:var(--card);border-radius:12px;padding:12px}
+.auth-info .k{display:inline-flex;padding:3px 8px;border-radius:999px;font-size:11.5px;font-weight:700}
+.auth-info .v{font-size:19px;font-weight:800;margin-top:6px}
+.auth-info .blue .k{background:var(--blue-soft);color:var(--blue)}
+.auth-info .blue .v{color:var(--blue)}
+.auth-info .gold .k{background:rgba(150,100,12,.14);color:var(--amber)}
+.auth-info .gold .v{color:var(--amber)}
+.frow .tile{margin-right:2px}
+
+/* ---------- Blaue Hintergrund (nume i dr App, nid im Login) ---------- */
+body.blue{background:var(--navy)}
+body.blue #app-content .lt h1,body.blue #app-content .sec-h h2,body.blue .navbar-in{color:#fff}
+body.blue #app-content .lt-a,body.blue #app-content .sec-h span,body.blue #app-content .fine,body.blue #app-content .msg,body.blue #app-content .sec-note,body.blue #app-content .field-note{color:rgba(255,255,255,.82)}
+body.blue #app-content .msg b{color:#fff}
+body.blue .navbar{background:var(--navy);border-bottom-color:rgba(255,255,255,.2)}
+body.blue #app-content .seg{background:rgba(255,255,255,.2)}
+body.blue #app-content .seg-b{color:rgba(255,255,255,.85)}
+body.blue #app-content .seg-b.is-active{background:#fff;color:var(--text)}
+body.blue #app-content .btn-secondary{background:rgba(255,255,255,.16);color:#fff}
+body.blue #app-content .grp .btn-secondary{background:var(--fill);color:var(--blue)}
+body.blue #app-content .qt{background:rgba(255,255,255,.16);color:#fff}
+body.blue #app-content .qt.is-on{background:#fff;color:var(--blue)}
+body.blue #app-content .add-btn{background:rgba(255,255,255,.16);color:#fff}
+body.blue #app-content .chip{background:rgba(255,255,255,.22);color:#fff}
+body.blue #app-content .back-link{color:#fff}
+body.blue #app-content .m-meta{background:var(--navy-2)}
+body.blue #app-content .grp .fine,body.blue #app-content .grp .msg{color:var(--text-2)}
+
+/* ---------- Variante: blaui Menü-Leischte ---------- */
+body.bluebar .tabbar{background:var(--blue);border-top:1px solid rgba(255,255,255,.26)}
+body.bluebar .tab{color:rgba(255,255,255,.78)}
+body.bluebar .tab.is-active{color:#fff}
+body.bluebar .tab.is-active .ic{fill:#fff;fill-opacity:.22}
+
+@media(max-width:350px){
+  .lt h1{font-size:30px}
+  .m-team{font-size:18px}
+  .stp-b{width:36px}
+  .stp-v{width:30px;font-size:21px}
+  .v{font-size:21px}
+  .stat-v{font-size:17px}
+  .stats > div{padding-left:10px}
+  .tab{font-size:9.5px}
+  .frow .seg{width:180px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body class="blue bluebar">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><ellipse cx="12" cy="9" rx="8" ry="3.5"/><path d="M4 9v5c0 1.9 3.6 3.5 8 3.5s8-1.6 8-3.5V9"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5V10a2 2 0 0 0 0 4v2.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5V14a2 2 0 0 0 0-4z"/><path d="M14.5 6.5v1.5M14.5 11v2M14.5 16v1.5"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H5.5A1.5 1.5 0 0 0 4 7.5v.5a3 3 0 0 0 3 3h1.2M16 6h2.5A1.5 1.5 0 0 1 20 7.5v.5a3 3 0 0 1-3 3h-1.2"/><path d="M12 13v4M8.5 20.5h7M10 17h4v3.5h-4z"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H17v3"/><path d="M4 7.5V17a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H6.5A2.5 2.5 0 0 1 4 7.5z"/><path d="M16 13.5h1"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.2 3.8-5 7-5s5.8 1.8 7 5"/></symbol>
+  <symbol id="i-admin" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9.5" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 5h5v5"/><path d="M19 5l-8 8"/><path d="M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h11"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H19v13H5.5A1.5 1.5 0 0 0 4 18.5z"/><path d="M4 18.5A1.5 1.5 0 0 1 5.5 17H19v3H5.5A1.5 1.5 0 0 1 4 18.5z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+</svg>
+
+<!-- ===== Login ===== -->
+<div class="auth" id="auth-overlay">
+  <div class="auth-top">
+    <img class="app-icon" src="icon-192.png" alt="">
+    <h1 class="auth-t" id="auth-title">Gottéron Spielwette</h1>
+    <p class="auth-s">S'Tippspiel für jedes Gottéron-Spiel</p>
+  </div>
+  <div class="auth-in">
+    <div class="seg" role="tablist">
+      <button class="seg-b is-active" id="tab-login" role="tab" onclick="setAuthMode('login')">Iilogge</button>
+      <button class="seg-b" id="tab-register" role="tab" onclick="setAuthMode('register')">Konto erstelle</button>
+    </div>
+    <div class="grp">
+      <label class="frow" id="name-field" hidden><span class="tile t-green"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></span><span>Name</span><input type="text" id="login-name" maxlength="30" autocomplete="nickname" placeholder="So gseh di di andere"></label>
+      <label class="frow"><span class="tile t-blue"><svg class="ic" aria-hidden="true"><use href="#i-ticket"/></svg></span><span>E-Mail</span><input type="email" id="login-email" maxlength="80" autocomplete="email" inputmode="email" placeholder="name@beispiel.ch"></label>
+      <label class="frow"><span class="tile t-purple"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg></span><span>Passwort</span><input type="password" id="login-pass" maxlength="60" autocomplete="current-password" placeholder="Mind. 6 Zeiche"></label>
+    </div>
+    <div class="auth-error" id="login-error" role="alert"></div>
+    <button class="btn-primary" id="login-btn">Iilogge</button>
+    <a class="auth-link" id="auth-guide" href="aleitig.html">So funktioniert d'Spielwette</a>
+  </div>
+</div>
+
+<!-- ===== App ===== -->
+<div id="app-content" style="display:none">
+<div class="navbar" id="navbar" aria-hidden="true"><div class="navbar-in" id="navbar-t">Spiel</div></div>
+
+<main class="shell">
+
+  <!-- Spiel -->
+  <section class="view" id="view-home" data-title="Spiel">
+    <header class="lt"><h1>Spiel</h1><span class="lt-a">Saison 26/27</span></header>
+    <div class="hero-img"><img src="gotteron.jpg" alt="Fribourg-Gottéron fiiret mit em Meischterpokal"></div>
+    <div id="push-cta" hidden></div>
+    <div id="match" style="margin-top:14px"><div class="grp empty"><div class="empty-s">Lade Spiel…</div></div></div>
+    <section class="sec" id="tips-block" hidden>
+      <div class="sec-h"><h2>Tipps zu däm Spiel</h2><span id="tips-count"></span></div>
+      <p class="sec-note" id="tips-hint" hidden></p>
+      <ul class="grp list" id="tips"></ul>
+    </section>
+    <section class="sec" id="last-block" hidden>
+      <div class="sec-h"><h2>Letschts Resultat</h2><span id="last-date"></span></div>
+      <div id="last-result"></div>
+    </section>
+    <section class="sec" id="next-block" hidden>
+      <div class="sec-h"><h2>Nächschti Spiel</h2></div>
+      <ul class="grp list" id="next-games"></ul>
+    </section>
+    <section class="sec">
+      <div class="sec-h"><h2>Hockey-Links</h2></div>
+      <ul class="grp list">
+        <li><a class="row tap" id="link-topscorers" href="https://topscorers.ch/de" target="_blank" rel="noopener"><span class="tile t-amber"><svg class="ic" aria-hidden="true"><use href="#i-trophy"/></svg></span><div class="row-main"><div class="row-t">Topscorers</div><div class="row-s">Hockey Manager App vo dr National League</div></div><svg class="ic chev" aria-hidden="true"><use href="#i-ext"/></svg></a></li>
+        <li><a class="row tap" id="link-nl" href="https://www.nationalleague.ch/" target="_blank" rel="noopener"><span class="tile t-blue"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg></span><div class="row-main"><div class="row-t">National League</div><div class="row-s">Offizielli App vo dr Liga</div></div><svg class="ic chev" aria-hidden="true"><use href="#i-ext"/></svg></a></li>
+      </ul>
+    </section>
+  </section>
+
+  <!-- Mini Tipps -->
+  <section class="view" id="view-tipps" data-title="Mini Tipps" hidden>
+    <header class="lt"><h1>Mini Tipps</h1><span class="lt-a">Saison 26/27</span></header>
+    <div id="mt-summary"></div>
+    <section class="sec" id="mt-open-block"><div class="sec-h"><h2>Offe</h2><span id="mt-count"></span></div><div id="mt-open"></div></section>
+    <section class="sec" id="mt-done-block"><div class="sec-h"><h2>Uswärtet</h2></div><div id="mt-done"></div></section>
+  </section>
+
+  <!-- Rangliste -->
+  <section class="view" id="view-rangliste" data-title="Rangliste" hidden>
+    <header class="lt"><h1>Rangliste</h1><span class="lt-a">Saison 26/27</span></header>
+    <div id="my-rank"></div>
+    <section class="sec"><div class="sec-h"><h2>Alli Spieler</h2><span id="lb-count"></span></div><div id="leaderboard"></div></section>
+  </section>
+
+  <!-- Kasse -->
+  <section class="view" id="view-kasse" data-title="Kasse" hidden>
+    <header class="lt"><h1>Kasse</h1><span class="lt-a">Saison 26/27</span></header>
+    <div id="kasse-bier"></div>
+    <section class="sec"><div class="sec-h"><h2>Saison-Bonus</h2><span>am Saisonfescht</span></div><div id="bonus"></div></section>
+    <section class="sec"><div class="sec-h"><h2>Twint</h2><span>nach jedem Spiel</span></div><div id="twint"></div></section>
+    <section class="sec"><div class="sec-h"><h2>Offeni Jackpots</h2></div><div id="jackpots"></div></section>
+  </section>
+
+  <!-- Profil -->
+  <section class="view" id="view-profil" data-title="Profil" hidden>
+    <header class="lt"><h1>Profil</h1><span class="lt-a">Saison 26/27</span></header>
+    <div id="profil"></div>
+    <section class="sec"><div class="sec-h"><h2>Uszeichnige</h2></div><ul class="grp list" id="badges"></ul></section>
+    <section class="sec" id="install-block">
+      <div class="sec-h"><h2>Als App installiere</h2></div>
+      <div class="grp"><ol class="steps">
+        <li><b>iPhone:</b> Link i Safari öffne, Teile-Symbol, «Zum Home-Bildschirm».</li>
+        <li><b>Android:</b> Link i Chrome öffne, drei Pünktli, «App installieren».</li>
+      </ol></div>
+    </section>
+    <section class="sec" id="push-sec" hidden>
+      <div class="sec-h"><h2>Mitteilige</h2></div>
+      <ul class="grp list" id="push-list"></ul>
+    </section>
+    <section class="sec" id="group-sec" hidden>
+      <div class="sec-h"><h2>Gruppe</h2></div>
+      <ul class="grp list" id="group-list"></ul>
+    </section>
+    <section class="sec">
+      <ul class="grp list">
+        <li id="admin-entry" hidden><button class="row tap" onclick="showView('admin')"><span class="tile t-purple"><svg class="ic" aria-hidden="true"><use href="#i-admin"/></svg></span><div class="row-main"><div class="row-t">CEO-Bereich</div><div class="row-s">Spiel, Resultat und Abrächnig</div></div><svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg></button></li>
+        <li><a class="row tap" id="guide-link" href="aleitig.html"><span class="tile t-blue"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span><div class="row-main"><div class="row-t">Aleitig</div></div><svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+        <li><button class="row tap" id="logout-btn"><span class="tile t-red"><svg class="ic" aria-hidden="true"><use href="#i-logout"/></svg></span><div class="row-main danger-row">Usloge</div></button></li>
+      </ul>
+    </section>
+  </section>
+
+  <!-- CEO -->
+  <section class="view" id="view-admin" data-title="CEO" hidden>
+    <header class="lt"><h1>CEO</h1><button class="back-link" onclick="showView('profil')">Profil</button></header>
+    <div class="seg adm-seg" role="tablist">
+      <button class="seg-b is-active" data-tab="dash" onclick="setAdminTab('dash')">Übersicht</button>
+      <button class="seg-b" data-tab="spiel" onclick="setAdminTab('spiel')">Spiel</button>
+      <button class="seg-b" data-tab="resultat" onclick="setAdminTab('resultat')">Resultat</button>
+      <button class="seg-b" data-tab="abrechnig" onclick="setAdminTab('abrechnig')">Abrächnig</button>
+    </div>
+
+    <div class="pane" id="pane-dash"><div id="adm-dash"></div></div>
+
+    <div class="pane" id="pane-spiel" hidden>
+      <section class="sec" id="game-form" style="margin-top:22px">
+        <div class="sec-h"><h2 id="gf-title"><span class="tile t-blue"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></span>Spiel erstelle</h2><button class="btn-secondary btn-small" id="gf-cancel" hidden>Abbräche</button></div>
+        <div class="grp">
+          <label class="frow"><span>Gägner</span><input type="text" id="gf-opp" maxlength="40" placeholder="z.B. ZSC Lions"></label>
+          <div class="frow"><span>Ort</span><div class="seg"><button class="seg-b is-active" id="gf-home" type="button">Heimspiel</button><button class="seg-b" id="gf-away" type="button">Uswärts</button></div></div>
+          <label class="frow"><span>Datum</span><input type="date" id="gf-date"></label>
+          <label class="frow"><span>Aaspiel</span><input type="time" id="gf-kick" value="19:45"></label>
+        </div>
+        <div class="grp">
+          <label class="frow"><span>Wetten öffne</span><input type="datetime-local" id="gf-open"></label>
+          <label class="frow"><span>Tipp-Stopp</span><input type="time" id="gf-stop" value="19:30"></label>
+          <label class="frow"><span>Tipps sichtbar</span><input type="time" id="gf-reveal" value="19:35"></label>
+        </div>
+        <p class="field-note">Standard: Wetten öffne 2 Täg vorher, Tipp-Stopp 15 Minute und Tipps sichtbar 10 Minute vor em Aaspiel. Wenn du Datum oder Aaspiel änderisch, rächnet d'App die Ziite nöi.</p>
+        <button class="btn-primary" id="gf-save">Spiel speichere</button>
+        <button class="btn-secondary btn-danger" id="gf-delete" style="width:100%;margin-top:10px" hidden><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Spiel lösche</button>
+      </section>
+      <section class="sec">
+        <div class="sec-h"><h2>Plannti Spiel</h2><span>tippe zum Bearbeite</span></div>
+        <ul class="grp list" id="adm-games"></ul>
+      </section>
+    </div>
+
+    <div class="pane" id="pane-resultat" hidden>
+      <p class="sec-note" style="margin-top:18px">S'Schlussresultat iistelle. D'App bestimmt d'Gwünner und rächnet Jackpot, Bierkässeli und Twint-Beträg.</p>
+      <div id="adm-results"></div>
+    </div>
+
+    <div class="pane" id="pane-abrechnig" hidden>
+      <div id="adm-billing"></div>
+      <section class="sec">
+        <div class="sec-h"><h2>Test-Date</h2></div>
+        <p class="sec-note">Löscht alli Spiel und Tipps. Nume vor em Saisonstart bruuche.</p>
+        <button class="btn-secondary btn-danger" id="reset-all" style="width:100%"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Alli Spiel und Tipps lösche</button>
+      </section>
+    </div>
+  </section>
+
+</main>
+
+<nav class="tabbar" aria-label="Navigation">
+  <div class="tabbar-in">
+    <button class="tab is-active" data-view="home" onclick="showView('home')"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>Spiel</span></button>
+    <button class="tab" data-view="tipps" onclick="showView('tipps')"><svg class="ic" aria-hidden="true"><use href="#i-ticket"/></svg><span>Tipps</span></button>
+    <button class="tab" data-view="rangliste" onclick="showView('rangliste')"><svg class="ic" aria-hidden="true"><use href="#i-trophy"/></svg><span>Rangliste</span></button>
+    <button class="tab" data-view="kasse" onclick="showView('kasse')"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg><span>Kasse</span></button>
+    <button class="tab" data-view="profil" onclick="showView('profil')"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg><span>Profil</span></button>
+  </div>
+</nav>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+window._authMode='login';
+window.setAuthMode=function(m){
+  window._authMode=m;var reg=m==='register';
+  document.getElementById('name-field').hidden=!reg;
+  document.getElementById('tab-login').classList.toggle('is-active',!reg);
+  document.getElementById('tab-register').classList.toggle('is-active',reg);
+  var TT=window.__T||function(s){return s};
+  document.getElementById('login-btn').textContent=TT(reg?'Konto erstelle':'Iilogge');
+  document.getElementById('login-pass').setAttribute('autocomplete',reg?'new-password':'current-password');
+  document.getElementById('login-error').textContent='';
+};
+window.showView=function(v){
+  var adm=document.getElementById('admin-entry');
+  if(v==='admin'&&adm&&adm.hidden)v='home';
+  if(!document.getElementById('view-'+v))v='home';
+  var cur;
+  document.querySelectorAll('.view').forEach(function(s){var on=s.id==='view-'+v;s.hidden=!on;if(on)cur=s});
+  var tabFor=(v==='admin')?'profil':v;
+  document.querySelectorAll('.tab[data-view]').forEach(function(b){
+    var on=b.dataset.view===tabFor;b.classList.toggle('is-active',on);
+    if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
+  });
+  var TT=window.__T||function(s){return s};
+  document.getElementById('navbar-t').textContent=cur?TT(cur.dataset.title):'';
+  window.scrollTo(0,0);
+  try{history.replaceState(null,'','#'+v)}catch(e){}
+};
+window.setAdminTab=function(t){
+  document.querySelectorAll('.adm-seg .seg-b').forEach(function(b){b.classList.toggle('is-active',b.dataset.tab===t)});
+  document.querySelectorAll('#view-admin .pane').forEach(function(p){p.hidden=(p.id!=='pane-'+t)});
+};
+window.addEventListener('scroll',function(){
+  document.getElementById('navbar').classList.toggle('show',window.scrollY>48);
+},{passive:true});
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){})})}
+</script>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
