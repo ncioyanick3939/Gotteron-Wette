@@ -1,4 +1,4 @@
-import { firebaseConfig, ADMIN_EMAIL, BET_COST as BET_COST_DEF, GROUPS, DEFAULT_GROUP } from './firebase-config.js';
+import { firebaseConfig, ADMIN_EMAIL, BET_COST as BET_COST_DEF, GROUPS, DEFAULT_GROUP, VAPID_KEY } from './firebase-config.js';
 import { T, setLang, translateDom } from './i18n.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
@@ -62,7 +62,7 @@ const BADGES = [
 ];
 
 const state = { user: null, isAdmin: false, games: [], bets: [], loaded: false, selectedId: null };
-const ui = { drafts: {}, slips: {}, results: {}, lastPot: {}, openTips: new Set(), nextBoundary: Infinity, editId: null, home: true };
+const ui = { pushOn: false, drafts: {}, slips: {}, results: {}, lastPot: {}, openTips: new Set(), nextBoundary: Infinity, editId: null, home: true };
 window._authMode = window._authMode || 'login';
 
 // ===== HELPERS =====
@@ -181,6 +181,95 @@ function applyBranding() {
   translateDom(document.body);
 }
 
+// ===== MITTEILIGE =====
+const isiOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const standalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+function pushState() {
+  if (!VAPID_KEY) return 'no-key';
+  if (isiOS() && !standalone()) return 'need-install';
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return 'unsupported';
+  return Notification.permission === 'granted' ? (ui.pushOn ? 'granted' : 'off')
+    : Notification.permission === 'denied' ? 'denied' : 'default';
+}
+function renderPush() {
+  const sec = $('push-sec'), list = $('push-list');
+  if (!sec || !list) return;
+  const st = pushState();
+  if (st === 'no-key') { sec.hidden = true; const c = $('push-cta'); if (c) { c.hidden = true; c.innerHTML = ''; } return; }
+  sec.hidden = false;
+  const T2 = {
+    unsupported: ['Mitteilige', 'Dä Browser cha kei Mitteilige', null],
+    'need-install': ['Mitteilige', 'Leg d\'App zerscht uf dr Homebildschirm', null],
+    denied: ['Mitteilige', 'Blockiert – i de Handy-Iistellige erlaube', null],
+    default: ['Erinnerig bi jedem Spiel', 'Bi neue Spiel und vor em Tipp-Stopp', 'Iischalte'],
+    off: ['Erinnerig bi jedem Spiel', 'Bi neue Spiel und vor em Tipp-Stopp', 'Iischalte'],
+    granted: ['Erinnerig bi jedem Spiel', 'Isch iigschaltet', 'Uusschalte']
+  }[st];
+  const on = st === 'granted';
+  list.innerHTML = `<li><div class="row">
+    <span class="tile${on ? '' : ' t-grey'}">${icon(on ? 'check' : 'clock')}</span>
+    <div class="row-main"><div class="row-t">${T2[0]}</div><div class="row-s">${T2[1]}</div></div>
+    ${T2[2] ? `<button class="btn-secondary btn-small" data-push="${on ? 'off' : 'on'}">${T2[2]}</button>` : ''}
+  </div></li>`;
+  const b = list.querySelector('[data-push]');
+  if (b) b.addEventListener('click', () => togglePush(b.dataset.push === 'on'));
+  renderPushCta(st);
+}
+
+// Hiiwis uf dr Startsiite – dass jede d'Mitteilige findet, ohni im Profil z'sueche
+const CTA_HIDE = 'gott_push_cta_hide';
+function ctaHidden() {
+  try { return Date.now() < Number(localStorage.getItem(CTA_HIDE) || 0); } catch (e) { return false; }
+}
+function renderPushCta(st) {
+  const box = $('push-cta'); if (!box) return;
+  const show = (st === 'default' || st === 'off' || st === 'need-install') && !ctaHidden();
+  box.hidden = !show;
+  if (!show) { box.innerHTML = ''; return; }
+  const install = st === 'need-install';
+  box.innerHTML = `<div class="cta-push">
+    ${icon(install ? 'home' : 'clock')}
+    <div class="cta-push-t">Kei Spiel meh verpasse</div>
+    <button class="cta-push-x" data-cta="hide" aria-label="Uusblände">${icon('x')}</button>
+    <div class="cta-push-s">${install
+      ? 'Leg d\'App uf dr Homebildschirm, denn chasch d\'Erinnerig iischalte.'
+      : 'Bi neue Spiel und vor em Tipp-Stopp.'}</div>
+    ${install
+      ? `<button class="cta-push-b" data-cta="how">So gaht's</button>`
+      : `<button class="cta-push-b" data-cta="on">Iischalte</button>`}
+  </div>`;
+  box.querySelectorAll('[data-cta]').forEach(el => el.addEventListener('click', () => {
+    const a = el.dataset.cta;
+    if (a === 'on') togglePush(true);
+    else if (a === 'how') { window.showView('profil'); setTimeout(() => { const s = $('install-block'); s && s.scrollIntoView({ block: 'center' }); }, 60); }
+    else { try { localStorage.setItem(CTA_HIDE, String(Date.now() + 14 * 86400000)); } catch (e) {} renderPush(); }
+  }));
+}
+async function togglePush(turnOn) {
+  try {
+    const m = await import('./push.js');
+    if (turnOn) {
+      const r = await m.enablePush(app, db, state.user, GROUP.id);
+      if (r === 'granted') { ui.pushOn = true; toast('Mitteilige iigschaltet'); }
+      else if (r === 'denied') toast('Blockiert – i de Handy-Iistellige erlaube');
+      else if (r === 'unsupported') toast('Dä Browser cha kei Mitteilige');
+      else toast('Het nid klappt. Nomal probiere.');
+    } else {
+      await m.disablePush(app, db);
+      ui.pushOn = false; toast('Mitteilige uusgschaltet');
+    }
+  } catch (e) { toast(T('Fehler: ') + e.message); }
+  renderPush();
+}
+// Bim Starte: wenn d'Erlaubnis scho da isch, dr Token uffrische
+async function initPush() {
+  if (!VAPID_KEY || !state.user) return;
+  try { ui.pushOn = !!localStorage.getItem('gott_push_token'); } catch (e) {}
+  if (!('Notification' in window) || Notification.permission !== 'granted' || !ui.pushOn) return;
+  try { const m = await import('./push.js'); await m.refreshPush(app, db, state.user, GROUP.id); }
+  catch (e) { console.warn('push init:', e.message); }
+}
+
 // Umschalter im Profil – nume für Lüt, wo scho i beide Gruppe gsi sy
 function renderGroupSwitch() {
   const sec = $('group-sec'), list = $('group-list');
@@ -269,6 +358,7 @@ onAuthStateChanged(auth, user => {
       const want = (location.hash || '').replace('#', '');
       window.showView && window.showView(['tipps', 'rangliste', 'kasse', 'profil', 'admin'].includes(want) ? want : 'home');
       startSubs();
+      initPush();
     } else {
       $('auth-overlay').style.display = 'flex';
       $('app-content').style.display = 'none';
@@ -542,6 +632,7 @@ function render() {
     renderProfil();
     if (state.isAdmin) renderAdmin(up, done);
     renderGroupSwitch();
+    renderPush();
     translateDom($('app-content'));
   } catch (e) { console.error('Render error:', e); }
 }
