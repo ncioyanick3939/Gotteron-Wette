@@ -15,6 +15,13 @@ export const ADMIN_EMAIL = "nicoruettimann@gmx.ch";
 // Wieviel Franke choschtet eini Wett
 export const BET_COST = 2;
 
+// ===== MITTEILIGE =====
+// Dr öffentlich Schlüssel für d'Push-Mitteilige.
+// Firebase-Konsole → Projekt-Iistellige → Cloud Messaging →
+// «Web Push certificates» → «Schlüsselpaar generieren» → dä Schlüssel do ineklebe.
+// So lang das leer isch, isch d'Zile «Mitteilige» im Profil nid sichtbar.
+export const VAPID_KEY = "BNP-1ayBCtB3sYZw_WXw9Rk1275r57tuPYRXqoDmD_UaJvebYKbDO1tgwRuUCx05B0S2KS48vbGc3SbdT1WECqA";
+
 // ===== GRUPPE =====
 // Jedi Gruppe het ihri eigene Spiel, Tipps, Jackpot, Rangliste und Bierkässeli.
 // Si gseh enand nie. Zuegang über dr Link:
